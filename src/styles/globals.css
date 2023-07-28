@@ -1,3 +1,17 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+    .letter-block {
+        @apply border-x;
+        &.isTyped {
+            @apply bg-blue-400
+        }
+    }
+    .player-input {
+        &.guess-correct {
+            @apply text-green-400
+        }
+    }
+}
