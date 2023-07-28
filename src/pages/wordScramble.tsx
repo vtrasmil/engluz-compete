@@ -95,45 +95,8 @@ function Puzzle({solutions}: PuzzleProps) {
         setBlocksTypedIndices([]);
     }
 
-    // useEffect(() => {
-    //     const options = {}
-    //     document.addEventListener('keydown', handleKeyDown);
-    //     return () => {
-    //         document.removeEventListener('keydown', handleKeyDown);
-    //     };
-    //     // TODO: only updates when a letter has been typed.
-    // }, [blocksTypedIndices]);
-
-
-    // const handleKeyDown = (e: KeyboardEvent) => {
-        
-    //     if (inputtableLetters.includes(e.key)) {
-    //         handleTypeLetter(e.key);
-    //         return;
-    //     }
-    //     switch (e.key) {
-    //         case 'Backspace':
-    //             handleDeleteLetter();
-    //             break;
-    //         default: 
-                
-    //     }
-    // };
-
-    // const keyDownEvent = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    //     console.log(event.code);
-    //     event.stopPropagation();
-    //     if (event.code === "Backspace") {
-    //         handleDeleteLetter();
-    //     }
-        
-    // };
-    
-
     return (
         <div>
-        {/* <div tabIndex={0} onKeyDown={keyDownEvent}> */}
-            {/* <SolutionText solution={solution} hidden={isSolutionHidden} /> */}
             <div className="flex">
                 <BackspaceButton onClick={handleDeleteLetter} />
                 <ClearButton onClick={handleClearLetters} />
