@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Puzzle, UIPanel } from './wordScramble.tsx'
-import { set } from 'zod';
+import { Puzzle } from './wordScramble.tsx'
+import UIPanel from './ui.tsx';
 
 interface WordListManagerProps {
     children?: React.ReactNode
