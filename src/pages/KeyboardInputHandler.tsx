@@ -4,13 +4,17 @@ const inputtableLetters = ['r', 'e', 's', 'i', 't'];
 
 interface KeyboardInputHandlerProps {
     onDeleteLetter: () => void,
+    onClearLetter: () => void;
     onTypeLetter: (arg0: string) => void,
-    guess: string
+    guess: string,
     puzzleLetters: string[]
 }
 
 
-export default function KeyboardInputHandler({ guess, onDeleteLetter, onTypeLetter, puzzleLetters }: KeyboardInputHandlerProps) {
+export default function KeyboardInputHandler({
+    guess, onDeleteLetter, onTypeLetter, puzzleLetters,
+    onClearLetter
+}: KeyboardInputHandlerProps) {
     const [lastEvent, setLastEvent] = useState<KeyboardEvent>();
     // console.log('KeyboardInputHandler render: ' + lastEvent?.key);
 
@@ -24,6 +28,9 @@ export default function KeyboardInputHandler({ guess, onDeleteLetter, onTypeLett
                 case 'Backspace':
                     onDeleteLetter();
                     break;
+                case 'Escape':
+                    onClearLetter();
+                    break;
                 default: 
                     
             }
@@ -31,14 +38,12 @@ export default function KeyboardInputHandler({ guess, onDeleteLetter, onTypeLett
         };
             
         document.addEventListener('keydown', handleKeyDown);
-        // console.log('add listener')
         return () => {
             document.removeEventListener('keydown', handleKeyDown);
-            // console.log('remove listener')
         };
     }, [guess, puzzleLetters]);
-
-    
     return <></>;
-    
 }
+
+
+
