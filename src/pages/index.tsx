@@ -1,7 +1,7 @@
 import Head from "next/head";
 import Link from "next/link";
 import { api } from "~/utils/api";
-import WordScrambleGame from "./wordScramble";
+import WordScrambleGame from "~/components/wordScramble";
 import {
   setUseWhatChange,
 } from '@simbathesailor/use-what-changed';
