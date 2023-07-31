@@ -51,12 +51,7 @@ export function Puzzle({solutions, onCorrectGuess}: PuzzleProps) {
 
     const lettersTyped = (() => {
         return blocksTypedIndexes.map((i): string => {
-            const letterBlock = letterBlocks[i];
-            if (letterBlock == null) {
-                throw new Error('LetterBlock is undefined')
-            } else {
-                return letterBlock;
-            }
+            return getLetterBlock(i);
         }).join('');
     })();
 
@@ -67,15 +62,18 @@ export function Puzzle({solutions, onCorrectGuess}: PuzzleProps) {
         setLetterBlocks(firstSolutionScrambled);
     }, [solutions]);
 
-    
+    function getLetterBlock(index: number) {
+        const block = letterBlocks[index];
+        if (block == undefined) throw new Error('LetterBlock is undefined');
+        return block;
+    }
     
 
     
     function handleEnterLetter(index: number) {
         if (blocksTypedIndexes.includes(index)) return;
         setBlocksTypedIndexes ([...blocksTypedIndexes, index]);
-        // console.log(`Pressed ${letterBlocks[index]}. Letter # ${blocksTypedIndices.length}.`);
-        if (solutions.includes(lettersTyped + letterBlocks[index])) {
+        if (solutions.includes(lettersTyped + getLetterBlock(index))) {
             onCorrectGuess();
             setBlocksTypedIndexes([]);
             setLetterBlocks([]);
@@ -106,10 +104,6 @@ export function Puzzle({solutions, onCorrectGuess}: PuzzleProps) {
 
     function handleClearLetters() {
         setBlocksTypedIndexes([]);
-    }
-
-    function handleShuffle() {
-
     }
 
     
@@ -173,7 +167,7 @@ interface BlockProps {
 }
 
 function Block({ letter, isTyped, onBlockClick }: BlockProps) {
-    let classNames: string[] = ['letter-block'];
+    const classNames: string[] = ['letter-block'];
     if (isTyped) classNames.push('isTyped');
     const className = classNames.join(' ');
     
