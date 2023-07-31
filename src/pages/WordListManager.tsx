@@ -28,7 +28,7 @@ export default function WordListManager({ children }: WordListManagerProps) {
             throw new Error('No word found')
         }
         return wordSet;
-    };
+    }
 
     const currentSolutionSet = useRef(getSolutionSet(solutionSetIndex))
     
