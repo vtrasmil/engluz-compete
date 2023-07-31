@@ -3,8 +3,8 @@ import { type } from "os";
 import { array, object } from "zod";
 import { proseWrap } from "prettier.config.cjs";
 import { useEffect, useState } from "react";
-import { BackspaceButton, ClearButton } from './buttons.tsx';
-import { shuffleArrayCopy } from "./helpers.tsx";
+import BackspaceButton, { ClearButton } from './buttons.tsx';
+import shuffleArrayCopy from "./helpers.tsx";
 import KeyboardInputHandler from "./KeyboardInputHandler.tsx";
 import WordListManager from "./WordListManager.tsx";
 import {

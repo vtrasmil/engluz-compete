@@ -6,7 +6,7 @@ import { proseWrap } from "prettier.config.cjs";
 interface ButtonProps {
     onClick: () => void,
 }
-export function BackspaceButton({ onClick }: ButtonProps) {
+export default function BackspaceButton({ onClick }: ButtonProps) {
     return (
         <button onClick={onClick}>Backspace</button>
     )
