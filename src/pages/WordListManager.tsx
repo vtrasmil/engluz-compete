@@ -30,7 +30,7 @@ export default function WordListManager({ children }: WordListManagerProps) {
         return wordSet;
     };
 
-    let currentSolutionSet = useRef(getSolutionSet(solutionSetIndex));
+    const currentSolutionSet = useRef(getSolutionSet(solutionSetIndex))
     
     
     function handleCorrectGuess() {

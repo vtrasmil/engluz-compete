@@ -58,7 +58,7 @@ export function Puzzle({solutions, onCorrectGuess}: PuzzleProps) {
     
 
     useEffect(() => {
-        const firstSolutionScrambled = shuffleArrayCopy([...firstSolution]) as string[];
+        const firstSolutionScrambled = shuffleArrayCopy([...firstSolution]);
         setLetterBlocks(firstSolutionScrambled);
     }, [solutions]);
 
@@ -117,7 +117,7 @@ export function Puzzle({solutions, onCorrectGuess}: PuzzleProps) {
             <LetterBlocks>
                 {[...letterBlocks].map((block, index) => 
                     <Block id={index} letter={block} isTyped={blocksTypedIndexes.includes(index)}
-                        onBlockClick={() => handleEnterLetter(index)} key={block+index}
+                        onBlockClick={() => handleEnterLetter(index)} key={block+index.toString()}
                         
                     
                     />
