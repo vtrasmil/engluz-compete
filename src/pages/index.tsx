@@ -2,6 +2,12 @@ import Head from "next/head";
 import Link from "next/link";
 import { api } from "~/utils/api";
 import WordScrambleGame from "./wordScramble";
+import {
+  setUseWhatChange,
+} from '@simbathesailor/use-what-changed';
+
+setUseWhatChange(process.env.NODE_ENV === 'development');
+
 
 export default function Home() {
   const hello = api.example.hello.useQuery({ text: "from tRPC" });

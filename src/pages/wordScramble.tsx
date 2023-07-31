@@ -7,6 +7,9 @@ import { BackspaceButton, ClearButton } from './buttons.tsx';
 import { shuffleArrayCopy } from "./helpers.tsx";
 import KeyboardInputHandler from "./KeyboardInputHandler.tsx";
 import WordListManager from "./WordListManager.tsx";
+import {
+  useWhatChanged,
+} from '@simbathesailor/use-what-changed';
 
 
 

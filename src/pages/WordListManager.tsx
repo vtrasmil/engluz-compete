@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Puzzle } from './wordScramble.tsx'
 import UIPanel from './ui.tsx';
 
@@ -8,7 +8,7 @@ interface WordListManagerProps {
 
 export default function WordListManager({ children }: WordListManagerProps) {
     
-    const [currentWordSetIndex, setCurrentWordSetIndex] = useState(0);
+    const [solutionSetIndex, setSolutionSetIndex] = useState(0);
     
     const wordList = {
         data: [
@@ -22,22 +22,25 @@ export default function WordListManager({ children }: WordListManagerProps) {
             ["plains", "spinal"],
         ]
     };
-    const currentWordSet = (() => {
-        const wordSet = wordList.data[currentWordSetIndex];
+    function getSolutionSet(index: number) {
+        const wordSet = wordList.data[index];
         if (wordSet == undefined) {
             throw new Error('No word found')
         }
         return wordSet;
-    })();
+    };
+
+    let currentSolutionSet = useRef(getSolutionSet(solutionSetIndex));
     
     
     function handleCorrectGuess() {
-        setCurrentWordSetIndex(currentWordSetIndex + 1);        
+        setSolutionSetIndex(solutionSetIndex + 1);  
+        currentSolutionSet.current = getSolutionSet(solutionSetIndex + 1);
     }
 
     return (
         <>
-            <Puzzle solutions={currentWordSet} onCorrectGuess={handleCorrectGuess} />
+            <Puzzle solutions={currentSolutionSet.current} onCorrectGuess={handleCorrectGuess} />
             <UIPanel />
         </>  
     );
