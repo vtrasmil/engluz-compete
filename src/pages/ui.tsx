@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export function UIPanel() {
+export default function UIPanel() {
     return (
         <CountDownTimer/>    
     );
