@@ -10,6 +10,7 @@ import WordListManager from "./WordListManager.tsx";
 import {
   useWhatChanged,
 } from '@simbathesailor/use-what-changed';
+import { api } from "~/utils/api.ts";
 
 
 
@@ -46,7 +47,7 @@ export function Puzzle({solutions, onCorrectGuess}: PuzzleProps) {
     
     const [letterBlocks, setLetterBlocks] = useState<string[]>([]);
     const [blocksTypedIndexes, setBlocksTypedIndexes] = useState<number[]>([]);
-
+    const playerGuessesMutation = api.example.playerGuessesCorrectly.useMutation();
     
 
     const lettersTyped = (() => {
@@ -78,6 +79,7 @@ export function Puzzle({solutions, onCorrectGuess}: PuzzleProps) {
             setBlocksTypedIndexes([]);
             setLetterBlocks([]);
         }
+        playerGuessesMutation.mutate();
 
     }
 
