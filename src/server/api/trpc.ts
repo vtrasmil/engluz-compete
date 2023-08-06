@@ -11,7 +11,7 @@ import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 import superjson from "superjson";
 import { ZodError } from "zod";
 import { prisma } from "~/server/db";
-import { redis } from '~/server/redis/client';
+import { kv } from "@vercel/kv";
 
 /**
  * 1. CONTEXT
@@ -38,7 +38,7 @@ const createInnerTRPCContext = (_opts: CreateContextOptions) => {
   
   return {
     prisma,
-    redis,
+    kv,
   };
 };
 

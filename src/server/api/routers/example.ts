@@ -1,3 +1,4 @@
+import { kv } from "@vercel/kv";
 import { z } from "zod";
 import getAblyClient from "~/server/ably/client";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
@@ -43,20 +44,20 @@ export const exampleRouter = createTRPCRouter({
     .mutation(async (opts) => {
       const { input } = opts;
       let numLettersPressed: number;
-      if (!await opts.ctx.redis.exists('numLettersPressed')) {
-        await opts.ctx.redis.set('numLettersPressed', 1);
+      if (!await opts.ctx.kv.exists('numLettersPressed')) {
+        await opts.ctx.kv.set('numLettersPressed', 1);
 
       } else {
         // exists
         // check for null, NaN
-        numLettersPressed = Number(await opts.ctx.redis.get('numLettersPressed'));
+        numLettersPressed = Number(await opts.ctx.kv.get('numLettersPressed'));
         if ([null, NaN].includes(numLettersPressed)) {
-          await opts.ctx.redis.set('numLettersPressed', 1);
+          await opts.ctx.kv.set('numLettersPressed', 1);
         } else {
-          await opts.ctx.redis.set('numLettersPressed', numLettersPressed + 1);
+          await opts.ctx.kv.set('numLettersPressed', numLettersPressed + 1);
         }
       }
-      console.log(`numLettersPressed: ${Number(await opts.ctx.redis.get('numLettersPressed'))}`); 
+      console.log(`numLettersPressed: ${Number(await opts.ctx.kv.get('numLettersPressed'))}`); 
       
       
 
@@ -71,5 +72,10 @@ export const exampleRouter = createTRPCRouter({
     }),
 
 });
+
+export async function kvTest() {
+    await kv.set("user_1_session", "session_token_value");
+    const session = await kv.get("user_1_session");
+}
 
 

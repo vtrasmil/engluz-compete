@@ -5,7 +5,7 @@ import WordScrambleGame from "~/components/wordScramble";
 import {
   setUseWhatChange,
 } from '@simbathesailor/use-what-changed';
-import redisTest, { ablyTest } from  '~/server/redis/test';
+import { ablyTest, kvTest } from  '~/server/redis/test';
 
 setUseWhatChange(process.env.NODE_ENV === 'development');
 
@@ -13,6 +13,7 @@ setUseWhatChange(process.env.NODE_ENV === 'development');
 export default function Home() {
   // const hello = api.example.hello.useQuery({ text: "from tRPC" });
   // const authorized = api.example.authorize.useQuery();
+  
   
 
   return (
