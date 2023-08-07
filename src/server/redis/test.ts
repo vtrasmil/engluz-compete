@@ -6,7 +6,7 @@ export async function ablyTest() {
     // get the channel to subscribe to
     const channel = ably.channels.get('quickstart');
     await channel.subscribe('greeting', (message) => {
-        console.log('Received a greeting message in realtime: ' + message.data)
+        console.log('Received a greeting message in realtime: ' + message.data.toString())
     });
     await channel.publish('greeting', 'hello!');
 }
