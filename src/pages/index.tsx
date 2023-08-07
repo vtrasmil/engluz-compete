@@ -5,16 +5,16 @@ import WordScrambleGame from "~/components/wordScramble";
 import {
   setUseWhatChange,
 } from '@simbathesailor/use-what-changed';
-import { ablyTest, kvTest } from  '~/server/redis/test';
 
 setUseWhatChange(process.env.NODE_ENV === 'development');
 
 
 export default function Home() {
-  // const hello = api.example.hello.useQuery({ text: "from tRPC" });
-  // const authorized = api.example.authorize.useQuery();
   
   
+  
+  
+    const authorized = api.example.authorize.useQuery();
 
   return (
     <>
@@ -25,8 +25,25 @@ export default function Home() {
       </Head>
       
       <WordScrambleGame />
+      
+      
+
+
     </>
+    
   );
+
+    
+  // if (authorized.data == undefined) {
+  //   return <div>Authorizing...</div>
+  // } 
+
+  // return (
+  //   <>
+      
+      
+  //   </>
+  // );
 }
 
 

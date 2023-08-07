@@ -1,44 +1,53 @@
+import { TRPCError } from "@trpc/server";
 import { kv } from "@vercel/kv";
+import { Types } from "ably";
 import { z } from "zod";
 import getAblyClient from "~/server/ably/client";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 
-let totalPlayers = 4;
+const totalPlayers = 4;
 
 const uniqueId = function () {
-    return "id-" + totalPlayers + Math.random().toString(36).substring(2, 16);
+    return "id-" + totalPlayers.toString() + Math.random().toString(36).substring(2, 16);
 };
+
+
+
 
 export const exampleRouter = createTRPCRouter({
   hello: publicProcedure
-    .input(z.object({ text: z.string() }))
-    .query(({ input }) => {
-      // ablyTest();
+    // using zod schema to validate and infer input values
+    .input(
+      z
+        .object({
+          text: z.string().nullish(),
+        })
+        .nullish(),
+    )
+    .query((opts) => {
       return {
-        greeting: `Hello ${input.text}`,
+        greeting: `hello ${opts.input?.text ?? 'world'}`,
       };
     }),
-  getAll: publicProcedure.query(({ ctx }) => {
-      return ctx.prisma.example.findMany();  
-  }),
-  authorize: publicProcedure.query(() => {
-    const ably = getAblyClient(); // need to await
-    const tokenParams = { clientId: uniqueId() };
-    
-    let totalPlayers = 0;
-
-    
-    // ably.auth.createTokenRequest(tokenParams, (err, tokenRequest) => {
-    //     if (err) {
-    //       response
-    //           .status(500)
-    //           .send("Error requesting token: " + JSON.stringify(err));
-    //     } else {
-    //       response.setHeader("Content-Type", "application/json");
-    //       response.send(JSON.stringify(tokenRequest));
-    //     }
-    // });
-  }),
+  
+  authorize: publicProcedure
+    .query(({ ctx }) => {
+      const tokenParams = { clientId: uniqueId() };   
+      const tokenRequest = ctx.ably.auth.createTokenRequest(tokenParams);
+      return tokenRequest.then(
+        (req) => {
+          // response.setHeader("Content-Type", "application/json");
+          console.log(`User authenticated with id: ${tokenParams.clientId}`);
+          return req;
+        },
+        (err: Types.ErrorInfo) => {
+          throw new TRPCError({
+            message: "Error requesting token: " + JSON.stringify(err),
+            code: "INTERNAL_SERVER_ERROR"
+          });
+      });
+    }),
+      
   playerGuessesCorrectly: publicProcedure
     // .input(z.string())
     .mutation(async (opts) => {
@@ -72,6 +81,8 @@ export const exampleRouter = createTRPCRouter({
     }),
 
 });
+
+// exampleRouter.authorize.contentType = 'application/json';
 
 export async function kvTest() {
     await kv.set("user_1_session", "session_token_value");
