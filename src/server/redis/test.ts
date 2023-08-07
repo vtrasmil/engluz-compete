@@ -2,7 +2,7 @@ import getAblyClient from '../ably/client.js'
 import { kv } from "@vercel/kv";
 
 export async function ablyTest() {
-    const ably = await getAblyClient();
+    const ably = getAblyClient();
     // get the channel to subscribe to
     const channel = ably.channels.get('quickstart');
     await channel.subscribe('greeting', (message) => {
