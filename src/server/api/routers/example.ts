@@ -5,11 +5,10 @@ import { z } from "zod";
 import getAblyClient from "~/server/ably/client";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 
+
 const totalPlayers = 4;
 
-const uniqueId = function () {
-    return "id-" + totalPlayers.toString() + Math.random().toString(36).substring(2, 16);
-};
+
 
 
 
@@ -31,13 +30,21 @@ export const exampleRouter = createTRPCRouter({
     }),
   
   authorize: publicProcedure
-    .query(({ ctx }) => {
-      const tokenParams = { clientId: uniqueId() };   
-      const tokenRequest = ctx.ably.auth.createTokenRequest(tokenParams);
+    .input(z.object({
+      userId: z.string()
+    }))
+    .query((opts) => {
+      
+      const userId = opts.input.userId;
+
+      
+      const tokenParams = { clientId: userId };   
+      const tokenRequest = opts.ctx.ably.auth.createTokenRequest(tokenParams);
+      
       return tokenRequest.then(
         (req) => {
           // response.setHeader("Content-Type", "application/json");
-          console.log(`User authenticated with id: ${tokenParams.clientId}`);
+          console.log(`User authenticated with id: ${userId}`);
           return req;
         },
         (err: Types.ErrorInfo) => {
@@ -47,35 +54,18 @@ export const exampleRouter = createTRPCRouter({
           });
       });
     }),
+  
       
   playerGuessesCorrectly: publicProcedure
-    // .input(z.string())
+    .input(z.object({'userId': z.string()}))
     .mutation(async (opts) => {
-      const { input } = opts;
-      let numLettersPressed: number;
-      if (!await opts.ctx.kv.exists('numLettersPressed')) {
-        await opts.ctx.kv.set('numLettersPressed', 1);
-
-      } else {
-        // exists
-        // check for null, NaN
-        numLettersPressed = Number(await opts.ctx.kv.get('numLettersPressed'));
-        if ([null, NaN].includes(numLettersPressed)) {
-          await opts.ctx.kv.set('numLettersPressed', 1);
-        } else {
-          await opts.ctx.kv.set('numLettersPressed', numLettersPressed + 1);
-        }
+      const { userId } = opts.input;
+      if (userId == null) {
+        throw new TRPCError({ message: `No userId found`, code: "BAD_REQUEST" });
       }
-      console.log(`numLettersPressed: ${Number(await opts.ctx.kv.get('numLettersPressed'))}`); 
+      opts.ctx.kv.incr(`${userId}-score`);
       
       
-
-      
-      
-      return {
-        message: 'mutation complete',
-      }
-      // add a point
       
       
     }),

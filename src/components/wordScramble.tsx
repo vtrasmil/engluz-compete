@@ -8,9 +8,13 @@ import shuffleArrayCopy from "./helpers.tsx";
 import KeyboardInputHandler from "./KeyboardInputHandler.tsx";
 import WordListManager from "./WordListManager.tsx";
 import {
-  useWhatChanged,
+    useWhatChanged,
 } from '@simbathesailor/use-what-changed';
 import { api } from "~/utils/api.ts";
+import { useContext } from 'react';
+import { useChannel } from "@ably-labs/react-hooks";
+import { useUserIdContext } from "./useUserIdContext.tsx";
+import { Button } from "@mui/material";
 
 
 
@@ -19,7 +23,7 @@ export default function WordScrambleGame() {
 
 
     
-
+    
 
     
     return (
@@ -34,20 +38,27 @@ export default function WordScrambleGame() {
     
 }
 
+
+
 interface PuzzleProps {
     solutions: string[],
     onCorrectGuess: () => void,
 }
 
 export function Puzzle({solutions, onCorrectGuess}: PuzzleProps) {
+    const userId = useUserIdContext();
+    if (userId == undefined) {
+        throw new Error("No userId found");
+    }
     const firstSolution = solutions[0];
-    if (typeof firstSolution == 'undefined') {
+    if (firstSolution == undefined) {
         throw new Error("No solutions specified");
     }
     
     const [letterBlocks, setLetterBlocks] = useState<string[]>([]);
     const [blocksTypedIndexes, setBlocksTypedIndexes] = useState<number[]>([]);
-    const playerGuessesMutation = api.example.playerGuessesCorrectly.useMutation();
+    const correctGuessMutation = api.example.playerGuessesCorrectly.useMutation();
+    // const channel = useChannel()
     
 
     const lettersTyped = (() => {
@@ -76,11 +87,13 @@ export function Puzzle({solutions, onCorrectGuess}: PuzzleProps) {
         setBlocksTypedIndexes ([...blocksTypedIndexes, index]);
         if (solutions.includes(lettersTyped + getLetterBlock(index))) {
             onCorrectGuess();
+            if (userId != undefined)
+                correctGuessMutation.mutate({'userId': userId});
             setBlocksTypedIndexes([]);
             setLetterBlocks([]);
+            
         }
-        playerGuessesMutation.mutate();
-
+    
     }
 
     function handleTypeLetter(s: string) {
@@ -113,15 +126,13 @@ export function Puzzle({solutions, onCorrectGuess}: PuzzleProps) {
     return (
         <div>
             <div className="flex">
-                <BackspaceButton onClick={handleDeleteLetter} />
-                <ClearButton onClick={handleClearLetters} />
+                <Button variant="contained" onClick={handleDeleteLetter}>Delete</Button>
+                <Button variant="outlined" onClick={handleClearLetters}>Clear</Button>
             </div>
             <LetterBlocks>
                 {[...letterBlocks].map((block, index) => 
                     <Block id={index} letter={block} isTyped={blocksTypedIndexes.includes(index)}
                         onBlockClick={() => handleEnterLetter(index)} key={block+index.toString()}
-                        
-                    
                     />
                 )}
             </LetterBlocks>
@@ -173,7 +184,8 @@ function Block({ letter, isTyped, onBlockClick }: BlockProps) {
     if (isTyped) classNames.push('isTyped');
     const className = classNames.join(' ');
     
-    return <button
+    return <Button
+        variant="outlined"
         className={className}
         onClick={onBlockClick}
         style={{
@@ -182,7 +194,7 @@ function Block({ letter, isTyped, onBlockClick }: BlockProps) {
         }}
     >
         {letter.toUpperCase()}
-    </button>;
+    </Button>;
     
 }
 
