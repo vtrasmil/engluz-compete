@@ -1,14 +1,45 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useTimer } from "react-use-precision-timer";
+import { useCallback } from "react";
 
-export default function UIPanel() {
-    return (
-        <CountDownTimer/>    
-    );
+interface UIPanelProps {
+    round: number,
+    totalRounds: number,
+    duration: number,
 }
 
-function CountDownTimer() {
+
+
+
+interface CountDownTimerProps {
+    round: number,
+    duration: number,
+    onTimeUp: () => void,
+}
+export function CountDownTimer({ round, duration, onTimeUp }: CountDownTimerProps) {
+    const timerCallbackEvery = 1;
+    const timer = useTimer({ delay: timerCallbackEvery * 1000, startImmediately: true }, updateTimerVisual);
+    const [timeLeft, setTimeLeft] = useState(duration);
+
+    
+    
+    function updateTimerVisual() {
+        const newTimeLeft = timeLeft - timerCallbackEvery;
+        setTimeLeft(newTimeLeft);
+        if (newTimeLeft <= 0) {
+            setTimeLeft(duration);
+            onTimeUp();
+        }
+    }
+
+    useEffect(() => {
+        
+        timer.start;
+    }, [round]);
+    
+
     return <div>
-        60
+        {timeLeft}
     </div>
 }
 

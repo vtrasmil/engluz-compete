@@ -1,23 +1,25 @@
 import Head from "next/head";
 import Link from "next/link";
 import { api } from "~/utils/api";
-import WordScrambleGame from "~/components/wordScramble";
+
 import {
   setUseWhatChange,
 } from '@simbathesailor/use-what-changed';
-import { useContext, PropsWithChildren, useEffect, useState, FormEvent, ChangeEvent, ChangeEventHandler, ReactNode } from "react";
+import { useContext, PropsWithChildren, useEffect, useState, FormEvent, ChangeEvent, ChangeEventHandler, ReactNode, useSyncExternalStore } from "react";
 import { uniqueId } from "~/utils/helpers";
 import { useUserIdContext } from "~/components/useUserIdContext";
 import { Input, Button } from "@mui/material";
-
+import { string } from "zod";
+import { useSessionStorage } from "usehooks-ts";
+import { useIsClient } from "~/components/customHooks";
+import GameManager from "~/components/GameManager";
 
 
 setUseWhatChange(process.env.NODE_ENV === 'development');
 
 
 export default function Home() {
-  const [roomCode, setRoomCode] = useState<string | undefined>();
-  const [correctRoomCodeSubmitted, setCorrectRoomCodeSubmitted] = useState(false);
+  
 
   
   const userId = useUserIdContext();
@@ -25,14 +27,7 @@ export default function Home() {
     const authorized = api.example.authorize.useQuery({ userId: userId });
   }
 
-  function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    roomCode === 'PLAY' && setCorrectRoomCodeSubmitted(true);
-  }
-
-  function handleChange(e: ChangeEvent<HTMLInputElement>) {
-    setRoomCode(e.target.value);
-  }
+  
 
   return (
     <>
@@ -50,16 +45,56 @@ export default function Home() {
         />
         <meta name="viewport" content="initial-scale=1, width=device-width" />
       </Head>
-      {correctRoomCodeSubmitted ?
-        <WordScrambleGame />
+      
+      <main className="flex justify-center h-screen">
+          <div className="flex flex-col h-full w-full md:max-w-2xl mt-52">
+            <Lobby />
+          </div>
+      </main>
+      
+    </>
+  );
+}
+
+function Lobby() {
+  const isClient = useIsClient(); // to avoid sessionStorage-related hydration errors
+  const [roomCode, setRoomCode] = useState('');
+  const [savedRoomCode, setSavedRoomCode] = useSessionStorage('roomCode', '');
+  const validRoomCodes = ['PLAY', 'play'];
+
+  if (!isClient) {
+    return null;
+  }
+
+  const isCorrectRoomCodeSaved =
+    (typeof savedRoomCode === 'string' && validRoomCodes.includes(savedRoomCode)) ? true : false;
+
+  function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    if (validRoomCodes.includes(roomCode)) {
+      console.log('CORRECT');
+      setSavedRoomCode(roomCode);
+    }
+  }
+
+  
+
+  function handleChange(e: ChangeEvent<HTMLInputElement>) {
+    setRoomCode(e.target.value);
+  }
+
+  return (
+    <>
+    {isCorrectRoomCodeSaved ?
+        <GameManager />
         :
-        <form onSubmit={handleSubmit}>
-          <Input onChange={handleChange} placeholder="enter room code" />
-          <Button>Start</Button>
+        <form className="flex flex-row" onSubmit={handleSubmit}>
+          <Input className="flex-1" onChange={handleChange} placeholder="enter room code" autoFocus={true} />
+          <Button className="flex-1" onClick={handleSubmit}>Start</Button>
         </form>
       }
     </>
-  );
+  )
 }
 
 

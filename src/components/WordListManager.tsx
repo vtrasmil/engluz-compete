@@ -1,12 +1,17 @@
 import { useRef, useState } from 'react';
 import { Puzzle } from './wordScramble.tsx'
-import UIPanel from './ui.tsx';
+import { CountDownTimer } from './ui.tsx';
+import { number } from 'zod';
+
 
 interface WordListManagerProps {
-    children?: React.ReactNode
+    onNextRound: () => void
+    round: number,
+    totalRounds: number,
+    duration: number,
 }
 
-export default function WordListManager({ children }: WordListManagerProps) {
+export default function WordListManager( { onNextRound, round, totalRounds, duration }: WordListManagerProps) {
     
     const [solutionSetIndex, setSolutionSetIndex] = useState(0);
     
@@ -25,7 +30,7 @@ export default function WordListManager({ children }: WordListManagerProps) {
     function getSolutionSet(index: number) {
         const wordSet = wordList.data[index];
         if (wordSet == undefined) {
-            throw new Error('No word found')
+            throw new Error('No word found in WordListManager')
         }
         return wordSet;
     }
@@ -34,14 +39,16 @@ export default function WordListManager({ children }: WordListManagerProps) {
     
     
     function handleCorrectGuess() {
-        setSolutionSetIndex(solutionSetIndex + 1);  
+        setSolutionSetIndex(i => i + 1);  
         currentSolutionSet.current = getSolutionSet(solutionSetIndex + 1);
+        onNextRound();
     }
 
     return (
-        <>
+        <>    
             <Puzzle solutions={currentSolutionSet.current} onCorrectGuess={handleCorrectGuess} />
-            <UIPanel />
+            <CountDownTimer round={round} duration={duration} onTimeUp={onNextRound} />    
+            <div>Round: {round}/{totalRounds}</div>
         </>  
     );
 }

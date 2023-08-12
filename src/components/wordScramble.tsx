@@ -15,28 +15,12 @@ import { useContext } from 'react';
 import { useChannel } from "@ably-labs/react-hooks";
 import { useUserIdContext } from "./useUserIdContext.tsx";
 import { Button } from "@mui/material";
+import GameManager from "./GameManager.tsx";
 
 
 
 
-export default function WordScrambleGame() {
 
-
-    
-    
-
-    
-    return (
-        <main className="flex justify-center h-screen">
-            <div className="flex flex-col h-full w-full border-x md:max-w-2xl mt-52">
-                <WordListManager />
-                
-            </div>
-        </main>
-    );
-
-    
-}
 
 
 
@@ -154,7 +138,6 @@ interface SolutionTextProps {
 }
 
 function SolutionText({ solution, hidden }: SolutionTextProps) {
-    
     if (hidden) return null;
     return solution;
 }

@@ -3,6 +3,8 @@ import { api } from "~/utils/api";
 import "~/styles/globals.css";
 import { UserIdProvider } from "~/components/useUserIdContext";
 import { uniqueId } from "~/utils/helpers";
+import { CssBaseline } from "@mui/material";
+
 
 import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
@@ -20,7 +22,9 @@ if (typeof window !== 'undefined') {
 const MyApp: AppType = ({ Component, pageProps }) => {
   return (
     <UserIdProvider userId={userId}>
-      <Component {...pageProps} />
+      <CssBaseline>
+        <Component {...pageProps} />
+      </CssBaseline>
     </UserIdProvider>
   )
 };
