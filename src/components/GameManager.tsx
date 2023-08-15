@@ -5,14 +5,12 @@ import GameOverModal from "./GameOverModal";
 
 export default function GameManager() {
     const [round, setRound] = useState(1);
-    const totalRounds = 3;
+    const totalRounds = 1;
     const duration = 10;
 
     function onNextRound() {
         const currRound = round + 1;
-        if (currRound <= totalRounds) {
-            setRound(currRound);
-        }
+        setRound(currRound);
     }
 
     return (

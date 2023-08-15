@@ -1,24 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 import { useTimer } from "react-use-precision-timer";
-import { useCallback } from "react";
 
-interface UIPanelProps {
-    round: number,
-    totalRounds: number,
-    duration: number,
-}
+
 
 
 
 
 interface CountDownTimerProps {
     round: number,
+    totalRounds: number,
     duration: number,
     onTimeUp: () => void,
 }
-export function CountDownTimer({ round, duration, onTimeUp }: CountDownTimerProps) {
+export function CountDownTimer({ round, totalRounds, duration, onTimeUp }: CountDownTimerProps) {
     const timerCallbackEvery = 1;
-    const timer = useTimer({ delay: timerCallbackEvery * 1000, startImmediately: true }, updateTimerVisual);
+    const timer = useTimer({ delay: timerCallbackEvery * 1000 }, updateTimerVisual);
     const [timeLeft, setTimeLeft] = useState(duration);
 
     
@@ -26,22 +22,30 @@ export function CountDownTimer({ round, duration, onTimeUp }: CountDownTimerProp
     function updateTimerVisual() {
         const newTimeLeft = timeLeft - timerCallbackEvery;
         setTimeLeft(newTimeLeft);
-        if (newTimeLeft <= 0) {
+        if (newTimeLeft <= 0 && round <= totalRounds) {
             setTimeLeft(duration);
             onTimeUp();
         }
     }
 
     useEffect(() => {
-        
-        timer.start;
+        if (round > totalRounds) {
+            timer.stop();
+        } else {
+            timer.start();
+            setTimeLeft(duration);
+        }
     }, [round]);
     
 
-    return <div>
-        {timeLeft}
-    </div>
+    return (
+        
+        <div>
+            Time left: {timeLeft}
+        </div >
+    )
 }
+        
 
 
 function HintButton() {

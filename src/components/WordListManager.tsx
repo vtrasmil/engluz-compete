@@ -47,8 +47,10 @@ export default function WordListManager( { onNextRound, round, totalRounds, dura
     return (
         <>    
             <Puzzle solutions={currentSolutionSet.current} onCorrectGuess={handleCorrectGuess} />
-            <CountDownTimer round={round} duration={duration} onTimeUp={onNextRound} />    
-            <div>Round: {round}/{totalRounds}</div>
+            <CountDownTimer round={round} totalRounds={totalRounds} duration={duration} onTimeUp={onNextRound} />    
+            {round <= totalRounds &&
+                <div>Round: {round}/{totalRounds}</div>
+            }
         </>  
     );
 }

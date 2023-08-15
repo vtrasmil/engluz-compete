@@ -4,6 +4,8 @@ import { Types } from "ably";
 import { z } from "zod";
 import getAblyClient from "~/server/ably/client";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import { getRandomSolutionSet } from "~/server/wordListManager";
+import { getRandomIntInclusive, uniqueId } from "~/utils/helpers";
 
 
 const totalPlayers = 4;
@@ -68,6 +70,38 @@ export const exampleRouter = createTRPCRouter({
       
       
       
+    }),
+  startGame: publicProcedure
+    .input(z.object({}))
+    .mutation(async (opts) => {
+      let gameId: string | undefined;
+      while (gameId == undefined) {
+        const newGameId = uniqueId();
+        const addMember = await opts.ctx.kv.sadd('games-played', newGameId);
+        if (addMember) gameId = newGameId;
+      }
+
+      // TODO: avoid words in other games this room has played
+      // get a fresh solution
+      let solutionSet;
+      while (solutionSet == undefined) {
+        const randomSolutionSet = getRandomSolutionSet();
+        const canonicalWord = randomSolutionSet[0];
+        const solutionIsFresh = !(await opts.ctx.kv.sismember(`game:${gameId}:words-used`, canonicalWord));
+        if (solutionIsFresh) solutionSet = randomSolutionSet;
+      }
+      
+
+      solutionSet.forEach(async (element) => {
+        await opts.ctx.kv.sadd(`game:${gameId}:current-puzzle`, element);
+        await opts.ctx.kv.sadd(`game:${gameId}:words-used`, element);
+      });
+      
+
+      
+
+
+
     }),
 
 });
