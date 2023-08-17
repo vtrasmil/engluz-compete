@@ -1,18 +1,10 @@
 import Head from "next/head";
-import Link from "next/link";
-import { api } from "~/utils/api";
-
 import {
   setUseWhatChange,
 } from '@simbathesailor/use-what-changed';
-import { useContext, PropsWithChildren, useEffect, useState, FormEvent, ChangeEvent, ChangeEventHandler, ReactNode, useSyncExternalStore } from "react";
-import { uniqueId } from "~/utils/helpers";
 import { useUserIdContext } from "~/components/useUserIdContext";
-import { Input, Button } from "@mui/material";
-import { string } from "zod";
-import { useSessionStorage } from "usehooks-ts";
-import { useIsClient } from "~/components/customHooks";
-import GameManager from "~/components/GameManager";
+
+import Lobby from "~/components/Lobby";
 
 
 setUseWhatChange(process.env.NODE_ENV === 'development');
@@ -24,7 +16,7 @@ export default function Home() {
   
   const userId = useUserIdContext();
   if (userId != undefined) {
-    const authorized = api.example.authorize.useQuery({ userId: userId });
+    // const authorized = api.example.authorize.useQuery({ userId: userId });
   }
 
   
@@ -55,48 +47,3 @@ export default function Home() {
     </>
   );
 }
-
-function Lobby() {
-  const isClient = useIsClient(); // to avoid sessionStorage-related hydration errors
-  const [roomCode, setRoomCode] = useState('');
-  const [savedRoomCode, setSavedRoomCode] = useSessionStorage('roomCode', '');
-  const validRoomCodes = ['PLAY', 'play'];
-
-  if (!isClient) {
-    return null;
-  }
-
-  const isCorrectRoomCodeSaved =
-    (typeof savedRoomCode === 'string' && validRoomCodes.includes(savedRoomCode)) ? true : false;
-
-  function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    if (validRoomCodes.includes(roomCode)) {
-      console.log('CORRECT');
-      setSavedRoomCode(roomCode);
-    }
-  }
-
-  
-
-  function handleChange(e: ChangeEvent<HTMLInputElement>) {
-    setRoomCode(e.target.value);
-  }
-
-  return (
-    <>
-    {isCorrectRoomCodeSaved ?
-        <GameManager />
-        :
-        <form className="flex flex-row" onSubmit={handleSubmit}>
-          <Input className="flex-1" onChange={handleChange} placeholder="enter room code" autoFocus={true} />
-          <Button className="flex-1" onClick={handleSubmit}>Start</Button>
-        </form>
-      }
-    </>
-  )
-}
-
-
-
-

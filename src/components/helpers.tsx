@@ -15,3 +15,25 @@ export default function shuffleArrayCopy<T>(array: T[]) : T[] {
     return newArray;
 }
 
+export function shuffleArrayJS<T>(array: T[]) {
+    return array
+        .map(value => ({ value, sort: Math.random() }))
+        .sort((a, b) => a.sort - b.sort)
+        .map(({ value }) => value);
+}
+
+export function shuffleString(str: string) {
+    return shuffleArrayJS<string>([...str])
+        .reduce((acc, curr) => acc + curr, '');
+
+    
+}
+
+export function generateRandomString(length: number = 4): string {
+    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    let result = "";
+    for (let i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return result;
+}

@@ -2,15 +2,21 @@ import { TRPCError } from "@trpc/server";
 import { kv } from "@vercel/kv";
 import { Types } from "ably";
 import { z } from "zod";
+import { generateRandomString } from "~/components/helpers";
 import getAblyClient from "~/server/ably/client";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import { boggleDice, getDiceRoll, getDiceRollAsString } from "~/server/diceManager";
 import { getRandomSolutionSet } from "~/server/wordListManager";
 import { getRandomIntInclusive, uniqueId } from "~/utils/helpers";
 
 
 const totalPlayers = 4;
 
+const RedisObjects = {
+  ActiveRoomsSet: 'ActiveRoomsSet',
+  GamesPlayedSet: 'GamesPlayedSet',
 
+}
 
 
 
@@ -65,45 +71,83 @@ export const exampleRouter = createTRPCRouter({
       if (userId == null) {
         throw new TRPCError({ message: `No userId found`, code: "BAD_REQUEST" });
       }
-      opts.ctx.kv.incr(`${userId}-score`);
+      opts.ctx.redis.incr(`${userId}-score`);
       
       
       
       
     }),
-  startGame: publicProcedure
-    .input(z.object({}))
+  joinGame: publicProcedure
+    // TODO: map room codes to gameIds in redis hash
+    .input(z.object({
+      'roomCode': z.string()
+    }))
+    .mutation(async (opts) => {
+      const roomCode = opts.input.roomCode;
+      const roomCodeActive = await opts.ctx.redis.sIsMember(RedisObjects.ActiveRoomsSet, roomCode);
+      if (!roomCodeActive) throw new Error(`Room code not active: ${roomCode}`)
+      
+      
+      const gameId = await opts.ctx.redis.get(`roomCode-${roomCode}:gameId`);
+      if (!gameId) throw new Error(`No gameId found for room code: ${roomCode}`);
+
+      const board = await opts.ctx.redis.get(`game:${gameId}:board`);
+      if (board == null) throw new Error(`No board found for gameId: ${gameId}`);
+      
+      return {
+        board: board,
+        roomCode: opts.input.roomCode,
+        gameId: gameId,
+      }
+    }),
+
+  hostGame: publicProcedure
     .mutation(async (opts) => {
       let gameId: string | undefined;
       while (gameId == undefined) {
         const newGameId = uniqueId();
-        const addMember = await opts.ctx.kv.sadd('games-played', newGameId);
-        if (addMember) gameId = newGameId;
+        const gameAdded = await opts.ctx.redis.sAdd(RedisObjects.GamesPlayedSet, newGameId);
+        if (gameAdded) gameId = newGameId;
       }
 
-      // TODO: avoid words in other games this room has played
-      // get a fresh solution
-      let solutionSet;
-      while (solutionSet == undefined) {
-        const randomSolutionSet = getRandomSolutionSet();
-        const canonicalWord = randomSolutionSet[0];
-        const solutionIsFresh = !(await opts.ctx.kv.sismember(`game:${gameId}:words-used`, canonicalWord));
-        if (solutionIsFresh) solutionSet = randomSolutionSet;
+      let roomCode: string | undefined;
+      while (roomCode == undefined) {
+        roomCode = generateRandomString(4);
+        const roomCodeActive = await opts.ctx.redis.sIsMember(RedisObjects.ActiveRoomsSet, roomCode);
+        if (roomCodeActive) continue;
+        const roomCodeActiveAdded = await opts.ctx.redis.sAdd(RedisObjects.ActiveRoomsSet, roomCode);
+        if (!roomCodeActiveAdded) throw new Error('room code not added to ActiveRoomsSet')
+
+        const roomCodeGameIdAdded = await opts.ctx.redis.set(`roomCode-${roomCode}:gameId`, gameId);
+        if (!roomCodeGameIdAdded) throw new Error('room code not added to roomCode-${roomCode}:gameId');
+
       }
+
+
+      const board = getDiceRollAsString(boggleDice);
+      const boardAdded = await opts.ctx.redis.set(`game:${gameId}:board`, board);
+      if (!boardAdded) throw new Error(`Board not added to redis in game ${gameId}`);
       
-
-      solutionSet.forEach(async (element) => {
-        await opts.ctx.kv.sadd(`game:${gameId}:current-puzzle`, element);
-        await opts.ctx.kv.sadd(`game:${gameId}:words-used`, element);
-      });
-      
-
-      
-
-
-
+      return {
+        'board': board,
+        'roomCode': roomCode,
+        'gameId': gameId
+      }
+  
     }),
-
+  getGameState: publicProcedure
+    .input(
+      z.object({
+          gameId: z.string(),
+        }))
+    .query(async (opts) => {
+      const gameId = opts.input.gameId;
+      const board = await opts.ctx.redis.get(`game:${gameId}:board`);
+      if (board == null) throw new Error(`Board not retrieved from Redis. GameID: ${gameId}`);
+      return {
+        'board': board
+      }
+    }),
 });
 
 // exampleRouter.authorize.contentType = 'application/json';

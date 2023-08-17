@@ -1,25 +1,33 @@
-import { useState } from "react";
-import WordListManager from "./WordListManager";
+import { useEffect, useState } from "react";
 import GameOverModal from "./GameOverModal";
+import Board from "./board";
+import { exampleRouter } from "~/server/api/routers/example";
+import { api } from "~/utils/api";
 
 
-export default function GameManager() {
-    const [round, setRound] = useState(1);
-    const totalRounds = 1;
+interface GameManagerProps {
+    gameId: string,
+    initBoard: string
+}
+export default function GameManager({gameId, initBoard} : GameManagerProps) {
     const duration = 10;
+    const [letters, setLetters] = useState<string | undefined>();
+    // const gameState = api.example.getGameState.useQuery({'gameId': gameId})
 
-    function onNextRound() {
-        const currRound = round + 1;
-        setRound(currRound);
-    }
+
+    useEffect(() => {
+        
+    }, []);
 
     return (
         <>
             
-            <WordListManager onNextRound={onNextRound} round={round} totalRounds={totalRounds}
-                duration={duration} />
+            {initBoard}
+            {letters &&
+                <Board letters={letters} />
+            }
             
-            {round > totalRounds && <GameOverModal />}
+            {false && <GameOverModal />}
             
             
             

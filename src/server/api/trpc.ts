@@ -11,8 +11,12 @@ import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 import superjson from "superjson";
 import { ZodError } from "zod";
 import { prisma } from "~/server/db";
-import { kv } from "@vercel/kv";
+
 import getAblyClient from "../ably/client";
+import { getLocalRedisClient } from "../redis/client";
+import { kv } from "@vercel/kv";
+import { env } from '~/env.mjs';
+import { createClient } from 'redis';
 
 /**
  * 1. CONTEXT
@@ -36,10 +40,12 @@ type CreateContextOptions = Record<string, never>;
  */
 const createInnerTRPCContext = (_opts: CreateContextOptions) => {
   const ably = getAblyClient();
+  // const redis = env.USE_LOCAL_REDIS ? getLocalRedisClient() : kv;
+  const redis = getLocalRedisClient();
   
   return {
     prisma,
-    kv,
+    redis,
     ably
   };
 };

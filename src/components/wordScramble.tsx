@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 import BackspaceButton, { ClearButton } from './buttons.tsx';
 import shuffleArrayCopy from "./helpers.tsx";
 import KeyboardInputHandler from "./KeyboardInputHandler.tsx";
-import WordListManager from "./WordListManager.tsx";
 import {
     useWhatChanged,
 } from '@simbathesailor/use-what-changed';
@@ -74,10 +73,8 @@ export function Puzzle({solutions, onCorrectGuess}: PuzzleProps) {
             if (userId != undefined)
                 correctGuessMutation.mutate({'userId': userId});
             setBlocksTypedIndexes([]);
-            setLetterBlocks([]);
-            
+            setLetterBlocks([]);           
         }
-    
     }
 
     function handleTypeLetter(s: string) {
@@ -115,7 +112,7 @@ export function Puzzle({solutions, onCorrectGuess}: PuzzleProps) {
             </div>
             <LetterBlocks>
                 {[...letterBlocks].map((block, index) => 
-                    <Block id={index} letter={block} isTyped={blocksTypedIndexes.includes(index)}
+                    <LetterBlock id={index} letter={block} isTyped={blocksTypedIndexes.includes(index)}
                         onBlockClick={() => handleEnterLetter(index)} key={block+index.toString()}
                     />
                 )}
@@ -155,14 +152,14 @@ function LetterBlocks({ children } : LetterBlocksProps) {
     );
 }
 
-interface BlockProps {
+interface LetterBlockProps {
     id: number,
     letter: string,
     isTyped: boolean,
     onBlockClick: () => void,
 }
 
-function Block({ letter, isTyped, onBlockClick }: BlockProps) {
+export function LetterBlock({ letter, isTyped, onBlockClick }: LetterBlockProps) {
     const classNames: string[] = ['letter-block'];
     if (isTyped) classNames.push('isTyped');
     const className = classNames.join(' ');
