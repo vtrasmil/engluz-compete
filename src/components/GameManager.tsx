@@ -11,7 +11,7 @@ interface GameManagerProps {
 }
 export default function GameManager({gameId, initBoard} : GameManagerProps) {
     const duration = 10;
-    const [letters, setLetters] = useState<string | undefined>();
+    const [letters, setLetters] = useState(initBoard);
     // const gameState = api.example.getGameState.useQuery({'gameId': gameId})
 
 
@@ -22,9 +22,9 @@ export default function GameManager({gameId, initBoard} : GameManagerProps) {
     return (
         <>
             
-            {initBoard}
+            {/* {initBoard} */}
             {letters &&
-                <Board letters={letters} />
+                <Board config={letters} />
             }
             
             {false && <GameOverModal />}

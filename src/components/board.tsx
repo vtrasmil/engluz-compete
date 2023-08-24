@@ -1,87 +1,135 @@
 import { Block } from "@mui/icons-material";
 import { LetterBlock } from "./wordScramble";
 import { boggleDice } from "~/server/diceManager";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import useDrag from "./useDrag";
+import { Button } from "@mui/material";
+import { number } from "zod";
 
-export default function Board() {
-    
-    const boardWidth = Math.sqrt(boggleDice.length);
+interface BoardProps {
+    config: string
+}
+
+const boardWidth = Math.sqrt(boggleDice.length);
     if (![4, 5, 6].includes(boardWidth)) {
         throw new Error('Board must be square');
     }
-    const rows = [...Array(boardWidth).keys()]
-    const [letterBlocks, setLetterBlocks] = useState<string[]>([]);
-    const [blocksTypedIndexes, setBlocksTypedIndexes] = useState<number[]>([]);
+const rows = [...Array(boardWidth).keys()]
+
+
+const neighborMap = [
+    [1, 4, 5],
+    [0, 4, 5, 6, 2],
+    [1, 5, 6, 7, 3],
+    [2, 6, 7],
+    [0, 1, 5, 9, 8],
+    [0, 1, 2, 4, 6, 8, 9, 10],
+    [1, 2, 3, 5, 7, 9, 10, 11],
+    [3, 2, 6, 10, 11],
+    [4, 5, 9, 12, 13],
+    [4, 5, 6, 8, 10, 12, 13, 14],
+    [5, 6, 7, 9, 11, 13, 14, 15],
+    [6, 7, 10, 14, 15],
+    [8, 9, 13],
+    [12, 8, 9, 10, 14],
+    [13, 9, 10, 11, 15],
+    [14, 10, 11]
+];
+
+
+function getNeighbors(i: number) {
+    if (i < 0 || i >= neighborMap.length) throw new Error('Letter block index out of bounds');
+    return neighborMap[i];
+}
+
+export default function Board({config}: BoardProps) {
     
-    function handleEnterLetter(index: number) {
-        if (blocksTypedIndexes.includes(index)) return;
-        setBlocksTypedIndexes ([...blocksTypedIndexes, index]);
-        
-        
-    }
+    
+    
+    const [letterBlocks, setLetterBlocks] = useState<string[]>([...config]);
+    const [blocksSelected, setBlocksSelected] = useState<number[]>([]);
+    const [isPointerDown, setIsPointerDown] = useState<boolean>(false);
+    const [pointerOver, setPointerOver] = useState<number | string>();
 
-    function handleTypeLetter(s: string) {
-        const lettersRemaining = letterBlocks.slice().map(
-            (letter, index) => blocksTypedIndexes.includes(index) ? null : letter
-        );
-
-        for (let i = 0; i < lettersRemaining.length; i++) {
-            if (lettersRemaining[i] === s) {
-                handleEnterLetter(i);
-                break;
-            }
+    const handlePointerDown = (e: PointerEvent, i?: number) => {
+        setIsPointerDown(true);
+        // console.log("pointerDown: " + [i]);
+        if (i != undefined) {
+            setBlocksSelected([i]);
+            // console.log("selected: " + [i]);
         }
     }
 
-    function handleDeleteLetter() {
-        const updatedIndices = blocksTypedIndexes.slice(0, -1);
-        if (typeof updatedIndices != undefined && blocksTypedIndexes.length > 0) {
-            setBlocksTypedIndexes(updatedIndices);
-            console.log(`Backspace: ${lettersTyped}.`);
+    const handlePointerOver = (e: PointerEvent, i?: number) => {
+        
+        // console.log(`isPointerDown: ${isPointerDown}`);
+        if (!isPointerDown || i == undefined || blocksSelected.includes(i)) return;
+        const lastBlockSelected = blocksSelected.slice(-1)[0];
+        if (lastBlockSelected != undefined) {
+            const isNeighbor = getNeighbors(lastBlockSelected)?.includes(i);
+            if (!isNeighbor) return;
         }
+        
+        setPointerOver(i);
+        setBlocksSelected([...blocksSelected, i]);
+        // console.log(`selected: ${blocksSelected.toString()}, ${[i].toString()}`);
     }
 
-    function handleClearLetters() {
-        setBlocksTypedIndexes([]);
+    const handlePointerLeave = (e: PointerEvent, i: number) => {
+        
     }
 
-    const lettersTyped = (() => {
-        return blocksTypedIndexes.map((i): string => {
-            return getLetterBlock(i);
-        }).join('');
-    })();
 
-    function getLetterBlock(index: number) {
-        const block = letterBlocks[index];
-        if (block == undefined) throw new Error('LetterBlock is undefined');
-        return block;
+    const handlePointerUp = (e: PointerEvent, i?: number) => {
+        setIsPointerDown(false);
+        setPointerOver(i);
+        // console.log("pointerUp: " + [i]);
+        setBlocksSelected([]);
+        const msg = i == undefined ? "over window" : "over " + i;
+        // console.log("selected: none. " + msg);
     }
+
+    
+    const windowRef = useRef<EventTarget>(window);
+    useDrag(windowRef, [isPointerDown, blocksSelected], {
+        onPointerUp: handlePointerUp
+    });
+
+    
 
     
 
     return (
-        <>
+        <div className="board">
+            {/* <div ref={divRef} style={{
+                width: "50px", height: "50px", backgroundColor: "blue",
+                transform: `translateX(${translate.x}px) translateY(${translate.y}px)`
+            }}></div> */}
+            
+            {/* {!drag.isDragging && <p>Drag it ☝️</p>}
+            {drag.isDragging && <p>Ooh such drag 😎</p>} */}
+            
             {rows.map((row) => {
-                <div>
+                return (
+                    <div key={row} className="board-row flex">
                     {rows.map(col => {
-                        return <LetterBlock id={5 * row + col} isTyped={false} letter={'a'}
-                            onBlockClick={() => handleEnterLetter(col)} key={row.toString() + col.toString()} />
-                        })}
-                </div>
+                        const i = boardWidth * row + col;
+                        const letter = letterBlocks[i];
+
+                        if (letter != undefined)
+                            return <LetterBlock id={i} isSelected={blocksSelected.includes(i)} letter={letter}
+                                key={`x${row}y${col}${letter}`}
+                                onPointerDown={handlePointerDown} onPointerUp={handlePointerUp}
+                                onPointerOver={handlePointerOver} onPointerLeave={handlePointerLeave}
+                                isPointerDown={isPointerDown} isPointerOver={pointerOver === i}
+                                blocksSelected={blocksSelected}
+                            />
+                    })}
+                    </div>
+                )
             })}
+
             
-        </>);
+        </div>);
 }
 
-interface BlockRowProps {
-    row: number,
-}
-
-function BlockRow({row}: BlockRowProps) {
-    const blocks = [0, 1, 2, 3, 4];
-    
-    return (
-        <>
-            
-        </>)
-}

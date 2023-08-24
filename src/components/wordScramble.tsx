@@ -2,7 +2,7 @@ import { log } from "console";
 import { type } from "os";
 import { array, object } from "zod";
 import { proseWrap } from "prettier.config.cjs";
-import { useEffect, useState } from "react";
+import { MutableRefObject, Ref, useEffect, useRef, useState, RefObject } from "react";
 import BackspaceButton, { ClearButton } from './buttons.tsx';
 import shuffleArrayCopy from "./helpers.tsx";
 import KeyboardInputHandler from "./KeyboardInputHandler.tsx";
@@ -15,167 +15,82 @@ import { useChannel } from "@ably-labs/react-hooks";
 import { useUserIdContext } from "./useUserIdContext.tsx";
 import { Button } from "@mui/material";
 import GameManager from "./GameManager.tsx";
+import useDrag from "./useDrag.tsx";
 
 
-
-
-
-
-
-
-interface PuzzleProps {
-    solutions: string[],
-    onCorrectGuess: () => void,
-}
-
-export function Puzzle({solutions, onCorrectGuess}: PuzzleProps) {
-    const userId = useUserIdContext();
-    if (userId == undefined) {
-        throw new Error("No userId found");
-    }
-    const firstSolution = solutions[0];
-    if (firstSolution == undefined) {
-        throw new Error("No solutions specified");
-    }
-    
-    const [letterBlocks, setLetterBlocks] = useState<string[]>([]);
-    const [blocksTypedIndexes, setBlocksTypedIndexes] = useState<number[]>([]);
-    const correctGuessMutation = api.example.playerGuessesCorrectly.useMutation();
-    // const channel = useChannel()
-    
-
-    const lettersTyped = (() => {
-        return blocksTypedIndexes.map((i): string => {
-            return getLetterBlock(i);
-        }).join('');
-    })();
-
-    
-
-    useEffect(() => {
-        const firstSolutionScrambled = shuffleArrayCopy([...firstSolution]);
-        setLetterBlocks(firstSolutionScrambled);
-    }, [solutions]);
-
-    function getLetterBlock(index: number) {
-        const block = letterBlocks[index];
-        if (block == undefined) throw new Error('LetterBlock is undefined');
-        return block;
-    }
-    
-
-    
-    function handleEnterLetter(index: number) {
-        if (blocksTypedIndexes.includes(index)) return;
-        setBlocksTypedIndexes ([...blocksTypedIndexes, index]);
-        if (solutions.includes(lettersTyped + getLetterBlock(index))) {
-            onCorrectGuess();
-            if (userId != undefined)
-                correctGuessMutation.mutate({'userId': userId});
-            setBlocksTypedIndexes([]);
-            setLetterBlocks([]);           
-        }
-    }
-
-    function handleTypeLetter(s: string) {
-        const lettersRemaining = letterBlocks.slice().map(
-            (letter, index) => blocksTypedIndexes.includes(index) ? null : letter
-        );
-
-        for (let i = 0; i < lettersRemaining.length; i++) {
-            if (lettersRemaining[i] === s) {
-                handleEnterLetter(i);
-                break;
-            }
-        }
-    }
-
-    function handleDeleteLetter() {
-        const updatedIndices = blocksTypedIndexes.slice(0, -1);
-        if (typeof updatedIndices != undefined && blocksTypedIndexes.length > 0) {
-            setBlocksTypedIndexes(updatedIndices);
-            console.log(`Backspace: ${lettersTyped}.`);
-        }
-    }
-
-    function handleClearLetters() {
-        setBlocksTypedIndexes([]);
-    }
-
-    
-
-    return (
-        <div>
-            <div className="flex">
-                <Button variant="contained" onClick={handleDeleteLetter}>Delete</Button>
-                <Button variant="outlined" onClick={handleClearLetters}>Clear</Button>
-            </div>
-            <LetterBlocks>
-                {[...letterBlocks].map((block, index) => 
-                    <LetterBlock id={index} letter={block} isTyped={blocksTypedIndexes.includes(index)}
-                        onBlockClick={() => handleEnterLetter(index)} key={block+index.toString()}
-                    />
-                )}
-            </LetterBlocks>
-            <PlayerInput guess={lettersTyped} solutions={solutions} />
-            <KeyboardInputHandler
-                guess={lettersTyped}
-                puzzleLetters={letterBlocks.map((s) => s.toLowerCase())}
-                onDeleteLetter={handleDeleteLetter}
-                onTypeLetter={(s: string) => handleTypeLetter(s)}
-                onClearLetter={handleClearLetters}
-            />
-        </div>
-    );
-}
-
-interface SolutionTextProps {
-    solution: string,
-    hidden: boolean
-}
-
-function SolutionText({ solution, hidden }: SolutionTextProps) {
-    if (hidden) return null;
-    return solution;
-}
-
-interface LetterBlocksProps {
-    children?: React.ReactNode
-}
-
-function LetterBlocks({ children } : LetterBlocksProps) {
-    
-    return (
-        <div>
-            {children}
-        </div>
-    );
-}
 
 interface LetterBlockProps {
     id: number,
     letter: string,
-    isTyped: boolean,
-    onBlockClick: () => void,
+    isSelected: boolean,
+    onPointerDown: (e: PointerEvent, i: number) => void,
+    onPointerOver: (e: PointerEvent, i: number) => void,
+    onPointerUp: (e: PointerEvent, i: number) => void,
+    onPointerLeave: (e: PointerEvent, i: number) => void,
+    isPointerDown: boolean,
+    isPointerOver: boolean,
+    blocksSelected: number[],
+
+    
 }
 
-export function LetterBlock({ letter, isTyped, onBlockClick }: LetterBlockProps) {
-    const classNames: string[] = ['letter-block'];
-    if (isTyped) classNames.push('isTyped');
+
+
+
+export function LetterBlock({
+    id, letter, isSelected,
+    onPointerDown, onPointerOver, onPointerUp, onPointerLeave,
+    isPointerOver, isPointerDown, blocksSelected,
+}: LetterBlockProps) {
+    const classNames: string[] = [];
+    if (isSelected) classNames.push('isSelected');
     const className = classNames.join(' ');
+
+    const eventTargetRef = useRef<HTMLDivElement>(null);
+
+    const handlePointerDown = (e: PointerEvent) => {
+        onPointerDown(e, id);
+    };
     
-    return <Button
-        variant="outlined"
-        className={className}
-        onClick={onBlockClick}
-        style={{
-            width: "50px",
-            height: "50px"
-        }}
-    >
-        {letter.toUpperCase()}
-    </Button>;
+    const handlePointerOver = (e: PointerEvent) => {
+        onPointerOver(e, id);
+    };
+
+    const handlePointerLeave = (e: PointerEvent) => {
+        onPointerLeave(e, id);
+    }
     
+    const handlePointerUp = (e: PointerEvent) => {
+        onPointerUp(e, id);
+    };
+
+    
+    let drag;
+    if (eventTargetRef !== null) {
+    
+        drag = useDrag(eventTargetRef, [isPointerOver, isPointerDown, blocksSelected], {
+            onPointerMove: handlePointerOver,
+            onPointerUp: handlePointerUp,
+            onPointerDown: handlePointerDown
+        });
+    }
+    
+    
+    
+    return (      
+        <div
+            id={`letter-block-${id}`}
+            ref={eventTargetRef}
+            // variant="outlined"
+            className={'border border-gray-400 letter-block m-0.5 flex justify-center items-center select-none ' + className}
+            style={{
+                width: "50px",
+                height: "50px"
+            }}
+        >
+            {letter.toUpperCase()}
+        </div>
+    );
 }
 
 interface PlayerInputProps {

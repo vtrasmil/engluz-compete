@@ -16,7 +16,7 @@ export default function Lobby() {
     const [initBoard, setInitBoard] = useState<string | undefined>();
     const joinGame = api.example.joinGame.useMutation({
         onSuccess: async (data) => {
-            setStoredRoomCode(data.roomCode);
+            setStoredRoomCode(roomCode);
             setInitBoard(data.board);
         }
     });
@@ -29,9 +29,10 @@ export default function Lobby() {
     })
 
     useEffect(() => {
-        if (storedRoomCode === '') return;
+        // if (storedRoomCode === '') return;
         joinGame.mutate({
-            roomCode: storedRoomCode.toUpperCase(),
+            // roomCode: storedRoomCode.toUpperCase(),
+            roomCode: 'GTWE'
         });
     }, [])
 

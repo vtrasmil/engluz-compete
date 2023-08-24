@@ -21,23 +21,20 @@ export const boggleDice =
     ]
 
 export function getDiceRoll(dice: string[]) {
-    let shuffledCopy = shuffleArrayCopy(dice);
+    const shuffledDice = shuffleArrayCopy(dice);
     let roll: string[] = [];
-    shuffledCopy.forEach((die, i) => {
+    shuffledDice.forEach((die) => {
         // roll = [...roll, [...shuffleString(die)]];
-        roll = [...roll, shuffleString(die)]
+        roll = [...roll, shuffleString(die).charAt(0)]
     });
     return roll;
 }
 
 export function getDiceRollAsString(dice: string[]) {
-    let shuffledCopy = shuffleArrayCopy(dice);
-    console.log(shuffledCopy);
+    const shuffledDice = shuffleArrayCopy(dice);
     let roll = '';
-    shuffledCopy.forEach(die => {
-        // roll = [...roll, [...shuffleString(die)]];
-        roll = roll.concat(shuffleString(die));
-        
+    shuffledDice.forEach(die => {
+        roll = roll.concat(shuffleString(die).charAt(0));  
     });
     return roll;
 }

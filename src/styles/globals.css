@@ -4,8 +4,10 @@
 
 @layer components {
     .letter-block {
-        @apply border-x;
-        &.isTyped {
+        
+        
+        
+        &.isSelected {
             @apply bg-blue-400
         }
     }
