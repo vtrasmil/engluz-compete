@@ -4,7 +4,7 @@ import { api } from "~/utils/api";
 import { useContext, PropsWithChildren, useEffect, useState, FormEvent, ChangeEvent, ChangeEventHandler, ReactNode, useSyncExternalStore } from "react";
 
 import { Input, Button } from "@mui/material";
-import { useSessionStorage } from "usehooks-ts";
+import { useSessionStorage } from '@react-hooks-library/core';
 import { useIsClient } from "~/components/customHooks";
 import GameManager from "~/components/GameManager";
 import { HostGameButton, JoinGameButton } from "~/components/LobbyButtons";
@@ -12,16 +12,19 @@ import { HostGameButton, JoinGameButton } from "~/components/LobbyButtons";
 export default function Lobby() {
     const isClient = useIsClient(); // to avoid sessionStorage-related hydration errors
     const [roomCode, setRoomCode] = useState('');
+    // TODO: storedRoomCode not being retrieved on reload
     const [storedRoomCode, setStoredRoomCode] = useSessionStorage('roomCode', '');
+    const [gameId, setGameId] = useState<string>();
     const [initBoard, setInitBoard] = useState<string | undefined>();
-    const joinGame = api.example.joinGame.useMutation({
+    const joinGame = api.lobby.joinGame.useMutation({
         onSuccess: async (data) => {
-            setStoredRoomCode(roomCode);
+            setStoredRoomCode(data.roomCode);
+            setGameId(data.gameId);
             setInitBoard(data.board);
         }
     });
 
-    const hostGame = api.example.hostGame.useMutation({
+    const hostGame = api.lobby.hostGame.useMutation({
         onSuccess: async (data) => {
             setStoredRoomCode(data.roomCode);
             setInitBoard(data.board);
@@ -29,22 +32,19 @@ export default function Lobby() {
     })
 
     useEffect(() => {
-        // if (storedRoomCode === '') return;
+        if (storedRoomCode === '') return;
         joinGame.mutate({
-            // roomCode: storedRoomCode.toUpperCase(),
-            roomCode: 'GTWE'
+            roomCode: storedRoomCode.toUpperCase(),
         });
-    }, [])
+    }, [storedRoomCode])
 
     if (!isClient) {
         return null;
     }
 
-    // const isCorrectRoomCodeSaved =
-    //   (typeof savedRoomCode === 'string' && validRoomCodes.includes(savedRoomCode)) ? true : false;
-
     function handleJoinGame(e: FormEvent) {
         e.preventDefault();
+        // TODO: joinGame mutation gets called twice this way
         joinGame.mutate({
             roomCode: roomCode.toUpperCase(),
         });
@@ -71,14 +71,11 @@ export default function Lobby() {
 
     return (
         <>
-            {storedRoomCode &&
+            {storedRoomCode !== '' && initBoard && gameId ? 
                 <>
                     <Button onClick={handleLeaveRoom}>Leave Room: {storedRoomCode}</Button>
+                    <GameManager gameId={gameId} initBoard={initBoard} />
                 </>
-            }
-            
-            {storedRoomCode !== '' && initBoard ? 
-                <GameManager gameId={'1234'} initBoard={initBoard} />
                 :
                 <>
                     <form className="flex flex-row" onSubmit={handleHostGame}>

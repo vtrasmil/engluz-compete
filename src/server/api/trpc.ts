@@ -17,6 +17,8 @@ import { getLocalRedisClient } from "../redis/client";
 import { kv } from "@vercel/kv";
 import { env } from '~/env.mjs';
 import { createClient } from 'redis';
+import { isWordValid } from "../wordListManager";
+import { RedisBoggleCommands } from "../redis/api";
 
 /**
  * 1. CONTEXT
@@ -41,7 +43,8 @@ type CreateContextOptions = Record<string, never>;
 const createInnerTRPCContext = (_opts: CreateContextOptions) => {
   const ably = getAblyClient();
   // const redis = env.USE_LOCAL_REDIS ? getLocalRedisClient() : kv;
-  const redis = getLocalRedisClient();
+  const redis = new RedisBoggleCommands(getLocalRedisClient());
+
   
   return {
     prisma,

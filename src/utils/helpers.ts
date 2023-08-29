@@ -13,3 +13,7 @@ export function getRandomIntInclusive(min: number, max: number) {
 export function isPointerEvent(event: Event): event is PointerEvent {
     return event instanceof PointerEvent;
 }
+
+export function assert(condition: unknown, msg?: string): asserts condition {
+    if (condition === false) throw new Error(msg)
+}

@@ -1,12 +1,13 @@
+import { api } from "~/utils/api";
 import { Block } from "@mui/icons-material";
 import { LetterBlock } from "./wordScramble";
 import { boggleDice } from "~/server/diceManager";
-import { useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import useDrag from "./useDrag";
-import { Button } from "@mui/material";
-import { number } from "zod";
+import { useUserIdContext } from "./useUserIdContext";
 
 interface BoardProps {
+    onSubmitWord: (arg0: number[]) => void,
     config: string
 }
 
@@ -42,20 +43,22 @@ function getNeighbors(i: number) {
     return neighborMap[i];
 }
 
-export default function Board({config}: BoardProps) {
+export default function Board({config, onSubmitWord}: BoardProps) {
     
-    
-    
-    const [letterBlocks, setLetterBlocks] = useState<string[]>([...config]);
-    const [blocksSelected, setBlocksSelected] = useState<number[]>([]);
+    const letterBlocks = [...config];
+    const [selectedLetters, setSelectedLetters] = useState<number[]>([]);
     const [isPointerDown, setIsPointerDown] = useState<boolean>(false);
     const [pointerOver, setPointerOver] = useState<number | string>();
+    const [lastSubmittedLetters, setLastSubmittedLetters] = useState<number[]>();
+
+    
+    const userId = useUserIdContext();
 
     const handlePointerDown = (e: PointerEvent, i?: number) => {
         setIsPointerDown(true);
         // console.log("pointerDown: " + [i]);
         if (i != undefined) {
-            setBlocksSelected([i]);
+            setSelectedLetters([i]);
             // console.log("selected: " + [i]);
         }
     }
@@ -63,15 +66,15 @@ export default function Board({config}: BoardProps) {
     const handlePointerOver = (e: PointerEvent, i?: number) => {
         
         // console.log(`isPointerDown: ${isPointerDown}`);
-        if (!isPointerDown || i == undefined || blocksSelected.includes(i)) return;
-        const lastBlockSelected = blocksSelected.slice(-1)[0];
+        if (!isPointerDown || i == undefined || selectedLetters.includes(i)) return;
+        const lastBlockSelected = selectedLetters.slice(-1)[0];
         if (lastBlockSelected != undefined) {
             const isNeighbor = getNeighbors(lastBlockSelected)?.includes(i);
             if (!isNeighbor) return;
         }
         
         setPointerOver(i);
-        setBlocksSelected([...blocksSelected, i]);
+        setSelectedLetters([...selectedLetters, i]);
         // console.log(`selected: ${blocksSelected.toString()}, ${[i].toString()}`);
     }
 
@@ -81,34 +84,27 @@ export default function Board({config}: BoardProps) {
 
 
     const handlePointerUp = (e: PointerEvent, i?: number) => {
+        
         setIsPointerDown(false);
-        setPointerOver(i);
-        // console.log("pointerUp: " + [i]);
-        setBlocksSelected([]);
-        const msg = i == undefined ? "over window" : "over " + i;
+        onSubmitWord(selectedLetters);
+        setSelectedLetters([]);
+        // const msg = i == undefined ? "over window" : "over " + i;
         // console.log("selected: none. " + msg);
+        
     }
 
     
     const windowRef = useRef<EventTarget>(window);
-    useDrag(windowRef, [isPointerDown, blocksSelected], {
+    useDrag(windowRef, [isPointerDown, selectedLetters], {
         onPointerUp: handlePointerUp
     });
 
-    
+
 
     
 
     return (
         <div className="board">
-            {/* <div ref={divRef} style={{
-                width: "50px", height: "50px", backgroundColor: "blue",
-                transform: `translateX(${translate.x}px) translateY(${translate.y}px)`
-            }}></div> */}
-            
-            {/* {!drag.isDragging && <p>Drag it ☝️</p>}
-            {drag.isDragging && <p>Ooh such drag 😎</p>} */}
-            
             {rows.map((row) => {
                 return (
                     <div key={row} className="board-row flex">
@@ -117,12 +113,12 @@ export default function Board({config}: BoardProps) {
                         const letter = letterBlocks[i];
 
                         if (letter != undefined)
-                            return <LetterBlock id={i} isSelected={blocksSelected.includes(i)} letter={letter}
-                                key={`x${row}y${col}${letter}`}
+                            return <LetterBlock id={i} isSelected={selectedLetters.includes(i)} letter={letter}
+                                key={`{row}-${col}`}
                                 onPointerDown={handlePointerDown} onPointerUp={handlePointerUp}
                                 onPointerOver={handlePointerOver} onPointerLeave={handlePointerLeave}
                                 isPointerDown={isPointerDown} isPointerOver={pointerOver === i}
-                                blocksSelected={blocksSelected}
+                                blocksSelected={selectedLetters}
                             />
                     })}
                     </div>
