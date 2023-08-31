@@ -28,7 +28,7 @@ export const gameplayRouter = createTRPCRouter({
                 const reroll = rollDice(dice, opts.input.letterBlocks);
                 const setDice = await opts.ctx.redis.setDice(opts.input.gameId, reroll);
                 if (setDice) {
-                    opts.ctx.ably.
+                    // ably pub
                 }
 
                 return { isValid: true };

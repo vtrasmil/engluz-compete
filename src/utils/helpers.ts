@@ -4,6 +4,17 @@ export const uniqueId = function () {
     // TODO: include totalPlayers
 };
 
+export function getUserIdFromSessionStorage() {
+    let userId: string;
+    if (typeof window !== 'undefined') {
+        const sessionUserId = sessionStorage.getItem('userId');
+        userId = sessionUserId ?? uniqueId();
+        if (sessionUserId !== userId)
+            sessionStorage.setItem('userId', userId);
+        return userId;
+    }
+}
+
 export function getRandomIntInclusive(min: number, max: number) {
     min = Math.ceil(min);
     max = Math.floor(max);

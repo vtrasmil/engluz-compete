@@ -7,6 +7,7 @@ import getAblyClient from "~/server/ably/client";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { boggleDice, rollAndShuffleDice, toFaceUpValues } from "~/server/diceManager";
 import { RedisBoggleCommands } from "~/server/redis/api";
+import { api } from "~/utils/api";
 import { getRandomIntInclusive, uniqueId } from "~/utils/helpers";
 
 
@@ -30,7 +31,7 @@ export const lobbyRouter = createTRPCRouter({
       };
     }),
   
-  authorize: publicProcedure
+  auth: publicProcedure
     .input(z.object({
       userId: z.string()
     }))
@@ -59,7 +60,8 @@ export const lobbyRouter = createTRPCRouter({
   joinGame: publicProcedure
     // TODO: map room codes to gameIds in redis hash
     .input(z.object({
-      'roomCode': z.string()
+      roomCode: z.string(),
+      userId: z.string(),
     }))
     .mutation(async (opts) => {
       
@@ -70,7 +72,7 @@ export const lobbyRouter = createTRPCRouter({
       const gameId = await opts.ctx.redis.getGameId(roomCode);
       const board = await opts.ctx.redis.getDice(gameId);
       const faceUpValues = toFaceUpValues(board);
-      
+
       return {
         board: faceUpValues,
         roomCode: opts.input.roomCode,

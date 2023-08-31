@@ -5,8 +5,23 @@ import Ably from "ably/promises";
 
 
 export default function getAblyClient() {
-    configureAbly({ key: env.ABLY_API_KEY });
-    const realtime = new Ably.Realtime(env.ABLY_API_KEY);
+    // configureAbly({ key: env.ABLY_API_KEY });
+    
+    const realtime = new Ably.Realtime({
+        authUrl: '/auth'
+        // key: env.ABLY_API_KEY,
+        // closeOnUnload: true,
+        // useTokenAuth: true,
+        // recover: (_, cb) => {
+        //     console.log(`Recovered connection: ${_}`)
+        //     cb(true);
+        // }
+    });
+    
+    realtime.connection.on('connected', () => {
+        console.log('Connected to Ably!');
+    });
+    
     return realtime;
 }
 

@@ -16,7 +16,7 @@ export default function Home() {
   
   const userId = useUserIdContext();
   if (userId != undefined) {
-    // const authorized = api.example.authorize.useQuery({ userId: userId });
+    
   }
 
   
@@ -40,10 +40,17 @@ export default function Home() {
       
       <main className="flex justify-center h-screen">
           <div className="flex flex-col h-full w-full md:max-w-2xl mt-52">
-            <Lobby />
+            <Lobby userId={userId} />
           </div>
       </main>
       
     </>
   );
 }
+
+// export async function getStaticPaths() {
+//   return {
+//     paths: [],
+//     fallback: false
+//   }
+// }

@@ -11,10 +11,11 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}/src/server/api/routers/example.ts",
+            "program": "${workspaceFolder}/src/server/",
             "outFiles": [
                 "${workspaceFolder}/**/*.js"
             ]
+            
         }
     ]
 }

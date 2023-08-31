@@ -9,8 +9,12 @@ import { useIsClient } from "~/components/customHooks";
 import GameManager from "~/components/GameManager";
 import { HostGameButton, JoinGameButton } from "~/components/LobbyButtons";
 
-export default function Lobby() {
-    const isClient = useIsClient(); // to avoid sessionStorage-related hydration errors
+interface LobbyProps {
+    userId: string,
+}
+
+export default function Lobby({userId}: LobbyProps) {
+    
     const [roomCode, setRoomCode] = useState('');
     // TODO: storedRoomCode not being retrieved on reload
     const [storedRoomCode, setStoredRoomCode] = useSessionStorage('roomCode', '');
@@ -23,30 +27,30 @@ export default function Lobby() {
             setInitBoard(data.board);
         }
     });
-
     const hostGame = api.lobby.hostGame.useMutation({
         onSuccess: async (data) => {
             setStoredRoomCode(data.roomCode);
             setInitBoard(data.board);
         }
     })
+    // const ablyToken = api.lobby.auth.useQuery({ userId: userId });
+    
+    
 
     useEffect(() => {
         if (storedRoomCode === '') return;
         joinGame.mutate({
             roomCode: storedRoomCode.toUpperCase(),
+            userId: userId
         });
     }, [storedRoomCode])
-
-    if (!isClient) {
-        return null;
-    }
 
     function handleJoinGame(e: FormEvent) {
         e.preventDefault();
         // TODO: joinGame mutation gets called twice this way
         joinGame.mutate({
             roomCode: roomCode.toUpperCase(),
+            userId: userId
         });
     }
 

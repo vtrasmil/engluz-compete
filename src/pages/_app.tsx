@@ -2,7 +2,7 @@ import { type AppType } from "next/app";
 import { api } from "~/utils/api";
 import "~/styles/globals.css";
 import { UserIdProvider } from "~/components/useUserIdContext";
-import { uniqueId } from "~/utils/helpers";
+import { getUserIdFromSessionStorage, uniqueId } from "~/utils/helpers";
 import { CssBaseline } from "@mui/material";
 
 
@@ -10,23 +10,24 @@ import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
+import { useIsClient } from "~/components/customHooks";
 
-let userId: string;
-if (typeof window !== 'undefined') {
-  const sessionUserId = sessionStorage.getItem('userId');
-  userId = sessionUserId ?? uniqueId();
-  if (sessionUserId !== userId)
-    sessionStorage.setItem('userId', userId);
-}
+
 
 const MyApp: AppType = ({ Component, pageProps }) => {
-  return (
-    <UserIdProvider userId={userId}>
-      <CssBaseline>
-        <Component {...pageProps} />
-      </CssBaseline>
-    </UserIdProvider>
-  )
+  const isClient = useIsClient(); // to avoid sessionStorage-related hydration errors
+  if (!isClient) {
+      return null;
+  }
+  const userId = getUserIdFromSessionStorage();
+  if (userId !== undefined)
+    return (
+      <UserIdProvider userId={userId}>
+        <CssBaseline>
+          <Component {...pageProps} />
+        </CssBaseline>
+      </UserIdProvider>
+    )
 };
 
 export default api.withTRPC(MyApp);
