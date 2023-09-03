@@ -1,6 +1,6 @@
 import { lobbyRouter } from "~/server/api/routers/lobbyRouter";
 import { createTRPCRouter } from "~/server/api/trpc";
-import { gameplayRouter } from "./routers/gameplayRouter";
+import { gameplayRouter } from "~/server/api/routers/gameplayRouter";
 
 /**
  * This is the primary router for your server.

@@ -8,6 +8,7 @@ import { useSessionStorage } from '@react-hooks-library/core';
 import { useIsClient } from "~/components/customHooks";
 import GameManager from "~/components/GameManager";
 import { HostGameButton, JoinGameButton } from "~/components/LobbyButtons";
+import { configureAbly } from "@ably-labs/react-hooks";
 
 interface LobbyProps {
     userId: string,
@@ -34,6 +35,7 @@ export default function Lobby({userId}: LobbyProps) {
         }
     })
     // const ablyToken = api.lobby.auth.useQuery({ userId: userId });
+    
     
     
 

@@ -42,6 +42,7 @@ type CreateContextOptions = Record<string, never>;
  */
 const createInnerTRPCContext = (_opts: CreateContextOptions) => {
   const ably = getAblyClient();
+  
   // const redis = env.USE_LOCAL_REDIS ? getLocalRedisClient() : kv;
   const redis = new RedisBoggleCommands(getLocalRedisClient());
 

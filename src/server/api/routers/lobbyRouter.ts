@@ -1,14 +1,12 @@
 import { TRPCError } from "@trpc/server";
-import { kv } from "@vercel/kv";
 import { Types } from "ably";
 import { z } from "zod";
-import { generateRandomString } from "~/components/helpers";
-import getAblyClient from "~/server/ably/client";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
-import { boggleDice, rollAndShuffleDice, toFaceUpValues } from "~/server/diceManager";
-import { RedisBoggleCommands } from "~/server/redis/api";
-import { api } from "~/utils/api";
-import { getRandomIntInclusive, uniqueId } from "~/utils/helpers";
+import { toFaceUpValues } from "~/server/diceManager";
+
+import { uniqueId } from "~/utils/helpers";
+import Ably from "ably/promises";
+import { env } from "~/env.mjs";
 
 
 const totalPlayers = 4;
@@ -31,21 +29,31 @@ export const lobbyRouter = createTRPCRouter({
       };
     }),
   
-  auth: publicProcedure
-    .input(z.object({
-      userId: z.string()
-    }))
+  createTokenRequest: publicProcedure
+    // .input(z.object({
+    //   userId: z.string()
+    // }))
     .query((opts) => {
       
-      const userId = opts.input.userId;
-      const tokenParams = { clientId: userId };   
+      // const userId = opts.input.userId;
+      // const userId = uniqueId();
+      // const client = new Ably.Realtime(env.ABLY_API_KEY);
+      const tokenParams = {
+        clientId: 'boggle-battle-react'
+      };   
+
+      const authOptions = {
+
+      }
+
       const tokenRequest = opts.ctx.ably.auth.createTokenRequest(tokenParams);
+      // const tokenRequest = client.auth.createTokenRequest(tokenParams);
       
       return tokenRequest.then(
         (req) => {
           // response.setHeader("Content-Type", "application/json");
-          console.log(`User authenticated with id: ${userId}`);
-          return req;
+          console.log(`Token request created with clientId: ${req.clientId}`);
+          // return req;
         },
         (err: Types.ErrorInfo) => {
           throw new TRPCError({
@@ -110,9 +118,5 @@ export const lobbyRouter = createTRPCRouter({
 });
 
 
-export async function kvTest() {
-    await kv.set("user_1_session", "session_token_value");
-    const session = await kv.get("user_1_session");
-}
 
 

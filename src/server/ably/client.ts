@@ -6,12 +6,14 @@ import Ably from "ably/promises";
 
 export default function getAblyClient() {
     // configureAbly({ key: env.ABLY_API_KEY });
-    
+    // console.log('running getAblyClient()');
     const realtime = new Ably.Realtime({
-        authUrl: '/auth'
+        authUrl: 'http://localhost:3000/api/createTokenRequest', // TODO: change for prod
+        
         // key: env.ABLY_API_KEY,
+        // clientId: 'boggle-battle-react-app1',
         // closeOnUnload: true,
-        // useTokenAuth: true,
+        useTokenAuth: true,
         // recover: (_, cb) => {
         //     console.log(`Recovered connection: ${_}`)
         //     cb(true);
@@ -19,7 +21,7 @@ export default function getAblyClient() {
     });
     
     realtime.connection.on('connected', () => {
-        console.log('Connected to Ably!');
+        console.log(`Connected to Ably with clientId ${realtime.clientId}`);
     });
     
     return realtime;

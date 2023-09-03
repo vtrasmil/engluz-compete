@@ -47,10 +47,3 @@ export default function Home() {
     </>
   );
 }
-
-// export async function getStaticPaths() {
-//   return {
-//     paths: [],
-//     fallback: false
-//   }
-// }
