@@ -102,6 +102,18 @@ export const lobbyRouter = createTRPCRouter({
       }
   
     }),
+  
+  ablySubscribeTest: publicProcedure
+    .mutation(async (opts) => {
+      const ably = opts.ctx.ably;
+      const channel = ably.channels.get('quickstart');
+      await channel.subscribe('greeting', (message) => {
+          if (typeof message.data === 'string') {
+              console.log('Received a greeting message in realtime: ' + message.data)
+          }
+      });
+      await channel.publish('greeting', 'hello!');
+    })
   // getGameState: publicProcedure
   //   .input(
   //     z.object({

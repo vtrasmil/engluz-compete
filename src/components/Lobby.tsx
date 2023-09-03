@@ -34,6 +34,7 @@ export default function Lobby({userId}: LobbyProps) {
             setInitBoard(data.board);
         }
     })
+    const ablyTest = api.lobby.ablySubscribeTest.useMutation();
     // const ablyToken = api.lobby.auth.useQuery({ userId: userId });
     
     
@@ -47,6 +48,10 @@ export default function Lobby({userId}: LobbyProps) {
         });
     }, [storedRoomCode])
 
+    useEffect(() => {
+        ablyTest.mutate();
+    }, []);
+
     function handleJoinGame(e: FormEvent) {
         e.preventDefault();
         // TODO: joinGame mutation gets called twice this way
@@ -54,6 +59,7 @@ export default function Lobby({userId}: LobbyProps) {
             roomCode: roomCode.toUpperCase(),
             userId: userId
         });
+        
     }
 
     function handleHostGame(e: FormEvent) {

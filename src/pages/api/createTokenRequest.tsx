@@ -28,8 +28,6 @@ import { env } from "~/env.mjs";
 // };
 
 // export default handler;
-
-// TODO: I don't know why but I can't debug this
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const client = new Ably.Realtime(env.ABLY_API_KEY);
     const tokenRequestData = await client.auth.createTokenRequest();
