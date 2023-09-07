@@ -34,11 +34,6 @@ export default function Lobby({userId}: LobbyProps) {
             setInitBoard(data.board);
         }
     })
-    const ablyTest = api.lobby.ablySubscribeTest.useMutation();
-    // const ablyToken = api.lobby.auth.useQuery({ userId: userId });
-    
-    
-    
 
     useEffect(() => {
         if (storedRoomCode === '') return;
@@ -47,10 +42,6 @@ export default function Lobby({userId}: LobbyProps) {
             userId: userId
         });
     }, [storedRoomCode])
-
-    useEffect(() => {
-        ablyTest.mutate();
-    }, []);
 
     function handleJoinGame(e: FormEvent) {
         e.preventDefault();

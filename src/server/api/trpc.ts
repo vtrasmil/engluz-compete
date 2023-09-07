@@ -12,7 +12,6 @@ import superjson from "superjson";
 import { ZodError } from "zod";
 import { prisma } from "~/server/db";
 
-import getAblyClient from "../ably/client";
 import { getLocalRedisClient } from "../redis/client";
 import { kv } from "@vercel/kv";
 import { env } from '~/env.mjs';
@@ -20,6 +19,10 @@ import { createClient } from 'redis';
 import { isWordValid } from "../wordListManager";
 import { RedisBoggleCommands } from "../redis/api";
 
+import { AblyMessageCallback } from "@ably-labs/react-hooks";
+import { Realtime } from "ably";
+import { createAblyClient } from "../ably/client";
+import { realtime } from "../ably/client";
 /**
  * 1. CONTEXT
  *
@@ -41,8 +44,10 @@ type CreateContextOptions = Record<string, never>;
  * @see https://create.t3.gg/en/usage/trpc#-serverapitrpcts
  */
 const createInnerTRPCContext = (_opts: CreateContextOptions) => {
-  const ably = getAblyClient();
   
+  createAblyClient();
+  const ably = realtime;
+  console.log(`>>> Creating context with connection ${ably.connection.id}`)
   // const redis = env.USE_LOCAL_REDIS ? getLocalRedisClient() : kv;
   const redis = new RedisBoggleCommands(getLocalRedisClient());
 

@@ -14,6 +14,7 @@ export const gameplayRouter = createTRPCRouter({
             letterBlocks: z.number().array(),
         }))
         .mutation(async (opts) => {
+            let before = Date.now();
             const { userId, gameId } = opts.input;
             if (userId == null) {
                 throw new TRPCError({ message: `No userId found`, code: "BAD_REQUEST" });
@@ -21,17 +22,32 @@ export const gameplayRouter = createTRPCRouter({
             
             const dice = await opts.ctx.redis.getDice(gameId);
             
+            console.log(`getDice: ${Date.now() - before}ms`);
+            before = Date.now();
+            
             // let dice = getDiceRollString(board, false);
             const word = getWordFromBoard(opts.input.letterBlocks, dice)
             const isValid = await isWordValid(word, opts.ctx.redis);
+
+            console.log(`isWordValid: ${Date.now() - before}ms`);
+            before = Date.now();
+            
+            // console.log(`isWordValid: ${(Date.now() - before)}ms`)
+
             if (isValid) {
                 const reroll = rollDice(dice, opts.input.letterBlocks);
-                const setDice = await opts.ctx.redis.setDice(opts.input.gameId, reroll);
-                if (setDice) {
-                    // ably pub
-                }
-
-                return { isValid: true };
+                await opts.ctx.redis.setDice(opts.input.gameId, reroll);
+                
+                
+                
+                const ably = opts.ctx.ably;
+                const channel = ably.channels.get('boggleBattle');
+                await channel.publish('wordSubmitted', {newBoard: reroll});
+                
+                
+                
+                return { isValid: true, newBoard: reroll };
+                
             } else {
                 return { isValid: false };
             }

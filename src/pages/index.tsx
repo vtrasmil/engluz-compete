@@ -3,8 +3,10 @@ import {
   setUseWhatChange,
 } from '@simbathesailor/use-what-changed';
 import { useUserIdContext } from "~/components/useUserIdContext";
+import dynamic from "next/dynamic";
 
-import Lobby from "~/components/Lobby";
+const Lobby = dynamic(() => import('../components/Lobby'), { ssr: false });
+
 
 
 setUseWhatChange(process.env.NODE_ENV === 'development');

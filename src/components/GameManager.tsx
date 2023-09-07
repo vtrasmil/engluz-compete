@@ -4,21 +4,28 @@ import Board from "./board";
 import { api } from "~/utils/api";
 import { useUserIdContext } from "./useUserIdContext";
 
+import { uniqueId } from "~/utils/helpers";
+import { Realtime, Types } from "ably";
+import { env } from "~/env.mjs";
+
+
+
+
 
 interface GameManagerProps {
     gameId: string,
-    initBoard: string
+    initBoard: string,
 }
+
 export default function GameManager({gameId, initBoard} : GameManagerProps) {
     const userId = useUserIdContext();
     const duration = 10;
     const [letters, setLetters] = useState(initBoard);
     // const gameState = api.example.getGameState.useQuery({'gameId': gameId})
     const submitWord = api.gameplay.submitWord.useMutation();
+    
 
-    useEffect(() => {
-        
-    }, []);
+    
 
     return (
         <>
@@ -43,5 +50,6 @@ export default function GameManager({gameId, initBoard} : GameManagerProps) {
             gameId: gameId,
             letterBlocks: letters
         })
+        
     }
 }

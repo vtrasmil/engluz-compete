@@ -30,7 +30,15 @@ import { env } from "~/env.mjs";
 // export default handler;
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const client = new Ably.Realtime(env.ABLY_API_KEY);
-    const tokenRequestData = await client.auth.createTokenRequest();
-    console.log(`createTokenRequest handler`);
-    res.status(200).json(tokenRequestData);
+    
+    client.auth.createTokenRequest()
+        .then((tokenRequestData) => {
+            res.status(200).json(tokenRequestData);
+        })
+        .catch((err) => {
+            res.status(500).send("Error requesting token: " + JSON.stringify(err))
+        });
+    
+    
+    
 };

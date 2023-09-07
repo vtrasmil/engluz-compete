@@ -1,10 +1,11 @@
 import { api } from "~/utils/api";
 import { Block } from "@mui/icons-material";
 import { LetterBlock } from "./wordScramble";
-import { boggleDice } from "~/server/diceManager";
+import { boggleDice, toFaceUpValues } from "~/server/diceManager";
 import { useContext, useEffect, useRef, useState } from "react";
 import useDrag from "./useDrag";
 import { useUserIdContext } from "./useUserIdContext";
+import { configureAbly, useChannel } from "@ably-labs/react-hooks";
 
 interface BoardProps {
     onSubmitWord: (arg0: number[]) => void,
@@ -45,12 +46,19 @@ function getNeighbors(i: number) {
 
 export default function Board({config, onSubmitWord}: BoardProps) {
     
-    const letterBlocks = [...config];
+    const [letterBlocks, setLetterBlocks] = useState([...config]);
     const [selectedLetters, setSelectedLetters] = useState<number[]>([]);
     const [isPointerDown, setIsPointerDown] = useState<boolean>(false);
     const [pointerOver, setPointerOver] = useState<number | string>();
     const [lastSubmittedLetters, setLastSubmittedLetters] = useState<number[]>();
-
+    configureAbly({
+        // TODO: change url for prod/dev
+        authUrl: 'http://localhost:3000/api/createTokenRequest',
+        useTokenAuth: true,
+    });
+    const [channel] = useChannel('boggleBattle', 'wordSubmitted', (message) => {
+        setLetterBlocks([...toFaceUpValues(message.data.newBoard)]);
+    });
     
     const userId = useUserIdContext();
 
