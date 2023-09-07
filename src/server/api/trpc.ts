@@ -21,7 +21,7 @@ import { RedisBoggleCommands } from "../redis/api";
 
 import { AblyMessageCallback } from "@ably-labs/react-hooks";
 import { Realtime } from "ably";
-import { createAblyClient } from "../ably/client";
+import { getAblyClient } from "../ably/client";
 import { realtime } from "../ably/client";
 /**
  * 1. CONTEXT
@@ -45,8 +45,8 @@ type CreateContextOptions = Record<string, never>;
  */
 const createInnerTRPCContext = (_opts: CreateContextOptions) => {
   
-  createAblyClient();
-  const ably = realtime;
+  const ably = getAblyClient();
+  
   console.log(`>>> Creating context with connection ${ably.connection.id}`)
   // const redis = env.USE_LOCAL_REDIS ? getLocalRedisClient() : kv;
   const redis = new RedisBoggleCommands(getLocalRedisClient());
