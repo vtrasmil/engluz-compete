@@ -101,11 +101,23 @@ export default function Board({config, onSubmitWord}: BoardProps) {
         
     }
 
+    const handleContextMenu = (e: MouseEvent) => {
+        e.preventDefault();
+    }
+
     
     const windowRef = useRef<EventTarget>(window);
     useDrag(windowRef, [isPointerDown, selectedLetters], {
         onPointerUp: handlePointerUp
     });
+
+    // prevent tap-and-hold menu from appearing
+    useEffect(() => {
+        window.addEventListener('contextmenu', handleContextMenu, true);
+        return () => {
+            window.removeEventListener('contextmenu', handleContextMenu, true);
+        }
+    }, []);
 
 
 
