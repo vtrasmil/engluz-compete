@@ -40,8 +40,8 @@ export default function Home() {
         <meta name="viewport" content="initial-scale=1, width=device-width" />
       </Head>
       
-      <main className="flex justify-center h-screen">
-          <div className="flex flex-col h-full w-full md:max-w-2xl mt-52">
+      <main className="flex justify-center h-screen touch-none">
+          <div className="flex flex-col w-full md:max-w-2xl mt-52">
             <Lobby userId={userId} />
           </div>
       </main>

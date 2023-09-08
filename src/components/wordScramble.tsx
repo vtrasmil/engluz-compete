@@ -82,7 +82,7 @@ export function LetterBlock({
             id={`letter-block-${id}`}
             ref={eventTargetRef}
             // variant="outlined"
-            className={'border border-gray-400 letter-block m-0.5 flex justify-center items-center select-none ' + className}
+            className={'border border-gray-400 letter-block m-2 flex justify-center items-center select-none' + ' ' + className}
             style={{
                 width: "50px",
                 height: "50px"

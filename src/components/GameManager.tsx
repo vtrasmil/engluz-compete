@@ -44,7 +44,6 @@ export default function GameManager({gameId, initBoard} : GameManagerProps) {
 
     function handleSubmitLetters(letters: number[]) {
         if (letters == undefined || letters.length < 3) return;
-        console.log(`submitting letter...`);
         submitWord.mutate({
             userId: userId,
             gameId: gameId,

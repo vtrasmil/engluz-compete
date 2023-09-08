@@ -51,11 +51,7 @@ export default function Board({config, onSubmitWord}: BoardProps) {
     const [isPointerDown, setIsPointerDown] = useState<boolean>(false);
     const [pointerOver, setPointerOver] = useState<number | string>();
     const [lastSubmittedLetters, setLastSubmittedLetters] = useState<number[]>();
-    configureAbly({
-        // TODO: change url for prod/dev
-        authUrl: 'http://localhost:3000/api/createTokenRequest',
-        useTokenAuth: true,
-    });
+    
     const [channel] = useChannel('boggleBattle', 'wordSubmitted', (message) => {
         setLetterBlocks([...toFaceUpValues(message.data.newBoard)]);
     });
