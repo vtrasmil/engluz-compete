@@ -69,23 +69,6 @@ export default function Board({config, onSubmitWord}: BoardProps) {
         }
     }
 
-    const handlePointerOver = (e: PointerEvent, i?: number) => {
-        
-        // if (!isPointerDown || i == undefined || selectedLetters.includes(i)) return;
-        
-        // const lastBlockSelected = selectedLetters.slice(-1)[0];
-        // if (lastBlockSelected != undefined) {
-        //     const isNeighbor = getNeighbors(lastBlockSelected)?.includes(i);
-        //     if (!isNeighbor) return;
-        // }
-        
-        // setPointerOver(i);
-        // setSelectedLetters([...selectedLetters, i]);
-        // // console.log(`selected: ${blocksSelected.toString()}, ${[i].toString()}`);
-    }
-
-    
-
     const handlePointerEnter = (e: PointerEvent, i?: number) => {
         console.log(`pointerenter: ${i}`)
         if (!isPointerDown || i == undefined || selectedLetters.includes(i)) return;
@@ -99,8 +82,6 @@ export default function Board({config, onSubmitWord}: BoardProps) {
         setPointerOver(i);
         setSelectedLetters([...selectedLetters, i]);
     }
-
-
 
     const handlePointerUp = (e: PointerEvent, i?: number) => {
         
