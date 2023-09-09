@@ -21,8 +21,6 @@ export default function Home() {
     
   }
 
-  
-
   return (
     <>
       <Head>
@@ -41,7 +39,7 @@ export default function Home() {
       </Head>
       
       <main className="flex justify-center h-screen touch-none">
-          <div className="flex flex-col w-full md:max-w-2xl mt-52">
+          <div className="flex flex-col w-full md:max-w-2xl mt-10">
             <Lobby userId={userId} />
           </div>
       </main>

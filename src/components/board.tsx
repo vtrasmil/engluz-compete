@@ -114,10 +114,10 @@ export default function Board({config, onSubmitWord}: BoardProps) {
     
 
     return (
-        <div className="board">
+        <div className="board flex flex-col">
             {rows.map((row) => {
                 return (
-                    <div key={row} className="board-row flex">
+                    <div key={row} className="board-row flex justify-center">
                     {rows.map(col => {
                         const i = boardWidth * row + col;
                         const letter = letterBlocks[i];
