@@ -49,7 +49,7 @@ export default function Board({config, onSubmitWord}: BoardProps) {
     const [letterBlocks, setLetterBlocks] = useState([...config]);
     const [selectedLetters, setSelectedLetters] = useState<number[]>([]);
     const [isPointerDown, setIsPointerDown] = useState<boolean>(false);
-    const [pointerOver, setPointerOver] = useState<number | string>();
+    const [pointerOver, setPointerOver] = useState<number>(); // pointerover
     const [lastSubmittedLetters, setLastSubmittedLetters] = useState<number[]>();
     
     const [channel] = useChannel('boggleBattle', 'wordSubmitted', (message) => {
@@ -57,10 +57,12 @@ export default function Board({config, onSubmitWord}: BoardProps) {
     });
     
     const userId = useUserIdContext();
+    
 
     const handlePointerDown = (e: PointerEvent, i?: number) => {
+        
         setIsPointerDown(true);
-        // console.log("pointerDown: " + [i]);
+        console.log(`pointerdown: ${i}`);
         if (i != undefined) {
             setSelectedLetters([i]);
             // console.log("selected: " + [i]);
@@ -69,31 +71,42 @@ export default function Board({config, onSubmitWord}: BoardProps) {
 
     const handlePointerOver = (e: PointerEvent, i?: number) => {
         
-        // console.log(`isPointerDown: ${isPointerDown}`);
+        // if (!isPointerDown || i == undefined || selectedLetters.includes(i)) return;
+        
+        // const lastBlockSelected = selectedLetters.slice(-1)[0];
+        // if (lastBlockSelected != undefined) {
+        //     const isNeighbor = getNeighbors(lastBlockSelected)?.includes(i);
+        //     if (!isNeighbor) return;
+        // }
+        
+        // setPointerOver(i);
+        // setSelectedLetters([...selectedLetters, i]);
+        // // console.log(`selected: ${blocksSelected.toString()}, ${[i].toString()}`);
+    }
+
+    
+
+    const handlePointerEnter = (e: PointerEvent, i?: number) => {
+        console.log(`pointerenter: ${i}`)
         if (!isPointerDown || i == undefined || selectedLetters.includes(i)) return;
+        
         const lastBlockSelected = selectedLetters.slice(-1)[0];
         if (lastBlockSelected != undefined) {
             const isNeighbor = getNeighbors(lastBlockSelected)?.includes(i);
             if (!isNeighbor) return;
         }
-        
+
         setPointerOver(i);
         setSelectedLetters([...selectedLetters, i]);
-        // console.log(`selected: ${blocksSelected.toString()}, ${[i].toString()}`);
     }
 
-    const handlePointerLeave = (e: PointerEvent, i: number) => {
-        
-    }
 
 
     const handlePointerUp = (e: PointerEvent, i?: number) => {
         
         setIsPointerDown(false);
         onSubmitWord(selectedLetters);
-        setSelectedLetters([]);
-        // const msg = i == undefined ? "over window" : "over " + i;
-        // console.log("selected: none. " + msg);
+        setSelectedLetters([]); 
         
     }
 
@@ -101,11 +114,11 @@ export default function Board({config, onSubmitWord}: BoardProps) {
         e.preventDefault();
     }
 
-    
+    // when pointerup happens outside a letter
     const windowRef = useRef<EventTarget>(window);
     useDrag(windowRef, [isPointerDown, selectedLetters], {
-        onPointerUp: handlePointerUp
-    });
+        onPointerUp: handlePointerUp,
+    }, 'window');
 
     // prevent tap-and-hold menu from appearing
     useEffect(() => {
@@ -129,12 +142,17 @@ export default function Board({config, onSubmitWord}: BoardProps) {
                         const letter = letterBlocks[i];
 
                         if (letter != undefined)
-                            return <LetterBlock id={i} isSelected={selectedLetters.includes(i)} letter={letter}
-                                key={`{row}-${col}`}
+                            return <LetterBlock id={i} letter={letter}
+                                key={`${row}-${col}`}
+                                
                                 onPointerDown={handlePointerDown} onPointerUp={handlePointerUp}
-                                onPointerOver={handlePointerOver} onPointerLeave={handlePointerLeave}
-                                isPointerDown={isPointerDown} isPointerOver={pointerOver === i}
+                                onPointerEnter={handlePointerEnter} 
+                                
+                                isSelected={selectedLetters.includes(i)} 
+                                isPointerOver={pointerOver === i} 
                                 blocksSelected={selectedLetters}
+
+                                /*isPointerDown={isPointerDown} */
                             />
                     })}
                     </div>

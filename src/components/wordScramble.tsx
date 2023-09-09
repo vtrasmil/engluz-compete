@@ -24,12 +24,12 @@ interface LetterBlockProps {
     letter: string,
     isSelected: boolean,
     onPointerDown: (e: PointerEvent, i: number) => void,
-    onPointerOver: (e: PointerEvent, i: number) => void,
     onPointerUp: (e: PointerEvent, i: number) => void,
-    onPointerLeave: (e: PointerEvent, i: number) => void,
-    isPointerDown: boolean,
+    onPointerEnter: (e: PointerEvent, i: number) => void,
+    isPointerDown?: boolean, // TODO:
     isPointerOver: boolean,
     blocksSelected: number[],
+    
 
     
 }
@@ -39,8 +39,8 @@ interface LetterBlockProps {
 
 export function LetterBlock({
     id, letter, isSelected,
-    onPointerDown, onPointerOver, onPointerUp, onPointerLeave,
-    isPointerOver, isPointerDown, blocksSelected,
+    onPointerDown, onPointerUp, onPointerEnter,
+    isPointerOver, isPointerDown, blocksSelected, 
 }: LetterBlockProps) {
     const classNames: string[] = [];
     if (isSelected) classNames.push('isSelected');
@@ -48,31 +48,30 @@ export function LetterBlock({
 
     const eventTargetRef = useRef<HTMLDivElement>(null);
 
+    const handlePointerUp = (e: PointerEvent) => {
+        onPointerUp(e, id);
+    };
+    
     const handlePointerDown = (e: PointerEvent) => {
         onPointerDown(e, id);
     };
     
-    const handlePointerOver = (e: PointerEvent) => {
-        onPointerOver(e, id);
+    const handlePointerEnter = (e: PointerEvent) => {
+        onPointerEnter(e, id);
     };
 
-    const handlePointerLeave = (e: PointerEvent) => {
-        onPointerLeave(e, id);
-    }
     
-    const handlePointerUp = (e: PointerEvent) => {
-        onPointerUp(e, id);
-    };
+    
 
     
     let drag;
     if (eventTargetRef !== null) {
-    
-        drag = useDrag(eventTargetRef, [isPointerOver, isPointerDown, blocksSelected], {
-            onPointerMove: handlePointerOver,
+        
+        drag = useDrag(eventTargetRef, [isPointerDown && isPointerOver], {    
+            onPointerDown: handlePointerDown,
             onPointerUp: handlePointerUp,
-            onPointerDown: handlePointerDown
-        });
+            onPointerEnter: handlePointerEnter,
+        }, id);
     }
     
     
