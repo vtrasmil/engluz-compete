@@ -6,7 +6,7 @@ import { promises as fs } from 'fs';
 
 
 const dictionaryKey = 'dictionary';
-const dictionaryFilePath = 'src/server/CSW2019.txt';
+const dictionaryFilePath = `${process.env.VERCEL_URL || ''}/CSW2019.txt`;
 
 export async function isWordValid(str: string, redis: RedisBoggleCommands) {
     const cont = await isDictionaryInRedis(redis.redis);
@@ -16,18 +16,18 @@ export async function isWordValid(str: string, redis: RedisBoggleCommands) {
     let valid: boolean | number;
     if (redis.redis instanceof RedisClient) {
         valid = await redis.redis.sIsMember(dictionaryKey, str.toUpperCase());
-        
+
     } else {
         valid = await redis.redis.sismember(dictionaryKey, str.toUpperCase());
     }
-    
+
     return valid;
-    
-    
+
+
 }
 
 async function isDictionaryInRedis(redis: BoggleRedisType) {
-    return await redis.exists(dictionaryKey); 
+    return await redis.exists(dictionaryKey);
 }
 
 async function loadDictIntoRedis(redis: BoggleRedisType) {
@@ -37,7 +37,7 @@ async function loadDictIntoRedis(redis: BoggleRedisType) {
         array = data.split('\r\n')
         if (redis instanceof RedisClient) {
             await redis.sAdd(dictionaryKey, array);
-            
+
         } else {
             await redis.sadd(dictionaryKey, array);
         }
@@ -48,5 +48,5 @@ async function loadDictIntoRedis(redis: BoggleRedisType) {
 
 export function getWordFromBoard(blocks: number[], board: string[]) {
     return blocks.map((n) => board[n]?.substring(0,1)).join('');
-    
+
 }
