@@ -6,7 +6,7 @@ import { promises as fs } from 'fs';
 
 
 const dictionaryKey = 'dictionary';
-const dictionaryFilePath = `${process.env.VERCEL_URL || ''}/CSW2019.txt`;
+const dictionaryFilePath = `https://${process.env.VERCEL_URL || ''}/CSW2019.txt`;
 
 export async function isWordValid(str: string, redis: RedisBoggleCommands) {
     const cont = await isDictionaryInRedis(redis.redis);
