@@ -1,14 +1,12 @@
 
 import { api } from "~/utils/api";
 
-import { useContext, PropsWithChildren, useEffect, useState, FormEvent, ChangeEvent, ChangeEventHandler, ReactNode, useSyncExternalStore } from "react";
+import { useEffect, useState, FormEvent, ChangeEvent } from "react";
 
 import { Input, Button } from "@mui/material";
 import { useSessionStorage } from '@react-hooks-library/core';
-import { useIsClient } from "~/components/customHooks";
 import GameManager from "~/components/GameManager";
 import { HostGameButton, JoinGameButton } from "~/components/LobbyButtons";
-import { configureAbly } from "@ably-labs/react-hooks";
 
 interface LobbyProps {
     userId: string,
@@ -22,14 +20,14 @@ export default function Lobby({userId}: LobbyProps) {
     const [gameId, setGameId] = useState<string>();
     const [initBoard, setInitBoard] = useState<string | undefined>();
     const joinGame = api.lobby.joinGame.useMutation({
-        onSuccess: async (data) => {
+        onSuccess: (data) => {
             setStoredRoomCode(data.roomCode);
             setGameId(data.gameId);
             setInitBoard(data.board);
         }
     });
     const hostGame = api.lobby.hostGame.useMutation({
-        onSuccess: async (data) => {
+        onSuccess: (data) => {
             setStoredRoomCode(data.roomCode);
             setInitBoard(data.board);
         }

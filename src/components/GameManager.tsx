@@ -1,16 +1,8 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import GameOverModal from "./GameOverModal";
 import Board from "./board";
 import { api } from "~/utils/api";
 import { useUserIdContext } from "./useUserIdContext";
-
-import { uniqueId } from "~/utils/helpers";
-import { Realtime, Types } from "ably";
-import { env } from "~/env.mjs";
-
-
-
-
 
 interface GameManagerProps {
     gameId: string,

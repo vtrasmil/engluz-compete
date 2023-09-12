@@ -1,11 +1,10 @@
-import { api } from "~/utils/api";
-import { Block } from "@mui/icons-material";
 import { LetterBlock } from "./wordScramble";
 import { boggleDice, toFaceUpValues } from "~/server/diceManager";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import useDrag from "./useDrag";
 import { useUserIdContext } from "./useUserIdContext";
-import { configureAbly, useChannel } from "@ably-labs/react-hooks";
+import { useChannel } from "@ably-labs/react-hooks";
+import { WordSubmittedMessageData } from "~/server/api/routers/gameplayRouter";
 
 interface BoardProps {
     onSubmitWord: (arg0: number[]) => void,
@@ -45,24 +44,25 @@ function getNeighbors(i: number) {
 }
 
 export default function Board({config, onSubmitWord}: BoardProps) {
-    
+
     const [letterBlocks, setLetterBlocks] = useState([...config]);
     const [selectedLetters, setSelectedLetters] = useState<number[]>([]);
     const [isPointerDown, setIsPointerDown] = useState<boolean>(false);
     const [pointerOver, setPointerOver] = useState<number>(); // pointerover
     const [lastSubmittedLetters, setLastSubmittedLetters] = useState<number[]>();
-    
+
     const [channel] = useChannel('boggleBattle', 'wordSubmitted', (message) => {
-        setLetterBlocks([...toFaceUpValues(message.data.newBoard)]);
+        const msgData = message.data as WordSubmittedMessageData;
+        setLetterBlocks([...toFaceUpValues(msgData.newBoard)]);
     });
-    
+
     const userId = useUserIdContext();
-    
+
 
     const handlePointerDown = (e: PointerEvent, i?: number) => {
-        
+
         setIsPointerDown(true);
-        console.log(`pointerdown: ${i}`);
+        console.log(`pointerdown: ${i || 'undefined'}`);
         if (i != undefined) {
             setSelectedLetters([i]);
             // console.log("selected: " + [i]);
@@ -70,9 +70,9 @@ export default function Board({config, onSubmitWord}: BoardProps) {
     }
 
     const handlePointerEnter = (e: PointerEvent, i?: number) => {
-        console.log(`pointerenter: ${i}`)
+        console.log(`pointerenter: ${i || 'undefined'}`)
         if (!isPointerDown || i == undefined || selectedLetters.includes(i)) return;
-        
+
         const lastBlockSelected = selectedLetters.slice(-1)[0];
         if (lastBlockSelected != undefined) {
             const isNeighbor = getNeighbors(lastBlockSelected)?.includes(i);
@@ -84,11 +84,11 @@ export default function Board({config, onSubmitWord}: BoardProps) {
     }
 
     const handlePointerUp = (e: PointerEvent, i?: number) => {
-        
+
         setIsPointerDown(false);
         onSubmitWord(selectedLetters);
-        setSelectedLetters([]); 
-        
+        setSelectedLetters([]);
+
     }
 
     const handleContextMenu = (e: MouseEvent) => {
@@ -111,7 +111,7 @@ export default function Board({config, onSubmitWord}: BoardProps) {
 
 
 
-    
+
 
     return (
         <div className="board flex flex-col">
@@ -125,12 +125,12 @@ export default function Board({config, onSubmitWord}: BoardProps) {
                         if (letter != undefined)
                             return <LetterBlock id={i} letter={letter}
                                 key={`${row}-${col}`}
-                                
+
                                 onPointerDown={handlePointerDown} onPointerUp={handlePointerUp}
-                                onPointerEnter={handlePointerEnter} 
-                                
-                                isSelected={selectedLetters.includes(i)} 
-                                isPointerOver={pointerOver === i} 
+                                onPointerEnter={handlePointerEnter}
+
+                                isSelected={selectedLetters.includes(i)}
+                                isPointerOver={pointerOver === i}
                                 blocksSelected={selectedLetters}
 
                                 /*isPointerDown={isPointerDown} */
@@ -140,7 +140,7 @@ export default function Board({config, onSubmitWord}: BoardProps) {
                 )
             })}
 
-            
+
         </div>);
 }
 

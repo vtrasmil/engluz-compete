@@ -4,9 +4,6 @@ import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { toFaceUpValues } from "~/server/diceManager";
 
-import { uniqueId } from "~/utils/helpers";
-import Ably from "ably/promises";
-import { env } from "~/env.mjs";
 
 
 const totalPlayers = 4;
@@ -34,27 +31,14 @@ export const lobbyRouter = createTRPCRouter({
     //   userId: z.string()
     // }))
     .query((opts) => {
-      
-      // const userId = opts.input.userId;
-      // const userId = uniqueId();
-      // const client = new Ably.Realtime(env.ABLY_API_KEY);
       const tokenParams = {
         clientId: 'boggle-battle-react'
       };   
 
-      const authOptions = {
-
-      }
-
       const tokenRequest = opts.ctx.ably.auth.createTokenRequest(tokenParams);
-      // const tokenRequest = client.auth.createTokenRequest(tokenParams);
       
       return tokenRequest.then(
-        (req) => {
-          // response.setHeader("Content-Type", "application/json");
-          console.log(`Token request created with clientId: ${req.clientId}`);
-          // return req;
-        },
+        (req) => undefined,
         (err: Types.ErrorInfo) => {
           throw new TRPCError({
             message: "Error requesting token: " + JSON.stringify(err),

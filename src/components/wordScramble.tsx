@@ -1,20 +1,4 @@
-import { log } from "console";
-import { type } from "os";
-import { array, object } from "zod";
-import { proseWrap } from "prettier.config.cjs";
-import { MutableRefObject, Ref, useEffect, useRef, useState, RefObject } from "react";
-import BackspaceButton, { ClearButton } from './buttons.tsx';
-import shuffleArrayCopy from "./helpers.tsx";
-import KeyboardInputHandler from "./KeyboardInputHandler.tsx";
-import {
-    useWhatChanged,
-} from '@simbathesailor/use-what-changed';
-import { api } from "~/utils/api.ts";
-import { useContext } from 'react';
-import { useChannel } from "@ably-labs/react-hooks";
-import { useUserIdContext } from "./useUserIdContext.tsx";
-import { Button } from "@mui/material";
-import GameManager from "./GameManager.tsx";
+import { useRef } from "react";
 import useDrag from "./useDrag.tsx";
 
 
@@ -29,9 +13,9 @@ interface LetterBlockProps {
     isPointerDown?: boolean,
     isPointerOver: boolean,
     blocksSelected: number[],
-    
 
-    
+
+
 }
 
 
@@ -40,7 +24,7 @@ interface LetterBlockProps {
 export function LetterBlock({
     id, letter, isSelected,
     onPointerDown, onPointerUp, onPointerEnter,
-    isPointerOver, isPointerDown, blocksSelected, 
+    isPointerOver, isPointerDown, blocksSelected,
 }: LetterBlockProps) {
     const classNames: string[] = [];
     if (isSelected) classNames.push('isSelected');
@@ -51,32 +35,22 @@ export function LetterBlock({
     const handlePointerUp = (e: PointerEvent) => {
         onPointerUp(e, id);
     };
-    
+
     const handlePointerDown = (e: PointerEvent) => {
         onPointerDown(e, id);
     };
-    
+
     const handlePointerEnter = (e: PointerEvent) => {
         onPointerEnter(e, id);
     };
 
-    
-    
+    const drag = useDrag(eventTargetRef, [isPointerDown && isPointerOver], {
+        onPointerDown: handlePointerDown,
+        onPointerUp: handlePointerUp,
+        onPointerEnter: handlePointerEnter,
+    }, id);
 
-    
-    let drag;
-    if (eventTargetRef !== null) {
-        
-        drag = useDrag(eventTargetRef, [isPointerDown && isPointerOver], {    
-            onPointerDown: handlePointerDown,
-            onPointerUp: handlePointerUp,
-            onPointerEnter: handlePointerEnter,
-        }, id);
-    }
-    
-    
-    
-    return (      
+    return (
         <div
             id={`letter-block-${id}`}
             ref={eventTargetRef}
@@ -95,21 +69,21 @@ export function LetterBlock({
 interface PlayerInputProps {
     guess: string,
     solutions: string[]
-}  
+}
 
 function PlayerInput({guess, solutions} : PlayerInputProps) {
-    
+
     let classNames = ['player-input', 'something'];
     if (solutions.includes(guess)) {
         classNames = classNames.concat('guess-correct');
 
     }
     const className = classNames.join(' ');
-    
+
     return (
         <div className={className}>
             {guess}
-        </div>    
+        </div>
     );
 }
 

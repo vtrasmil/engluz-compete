@@ -1,4 +1,4 @@
-import shuffleArrayCopy, { shuffleArrayJS, shuffleString } from "~/components/helpers"
+import shuffleArrayCopy, { shuffleString } from "~/components/helpers";
 
 export const boggleDice =
     [
@@ -48,9 +48,9 @@ export function toStoredDiceRollString(dice: string[]) {
 
 export function toFaceUpValues(dice: string[]) {
     let letters = '';
-    for (let key in dice) {
-        letters += dice[key]?.[0];
-    }
+    dice.forEach((v, i) => {
+        letters += dice[i]?.[0];
+    })
     return letters;
 }
 

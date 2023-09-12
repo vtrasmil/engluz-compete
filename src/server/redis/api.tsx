@@ -1,8 +1,8 @@
-import { createClient } from "redis";
+import type { createClient } from "redis";
 import { generateRandomString } from "~/components/helpers";
 import { uniqueId } from "~/utils/helpers";
 import { boggleDice, rollAndShuffleDice, toStoredDiceRollString } from "../diceManager";
-import { VercelKV } from "@vercel/kv";
+import type { VercelKV } from "@vercel/kv";
 import RedisClient from "@redis/client/dist/lib/client";
 
 const RedisObjects = {

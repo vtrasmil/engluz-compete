@@ -1,14 +1,10 @@
 import { env } from "../../env.mjs";
-import { configureAbly } from "@ably-labs/react-hooks";
-import { Realtime } from "ably";
 import Ably from "ably/promises";
 
-const MAX_NUM_CONNECTION_RETRIES = 5;
 let realtime: Ably.Realtime;
-let retries = 0;
 
 export function getAblyClient() {
-    if (realtime != undefined 
+    if (realtime != undefined
         // && (realtime.connection.state === 'connected' ||
         // realtime.connection.state === 'connecting' ||
         // realtime.connection.state === 'initialized')
@@ -20,12 +16,12 @@ export function getAblyClient() {
     realtime = new Ably.Realtime({
         key: env.ABLY_API_KEY,
     });
-    
+
     realtime.connection.on((connectionState) => {
         const time = new Date().toLocaleString();
-        let string = `[${time}] Ably connection ${realtime.connection.id} state change: ${connectionState.previous} --> ${connectionState.current}`;
+        let string = `[${time}] Ably connection ${realtime.connection.id || 'undefined'} state change: ${connectionState.previous} --> ${connectionState.current}`;
         if (connectionState.reason != undefined) {
-            string += `: reason: ${connectionState.reason}`
+            string += `: reason: ${connectionState.reason.name}: ${connectionState.reason.message}}`
         }
         console.log(string);
     })

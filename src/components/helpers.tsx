@@ -29,7 +29,7 @@ export function shuffleString(str: string) {
     
 }
 
-export function generateRandomString(length: number = 4): string {
+export function generateRandomString(length = 4): string {
     const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     let result = "";
     for (let i = 0; i < length; i++) {

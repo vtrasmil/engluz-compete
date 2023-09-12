@@ -18,9 +18,9 @@ export const useDrag = (ref: RefObject<EventTarget>, deps: any[], options: DragO
     
 
     const {
-        onPointerDown = (e: PointerEvent) => { },
-        onPointerUp = (e: PointerEvent) => { },
-        onPointerEnter = (e: PointerEvent) => { },
+        onPointerDown = (e: PointerEvent) => undefined,
+        onPointerUp = (e: PointerEvent) => undefined,
+        onPointerEnter = (e: PointerEvent) => undefined,
         
     } = options;
 
@@ -65,7 +65,6 @@ export const useDrag = (ref: RefObject<EventTarget>, deps: any[], options: DragO
             };
         }
         
-        return () => {};
     }); // TODO: bring back deps to improve performance
     
     return { isDragging };
