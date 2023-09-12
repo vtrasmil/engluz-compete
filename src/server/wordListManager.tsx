@@ -1,7 +1,9 @@
 import { RedisClientType } from "@redis/client";
 import { createClient } from "redis";
 import { getRandomIntInclusive } from "~/utils/helpers";
-import { RedisBoggleCommands } from "./redis/api";
+import { BoggleRedisType, RedisBoggleCommands } from "./redis/api";
+import { VercelKV } from "@vercel/kv";
+import RedisClient from "@redis/client/dist/lib/client";
 
 
 
@@ -13,24 +15,36 @@ export async function isWordValid(str: string, redis: RedisBoggleCommands) {
     if (!cont) {
         loadDictIntoRedis(redis.redis)
     }
-    const valid = await redis.redis.sIsMember(dictionaryKey, str.toUpperCase());
+    let valid: boolean | number;
+    if (redis.redis instanceof RedisClient) {
+        valid = await redis.redis.sIsMember(dictionaryKey, str.toUpperCase());
+        
+    } else {
+        valid = await redis.redis.sismember(dictionaryKey, str.toUpperCase());
+    }
+    
     return valid;
     
     
 }
 
-async function isDictionaryInRedis(redis: ReturnType<typeof createClient>) {
+async function isDictionaryInRedis(redis: BoggleRedisType) {
     return await redis.exists(dictionaryKey); 
 }
 
-async function loadDictIntoRedis(redis: ReturnType<typeof createClient>) {
+async function loadDictIntoRedis(redis: BoggleRedisType) {
     const fs = require('fs/promises');
     let array: string[];
     try {
         const data = await fs.readFile(dictionaryFilePath, { encoding: 'utf8' });
         // const data = fs.readFileSync(dictionaryFilePath, 'utf8') as string;
         array = data.split('\r\n')
-        redis.sAdd(dictionaryKey, array);
+        if (redis instanceof RedisClient) {
+            redis.sAdd(dictionaryKey, array);
+            
+        } else {
+            redis.sadd(dictionaryKey, array);
+        }
     } catch (err) {
         console.error(err);
     }

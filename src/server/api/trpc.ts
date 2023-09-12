@@ -12,7 +12,7 @@ import superjson from "superjson";
 import { ZodError } from "zod";
 import { prisma } from "~/server/db";
 
-import { getLocalRedisClient } from "../redis/client";
+import { getRedisClient } from "../redis/client";
 import { kv } from "@vercel/kv";
 import { env } from '~/env.mjs';
 import { createClient } from 'redis';
@@ -49,7 +49,7 @@ const createInnerTRPCContext = (_opts: CreateContextOptions) => {
   
   console.log(`>>> Creating context with connection ${ably.connection.id}`)
   // const redis = env.USE_LOCAL_REDIS ? getLocalRedisClient() : kv;
-  const redis = new RedisBoggleCommands(getLocalRedisClient());
+  const redis = new RedisBoggleCommands(getRedisClient());
 
   
   return {

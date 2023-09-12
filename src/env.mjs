@@ -11,6 +11,7 @@ export const env = createEnv({
     NODE_ENV: z.enum(["development", "test", "production"]),
     ABLY_API_KEY: z.string().min(1),
     USE_LOCAL_REDIS: z.boolean(),
+    ENV: z.enum(["development", "production"]),
   },
 
   /**
@@ -31,6 +32,7 @@ export const env = createEnv({
     NODE_ENV: process.env.NODE_ENV,
     ABLY_API_KEY: process.env.ABLY_API_KEY,
     USE_LOCAL_REDIS: Boolean(process.env.USE_LOCAL_REDIS),
+    ENV: process.env.ENV,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },
   /**

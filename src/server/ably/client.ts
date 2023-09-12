@@ -4,7 +4,7 @@ import { Realtime } from "ably";
 import Ably from "ably/promises";
 
 const MAX_NUM_CONNECTION_RETRIES = 5;
-export let realtime: Ably.Realtime;
+let realtime: Ably.Realtime;
 let retries = 0;
 
 export function getAblyClient() {

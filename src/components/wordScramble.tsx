@@ -26,7 +26,7 @@ interface LetterBlockProps {
     onPointerDown: (e: PointerEvent, i: number) => void,
     onPointerUp: (e: PointerEvent, i: number) => void,
     onPointerEnter: (e: PointerEvent, i: number) => void,
-    isPointerDown?: boolean, // TODO:
+    isPointerDown?: boolean,
     isPointerOver: boolean,
     blocksSelected: number[],
     
