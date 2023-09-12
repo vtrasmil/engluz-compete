@@ -25,6 +25,7 @@
     "@trpc/react-query": "^10.26.0",
     "@trpc/server": "^10.26.0",
     "@uidotdev/usehooks": "^2.1.1",
+    "@vercel/analytics": "^1.0.2",
     "@vercel/kv": "^0.2.2",
     "ably": "^1.2.42",
     "dotenv": "^16.3.1",
