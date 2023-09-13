@@ -1,8 +1,8 @@
 import { type AppType } from "next/app";
-import { api, getBaseServerUrl } from "~/utils/api";
+import { api } from "~/utils/api";
 import "~/styles/globals.css";
 import { UserIdProvider } from "~/components/useUserIdContext";
-import { getUserIdFromSessionStorage, uniqueId } from "~/utils/helpers";
+import { getUserIdFromSessionStorage } from "~/utils/helpers";
 import { CssBaseline } from "@mui/material";
 
 
@@ -22,12 +22,12 @@ const MyApp: AppType = ({ Component, pageProps }) => {
   }
   const userId = getUserIdFromSessionStorage();
 
-  // const ably = configureAbly({
+  const ablyAuthUrlHost = process.env.NEXT_PUBLIC_VERCEL_URL ?? `localhost:${process.env.PORT ?? 3000}`;
   configureAbly({
-        authUrl: `${getBaseServerUrl()}/api/createTokenRequest`,
+        authUrl: `http${process.env.NEXT_PUBLIC_VERCEL_URL ? 's' : ''}:\/\/${ablyAuthUrlHost}/api/createTokenRequest`,
         useTokenAuth: true,
   });
-  
+
   if (userId !== undefined)
     return (
       <UserIdProvider userId={userId}>

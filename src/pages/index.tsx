@@ -1,7 +1,4 @@
 import Head from "next/head";
-import {
-  setUseWhatChange,
-} from '@simbathesailor/use-what-changed';
 import { useUserIdContext } from "~/components/useUserIdContext";
 import dynamic from "next/dynamic";
 import { Analytics } from '@vercel/analytics/react';
@@ -11,7 +8,7 @@ const Lobby = dynamic(() => import('../components/Lobby'), { ssr: false });
 
 
 
-setUseWhatChange(process.env.NODE_ENV === 'development');
+// setUseWhatChange(process.env.NODE_ENV === 'development');
 
 
 export default function Home() {

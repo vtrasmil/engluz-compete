@@ -1,6 +1,7 @@
 import { BoggleRedisType, RedisBoggleCommands } from "./redis/api";
 import RedisClient from "@redis/client/dist/lib/client";
 import { promises as fs } from 'fs';
+import { env } from "~/env.mjs";
 
 
 
