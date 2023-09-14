@@ -1,7 +1,6 @@
 import { BoggleRedisType, RedisBoggleCommands } from "./redis/api";
 import RedisClient from "@redis/client/dist/lib/client";
 import { promises as fs } from 'fs';
-import { env } from "~/env.mjs";
 
 
 
@@ -10,15 +9,17 @@ const dictionaryKey = 'dictionary';
 const dictionaryFilePath = `https://${process.env.VERCEL_URL || ''}/CSW2019.txt`;
 
 export async function isWordValid(str: string, redis: RedisBoggleCommands) {
-    const cont = await isDictionaryInRedis(redis.redis);
-    if (!cont) {
-        await loadDictIntoRedis(redis.redis)
-    }
+
+    let exists: boolean | number;
     let valid: boolean | number;
     if (redis.redis instanceof RedisClient) {
+        exists = await redis.redis.exists(dictionaryKey);
+        if (!exists) throw new Error(`Key ${dictionaryKey} not found in redis`);
         valid = await redis.redis.sIsMember(dictionaryKey, str.toUpperCase());
 
     } else {
+        exists = await redis.redis.exists(dictionaryKey);
+        if (!exists) throw new Error(`Key ${dictionaryKey} not found in redis`);
         valid = await redis.redis.sismember(dictionaryKey, str.toUpperCase());
     }
 

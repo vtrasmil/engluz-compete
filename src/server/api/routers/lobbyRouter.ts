@@ -1,5 +1,3 @@
-import { TRPCError } from "@trpc/server";
-import { Types } from "ably";
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { toFaceUpValues } from "~/server/diceManager";
@@ -25,30 +23,30 @@ export const lobbyRouter = createTRPCRouter({
         greeting: `hello ${opts.input?.text ?? 'world'}`,
       };
     }),
-  
-  createTokenRequest: publicProcedure
-    // .input(z.object({
-    //   userId: z.string()
-    // }))
-    .query((opts) => {
-      const tokenParams = {
-        clientId: 'boggle-battle-react'
-      };   
 
-      const tokenRequest = opts.ctx.ably.auth.createTokenRequest(tokenParams);
-      
-      return tokenRequest.then(
-        (req) => undefined,
-        (err: Types.ErrorInfo) => {
-          throw new TRPCError({
-            message: "Error requesting token: " + JSON.stringify(err),
-            code: "INTERNAL_SERVER_ERROR"
-          });
-      });
-    }),
-  
-      
-  
+  // createTokenRequest: publicProcedure
+  //   // .input(z.object({
+  //   //   userId: z.string()
+  //   // }))
+  //   .query((opts) => {
+  //     const tokenParams = {
+  //       clientId: 'boggle-battle-react'
+  //     };
+
+  //     const tokenRequest = opts.ctx.ably.auth.createTokenRequest(tokenParams);
+
+  //     return tokenRequest.then(
+  //       (req) => undefined,
+  //       (err: Types.ErrorInfo) => {
+  //         throw new TRPCError({
+  //           message: "Error requesting token: " + JSON.stringify(err),
+  //           code: "INTERNAL_SERVER_ERROR"
+  //         });
+  //     });
+  //   }),
+
+
+
   joinGame: publicProcedure
     // TODO: map room codes to gameIds in redis hash
     .input(z.object({
@@ -56,7 +54,7 @@ export const lobbyRouter = createTRPCRouter({
       userId: z.string(),
     }))
     .mutation(async (opts) => {
-      
+
 
       const roomCode = opts.input.roomCode;
       const isRoomCodeActive = await opts.ctx.redis.isRoomCodeActive(opts.input.roomCode);
@@ -78,15 +76,15 @@ export const lobbyRouter = createTRPCRouter({
       const roomCode = await opts.ctx.redis.createRoomCode(gameId);
       const board = await opts.ctx.redis.createDice(gameId);
       const faceUpValues = toFaceUpValues(board);
-      
+
       return {
         'board': faceUpValues,
         'roomCode': roomCode,
         'gameId': gameId
       }
-  
+
     }),
-  
+
   ablySubscribeTest: publicProcedure
     .mutation(async (opts) => {
       const ably = opts.ctx.ably;

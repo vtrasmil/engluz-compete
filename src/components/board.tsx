@@ -62,7 +62,6 @@ export default function Board({config, onSubmitWord}: BoardProps) {
     const handlePointerDown = (e: PointerEvent, i?: number) => {
 
         setIsPointerDown(true);
-        console.log(`pointerdown: ${i || 'undefined'}`);
         if (i != undefined) {
             setSelectedLetters([i]);
             // console.log("selected: " + [i]);
@@ -70,7 +69,6 @@ export default function Board({config, onSubmitWord}: BoardProps) {
     }
 
     const handlePointerEnter = (e: PointerEvent, i?: number) => {
-        console.log(`pointerenter: ${i || 'undefined'}`)
         if (!isPointerDown || i == undefined || selectedLetters.includes(i)) return;
 
         const lastBlockSelected = selectedLetters.slice(-1)[0];

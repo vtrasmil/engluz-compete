@@ -32,7 +32,7 @@ export const gameplayRouter = createTRPCRouter({
             const word = getWordFromBoard(opts.input.letterBlocks, dice)
             const isValid = await isWordValid(word, opts.ctx.redis);
 
-            console.log(`isWordValid: ${Date.now() - before}ms`);
+            // console.log(`isWordValid: ${Date.now() - before}ms`);
             before = Date.now();
 
             // console.log(`isWordValid: ${(Date.now() - before)}ms`)
