@@ -59,6 +59,10 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
     const handlePointerUp = (e: PointerEvent, i?: number) => {
 
         setIsPointerDown(false);
+        if (letters == undefined || letters.length < 3) {
+            setSelectedLetters([]);
+            return;
+        }
         handleSubmitLetters(selectedLetters);
 
 
@@ -69,7 +73,7 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
     }
 
     function handleSubmitLetters(letters: number[]) {
-        if (letters == undefined || letters.length < 3) return;
+
         submitWord.mutate({
             userId: userId,
             gameId: gameId,
