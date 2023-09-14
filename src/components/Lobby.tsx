@@ -13,9 +13,8 @@ interface LobbyProps {
 }
 
 export default function Lobby({userId}: LobbyProps) {
-    
+
     const [roomCode, setRoomCode] = useState('');
-    // TODO: storedRoomCode not being retrieved on reload
     const [storedRoomCode, setStoredRoomCode] = useSessionStorage('roomCode', '');
     const [gameId, setGameId] = useState<string>();
     const [initBoard, setInitBoard] = useState<string | undefined>();
@@ -48,7 +47,7 @@ export default function Lobby({userId}: LobbyProps) {
             roomCode: roomCode.toUpperCase(),
             userId: userId
         });
-        
+
     }
 
     function handleHostGame(e: FormEvent) {
@@ -72,11 +71,9 @@ export default function Lobby({userId}: LobbyProps) {
 
     return (
         <>
-            {storedRoomCode !== '' && initBoard && gameId ? 
             {storedRoomCode !== '' && initBoard && gameId ?
                 <>
                     <Button onClick={handleLeaveRoom}>Leave Room: {storedRoomCode}</Button>
-                    <GameManager gameId={gameId} initBoard={initBoard} />
                     <GameManager gameId={gameId} initBoard={initBoard} roomCode={storedRoomCode}  />
                 </>
                 :

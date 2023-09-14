@@ -7,40 +7,29 @@ import { useUserIdContext } from "./useUserIdContext";
 interface GameManagerProps {
     gameId: string,
     initBoard: string,
+    roomCode: string
 }
 
-export default function GameManager({gameId, initBoard} : GameManagerProps) {
+export default function GameManager({gameId, initBoard, roomCode} : GameManagerProps) {
     const userId = useUserIdContext();
     const duration = 10;
-    const [letters, setLetters] = useState(initBoard);
-    // const gameState = api.example.getGameState.useQuery({'gameId': gameId})
-    const submitWord = api.gameplay.submitWord.useMutation();
-    
 
-    
+    // const gameState = api.example.getGameState.useQuery({'gameId': gameId})
+
+
 
     return (
         <>
-            
-            {/* {initBoard} */}
-            {letters &&
-                <Board onSubmitWord={handleSubmitLetters} config={letters} />
+            {initBoard &&
+                <Board config={initBoard} roomCode={roomCode} gameId={gameId} />
             }
-            
-            {false && <GameOverModal />}
-            
-            
-            
+
+            {/* {false && <GameOverModal />} */}
+
+
+
         </>
     )
 
-    function handleSubmitLetters(letters: number[]) {
-        if (letters == undefined || letters.length < 3) return;
-        submitWord.mutate({
-            userId: userId,
-            gameId: gameId,
-            letterBlocks: letters
-        })
-        
-    }
+
 }
