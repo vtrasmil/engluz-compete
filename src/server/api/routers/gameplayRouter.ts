@@ -3,6 +3,7 @@ import { createTRPCRouter, publicProcedure } from "../trpc";
 import { z } from "zod";
 import { getWordFromBoard, isWordValid } from "~/server/wordListManager";
 import { rollDice } from "~/server/diceManager";
+import { ablyChannelName } from "~/server/ably/ablyHelpers";
 
 export interface WordSubmittedMessageData {
     newBoard: string[]
@@ -15,6 +16,7 @@ export const gameplayRouter = createTRPCRouter({
             userId: z.string(),
             gameId: z.string(),
             letterBlocks: z.number().array(),
+            roomCode: z.string().min(1),
         }))
         .mutation(async (opts) => {
             let before = Date.now();
@@ -44,7 +46,7 @@ export const gameplayRouter = createTRPCRouter({
 
 
                 const ably = opts.ctx.ably;
-                const channel = ably.channels.get('boggleBattle');
+                const channel = ably.channels.get(ablyChannelName(opts.input.roomCode));
                 const wordSubmittedMsg : WordSubmittedMessageData = {
                     newBoard: reroll
                 }

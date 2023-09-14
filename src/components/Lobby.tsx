@@ -73,9 +73,11 @@ export default function Lobby({userId}: LobbyProps) {
     return (
         <>
             {storedRoomCode !== '' && initBoard && gameId ? 
+            {storedRoomCode !== '' && initBoard && gameId ?
                 <>
                     <Button onClick={handleLeaveRoom}>Leave Room: {storedRoomCode}</Button>
                     <GameManager gameId={gameId} initBoard={initBoard} />
+                    <GameManager gameId={gameId} initBoard={initBoard} roomCode={storedRoomCode}  />
                 </>
                 :
                 <>

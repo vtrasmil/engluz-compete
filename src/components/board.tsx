@@ -5,11 +5,7 @@ import useDrag from "./useDrag";
 import { useUserIdContext } from "./useUserIdContext";
 import { useChannel } from "@ably-labs/react-hooks";
 import { WordSubmittedMessageData } from "~/server/api/routers/gameplayRouter";
-
-interface BoardProps {
-    onSubmitWord: (arg0: number[]) => void,
-    config: string
-}
+import { ablyChannelName } from "~/server/ably/ablyHelpers";
 
 const boardWidth = Math.sqrt(boggleDice.length);
     if (![4, 5, 6].includes(boardWidth)) {
@@ -43,7 +39,13 @@ function getNeighbors(i: number) {
     return neighborMap[i];
 }
 
-export default function Board({config, onSubmitWord}: BoardProps) {
+interface BoardProps {
+    onSubmitWord: (arg0: number[]) => void,
+    config: string,
+    roomCode: string
+}
+
+export default function Board({config, onSubmitWord, roomCode}: BoardProps) {
 
     const [letterBlocks, setLetterBlocks] = useState([...config]);
     const [selectedLetters, setSelectedLetters] = useState<number[]>([]);
@@ -51,7 +53,7 @@ export default function Board({config, onSubmitWord}: BoardProps) {
     const [pointerOver, setPointerOver] = useState<number>(); // pointerover
     const [lastSubmittedLetters, setLastSubmittedLetters] = useState<number[]>();
 
-    const [channel] = useChannel('boggleBattle', 'wordSubmitted', (message) => {
+    const [channel] = useChannel(ablyChannelName(roomCode), 'wordSubmitted', (message) => {
         const msgData = message.data as WordSubmittedMessageData;
         setLetterBlocks([...toFaceUpValues(msgData.newBoard)]);
     });
