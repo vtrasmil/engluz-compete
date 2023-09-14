@@ -16,7 +16,6 @@ import { getRedisClient } from "../redis/redisClient";
 import { RedisBoggleCommands } from "../redis/api";
 
 import { getAblyClient } from "../ably/ablyClient";
-import { perfObserver } from "~/utils/userTiming";
 /**
  * 1. CONTEXT
  *
