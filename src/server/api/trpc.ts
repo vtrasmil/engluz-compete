@@ -12,10 +12,11 @@ import superjson from "superjson";
 import { ZodError } from "zod";
 import { prisma } from "~/server/db";
 
-import { getRedisClient } from "../redis/client";
+import { getRedisClient } from "../redis/redisClient";
 import { RedisBoggleCommands } from "../redis/api";
 
-import { getAblyClient } from "../ably/client";
+import { getAblyClient } from "../ably/ablyClient";
+import { perfObserver } from "~/utils/userTiming";
 /**
  * 1. CONTEXT
  *
@@ -39,7 +40,6 @@ type CreateContextOptions = Record<string, never>;
 const createInnerTRPCContext = (_opts: CreateContextOptions) => {
   const ably = getAblyClient();
   const redis = new RedisBoggleCommands(getRedisClient());
-  
   return {
     prisma,
     redis,
