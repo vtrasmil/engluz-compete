@@ -28,3 +28,5 @@ export function isPointerEvent(event: Event): event is PointerEvent {
 export function assert(condition: unknown, msg?: string): asserts condition {
     if (condition === false) throw new Error(msg)
 }
+
+export const sleep = (delay: number) => new Promise((resolve) => setTimeout(resolve, delay))

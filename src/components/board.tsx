@@ -34,17 +34,16 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
     const userId = useUserIdContext();
 
 
-    const handlePointerDown = (e: PointerEvent, i?: number) => {
-
+    const handleLetterBlockDown = (e: PointerEvent, i: number) => {
+        if (submitWord.isLoading) return;
         setIsPointerDown(true);
-        if (i != undefined) {
-            setSelectedLetters([i]);
-            // console.log("selected: " + [i]);
-        }
+
+        setSelectedLetters([i]);
+
     }
 
-    const handlePointerEnter = (e: PointerEvent, i?: number) => {
-        if (!isPointerDown || i == undefined || selectedLetters.includes(i)) return;
+    const handleLetterBlockEnter = (e: PointerEvent, i: number) => {
+        if (!isPointerDown || i == undefined || selectedLetters.includes(i) || submitWord.isLoading) return;
 
         const lastBlockSelected = selectedLetters.slice(-1)[0];
         if (lastBlockSelected != undefined) {
@@ -56,16 +55,14 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
         setSelectedLetters([...selectedLetters, i]);
     }
 
-    const handlePointerUp = (e: PointerEvent, i?: number) => {
-
+    const handlePointerUp = (e: PointerEvent) => {
+        if (submitWord.isLoading) return;
         setIsPointerDown(false);
         if (letters == undefined || letters.length < 3) {
             setSelectedLetters([]);
             return;
         }
         handleSubmitLetters(selectedLetters);
-
-
     }
 
     const handleContextMenu = (e: MouseEvent) => {
@@ -88,7 +85,7 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
         onPointerUp: handlePointerUp,
     }, 'window');
 
-    // prevent tap-and-hold menu from appearing
+    // prevent tap-and-hold browser context menu from appearing
     useEffect(() => {
         window.addEventListener('contextmenu', handleContextMenu, true);
         return () => {
@@ -112,8 +109,8 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
                         return <LetterBlock id={i} letter={letter}
                             key={`${row}-${col}`}
 
-                            onPointerDown={handlePointerDown} onPointerUp={handlePointerUp}
-                            onPointerEnter={handlePointerEnter}
+                            onPointerDown={handleLetterBlockDown} onPointerUp={handlePointerUp}
+                            onPointerEnter={handleLetterBlockEnter}
 
                             isSelected={selectedLetters.includes(i)}
                             isPointerOver={pointerOver === i}
