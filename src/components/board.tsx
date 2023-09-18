@@ -7,11 +7,14 @@ import { useChannel } from "@ably-labs/react-hooks";
 import { WordSubmittedMessageData } from "~/server/api/routers/gameplayRouter";
 import { ablyChannelName } from "~/server/ably/ablyHelpers";
 import { api } from "~/utils/api";
+import { MaterialUISwitch } from "./MUISwitch";
 interface BoardProps {
     config: string,
     roomCode: string,
     gameId: string,
 }
+
+export type DragMode = 'DragToSelect' | 'DragNDrop';
 
 export default function Board({config, roomCode, gameId}: BoardProps) {
     const [letterBlocks, setLetterBlocks] = useState([...config]);
@@ -20,6 +23,7 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
     const [pointerOver, setPointerOver] = useState<number>(); // pointerover
     const [lastSubmittedLetters, setLastSubmittedLetters] = useState<number[]>();
     const [letters, setLetters] = useState(config);
+    const [dragMode, setDragMode] = useState<DragMode>('DragNDrop');
     const submitWord = api.gameplay.submitWord.useMutation({
         onSettled: () => {
             setSelectedLetters([]);
@@ -37,32 +41,64 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
     const handleLetterBlockDown = (e: PointerEvent, i: number) => {
         if (submitWord.isLoading) return;
         setIsPointerDown(true);
+        switch (dragMode) {
+            case 'DragToSelect':
+                setSelectedLetters([i]);
+                break;
+            case 'DragNDrop':
 
-        setSelectedLetters([i]);
+                break;
+            default:
+                break;
+        }
+
 
     }
 
     const handleLetterBlockEnter = (e: PointerEvent, i: number) => {
         if (!isPointerDown || i == undefined || selectedLetters.includes(i) || submitWord.isLoading) return;
 
-        const lastBlockSelected = selectedLetters.slice(-1)[0];
-        if (lastBlockSelected != undefined) {
-            const isNeighbor = getNeighbors(lastBlockSelected)?.includes(i);
-            if (!isNeighbor) return;
+        switch (dragMode) {
+            case 'DragToSelect':
+                const lastBlockSelected = selectedLetters.slice(-1)[0];
+                if (lastBlockSelected != undefined) {
+                    const isNeighbor = getNeighbors(lastBlockSelected)?.includes(i);
+                    if (!isNeighbor) return;
+                }
+                setPointerOver(i);
+                setSelectedLetters([...selectedLetters, i]);
+                break;
+            case 'DragNDrop':
+
+                break;
+            default:
+                break;
         }
 
-        setPointerOver(i);
-        setSelectedLetters([...selectedLetters, i]);
     }
 
+
+
     const handlePointerUp = (e: PointerEvent) => {
+
         if (submitWord.isLoading) return;
         setIsPointerDown(false);
-        if (letters == undefined || letters.length < 3) {
-            setSelectedLetters([]);
-            return;
+        switch (dragMode) {
+            case 'DragToSelect':
+                if (letters == undefined || letters.length < 3) {
+                    setSelectedLetters([]);
+                    return;
+                }
+                handleSubmitLetters(selectedLetters);
+                break;
+            case 'DragNDrop':
+                
+                break;
+
+            default:
+                break;
         }
-        handleSubmitLetters(selectedLetters);
+
     }
 
     const handleContextMenu = (e: MouseEvent) => {
@@ -83,6 +119,7 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
     const windowRef = useRef<EventTarget>(window);
     useDrag(windowRef, [isPointerDown, selectedLetters], {
         onPointerUp: handlePointerUp,
+        dragMode: dragMode
     }, 'window');
 
     // prevent tap-and-hold browser context menu from appearing
@@ -98,32 +135,34 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
 
 
     return (
-        <div className="board flex flex-col">
-            {rows.map((row) =>
-                <div key={row} className="board-row flex justify-center">
-                {rows.map(col => {
-                    const i = boardWidth * row + col;
-                    const letter = letterBlocks[i];
+        <>
+            <div className="board flex flex-col">
+                {rows.map((row) =>
+                    <div key={row} className="board-row flex justify-center">
+                    {rows.map(col => {
+                        const i = boardWidth * row + col;
+                        const letter = letterBlocks[i];
 
-                    if (letter != undefined)
-                        return <LetterBlock id={i} letter={letter}
-                            key={`${row}-${col}`}
+                        if (letter != undefined)
+                            return <LetterBlock id={i} letter={letter}
+                                key={`${row}-${col}`}
 
-                            onPointerDown={handleLetterBlockDown} onPointerUp={handlePointerUp}
-                            onPointerEnter={handleLetterBlockEnter}
+                                onPointerDown={handleLetterBlockDown} onPointerUp={handlePointerUp}
+                                onPointerEnter={handleLetterBlockEnter}
 
-                            isSelected={selectedLetters.includes(i)}
-                            isPointerOver={pointerOver === i}
-                            blocksSelected={selectedLetters}
+                                isSelected={selectedLetters.includes(i)}
+                                isPointerOver={pointerOver === i}
+                                blocksSelected={selectedLetters}
 
-                            /*isPointerDown={isPointerDown} */
-                        />
-                })}
-                </div>
-            )}
-
-
-        </div>);
+                                dragMode={dragMode}
+                            />
+                    })}
+                    </div>
+                )}
+            </div>
+            <MaterialUISwitch />
+        </>
+    );
 }
 
 const boardWidth = Math.sqrt(boggleDice.length);

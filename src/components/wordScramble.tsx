@@ -1,5 +1,5 @@
-import { useRef } from "react";
-import useDrag from "./useDrag.tsx";
+import { useRef, useState } from "react";
+import useDrag, { DragMode } from "./useDrag.tsx";
 
 
 
@@ -13,7 +13,7 @@ interface LetterBlockProps {
     isPointerDown?: boolean,
     isPointerOver: boolean,
     blocksSelected: number[],
-
+    dragMode: DragMode
 
 
 }
@@ -25,10 +25,12 @@ export function LetterBlock({
     id, letter, isSelected,
     onPointerDown, onPointerUp, onPointerEnter,
     isPointerOver, isPointerDown, blocksSelected,
+    dragMode,
 }: LetterBlockProps) {
     const classNames: string[] = [];
     if (isSelected) classNames.push('isSelected');
     const className = classNames.join(' ');
+    const [translate, setTranslate] = useState({ x: 0, y: 0 });
 
     const eventTargetRef = useRef<HTMLDivElement>(null);
 
@@ -44,10 +46,19 @@ export function LetterBlock({
         onPointerEnter(e, id);
     };
 
+    const handleDrag = (e: PointerEvent) => {
+        setTranslate({
+            x: translate.x + e.movementX,
+            y: translate.y + e.movementY
+        });
+    }
+
     const drag = useDrag(eventTargetRef, [isPointerDown && isPointerOver], {
         onPointerDown: handlePointerDown,
         onPointerUp: handlePointerUp,
         onPointerEnter: handlePointerEnter,
+        onDrag: handleDrag,
+        dragMode: dragMode,
     }, id);
 
     return (
@@ -57,8 +68,9 @@ export function LetterBlock({
             // variant="outlined"
             className={'border border-gray-400 letter-block m-2 flex justify-center items-center select-none' + ' ' + className}
             style={{
-                width: "50px",
-                height: "50px"
+                width: `50px`,
+                height: `50px`,
+                transform: `translateX(${translate.x}px) translateY(${translate.y}px)`
             }}
         >
             {letter.toUpperCase()}
