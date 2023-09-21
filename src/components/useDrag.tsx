@@ -1,5 +1,5 @@
 import { useState, useEffect, RefObject } from 'react';
-import { isPointerEvent } from '~/utils/helpers';
+import { isHTMLElement, isPointerEvent } from '~/utils/helpers';
 
 
 interface DragOptions {
@@ -17,10 +17,7 @@ export type DragMode = 'DragToSelect' | 'DragNDrop';
 
 // should accept ref to window and HTMLElement
 // https://javascript.plainenglish.io/how-to-make-a-simple-custom-usedrag-react-hook-6b606d45d353
-export const useDrag = (ref: RefObject<EventTarget>, deps: any[], options: DragOptions, blockId: number | string) => {
-
-
-
+export const useDrag = (ref: RefObject<HTMLElement | EventTarget>, deps: any[], options: DragOptions, blockId: number | string) => {
     const {
         onPointerDown = (e: PointerEvent) => undefined,
         onPointerUp = (e: PointerEvent) => undefined,
@@ -35,11 +32,17 @@ export const useDrag = (ref: RefObject<EventTarget>, deps: any[], options: DragO
 
         e.stopPropagation();
         if (!isPointerEvent(e)) throw new Error('Event is not a PointerEvent');
+        if (e.target && isHTMLElement(e.target)) e.target.releasePointerCapture(e.pointerId);
+
+        console.log(`pointerdown: ${blockId}`)
         switch (options.dragMode) {
             case 'DragToSelect':
-                (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+
                 break;
             case 'DragNDrop':
+                // HTMLElement extends EventTarget - window is an EventTarget
+                // if (ref.current instanceof EventTarget && !(ref.current instanceof HTMLElement)) return;
+                // ref.current?.setPointerCapture(e.pointerId);
                 setIsDragging(true);
                 break;
             default:
@@ -53,12 +56,16 @@ export const useDrag = (ref: RefObject<EventTarget>, deps: any[], options: DragO
     const handlePointerUp = (e: Event) => {
         e.stopPropagation();
         if (!isPointerEvent(e)) throw new Error('Event is not a PointerEvent');
+
+        console.log(`pointerup: ${blockId}`)
         switch (options.dragMode) {
             case 'DragToSelect':
-                (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+
 
                 break;
             case 'DragNDrop':
+                if (!(e.target && isHTMLElement(e.target))) return;
+                // e.target.releasePointerCapture(e.pointerId);
                 setIsDragging(false);
                 break;
             default:
@@ -68,10 +75,11 @@ export const useDrag = (ref: RefObject<EventTarget>, deps: any[], options: DragO
     };
 
     const handlePointerEnter = (e: Event) => {
-
-        e.stopPropagation();
+        console.log(`pointerenter: ${blockId}`);
+        // e.stopPropagation();
         if (!isPointerEvent(e)) throw new Error('Event is not a PointerEvent');
         onPointerEnter(e);
+
     }
 
     const handlePointerMove = (e: Event) => {
@@ -82,6 +90,23 @@ export const useDrag = (ref: RefObject<EventTarget>, deps: any[], options: DragO
         }
     };
 
+    const handleGotPointerCapture = (e: Event) => {
+        if (!isPointerEvent(e)) throw new Error('Event is not a PointerEvent');
+
+
+        console.log(`got pointer capture: ${blockId}`)
+
+        // e.target?.addEventListener('pointermove', handlePointerMove);
+        // e.target?.addEventListener('pointerenter', handlePointerEnter);
+    }
+
+    const handleLostPointerCapture = (e: Event) => {
+        console.log(`lost pointer capture: ${blockId}`)
+        if (!isPointerEvent(e)) throw new Error('Event is not a PointerEvent');
+        // e.target?.removeEventListener('pointermove', handlePointerMove);
+        // e.target?.removeEventListener('pointerenter', handlePointerEnter);
+    }
+
 
     useEffect(() => {
         const element = ref.current;
@@ -91,14 +116,25 @@ export const useDrag = (ref: RefObject<EventTarget>, deps: any[], options: DragO
             element.addEventListener('pointerup', handlePointerUp);
             element.addEventListener('pointerenter', handlePointerEnter);
             element.addEventListener('pointermove', handlePointerMove);
+            if (isHTMLElement(element)) {
+                element.addEventListener('gotpointercapture', handleGotPointerCapture);
+                element.addEventListener('lostpointercapture', handleLostPointerCapture);
+            }
 
             return () => {
                 element.removeEventListener('pointerdown', handlePointerDown);
                 element.removeEventListener('pointerup', handlePointerUp);
                 element.removeEventListener('pointerenter', handlePointerEnter);
                 element.removeEventListener('pointermove', handlePointerMove);
+                element.removeEventListener('gotpointercapture', handleGotPointerCapture);
+                element.removeEventListener('lostpointercapture', handleLostPointerCapture);
+                if (isHTMLElement(element)) {
+                    element.removeEventListener('gotpointercapture', handleGotPointerCapture);
+                    element.removeEventListener('lostpointercapture', handleLostPointerCapture);
+                }
             };
         }
+
 
     }); // TODO: bring back deps to improve performance
 

@@ -1,4 +1,4 @@
-import { LetterBlock } from "./wordScramble";
+import { LetterBlock } from "./LetterBlock";
 import { boggleDice, toFaceUpValues } from "~/server/diceManager";
 import { useEffect, useRef, useState } from "react";
 import useDrag from "./useDrag";
@@ -8,6 +8,8 @@ import { WordSubmittedMessageData } from "~/server/api/routers/gameplayRouter";
 import { ablyChannelName } from "~/server/ably/ablyHelpers";
 import { api } from "~/utils/api";
 import { MaterialUISwitch } from "./MUISwitch";
+import { isHTMLElement } from "~/utils/helpers";
+import { useOverlapDetector } from "./useOverlapDetector";
 interface BoardProps {
     config: string,
     roomCode: string,
@@ -23,7 +25,11 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
     const [pointerOver, setPointerOver] = useState<number>(); // pointerover
     const [lastSubmittedLetters, setLastSubmittedLetters] = useState<number[]>();
     const [letters, setLetters] = useState(config);
+
     const [dragMode, setDragMode] = useState<DragMode>('DragNDrop');
+    const [draggedLetterElement, setDraggedLetterElement] = useState<HTMLDivElement>();
+    const lettersRef = useRef<Map<number, HTMLDivElement> | null>(null);
+
     const submitWord = api.gameplay.submitWord.useMutation({
         onSettled: () => {
             setSelectedLetters([]);
@@ -46,7 +52,7 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
                 setSelectedLetters([i]);
                 break;
             case 'DragNDrop':
-
+                if (e.target && isHTMLElement(e.target)) setDraggedLetterElement(e.target as HTMLDivElement);
                 break;
             default:
                 break;
@@ -92,7 +98,7 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
                 handleSubmitLetters(selectedLetters);
                 break;
             case 'DragNDrop':
-                
+                setDraggedLetterElement(undefined);
                 break;
 
             default:
@@ -122,6 +128,15 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
         dragMode: dragMode
     }, 'window');
 
+    function getMap() {
+        if (!lettersRef.current) {
+            lettersRef.current = new Map();
+        }
+        return lettersRef.current;
+    }
+
+    const overlappedLetters = useOverlapDetector(draggedLetterElement, lettersRef.current);
+
     // prevent tap-and-hold browser context menu from appearing
     useEffect(() => {
         window.addEventListener('contextmenu', handleContextMenu, true);
@@ -147,6 +162,7 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
                             return <LetterBlock id={i} letter={letter}
                                 key={`${row}-${col}`}
 
+
                                 onPointerDown={handleLetterBlockDown} onPointerUp={handlePointerUp}
                                 onPointerEnter={handleLetterBlockEnter}
 
@@ -155,6 +171,7 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
                                 blocksSelected={selectedLetters}
 
                                 dragMode={dragMode}
+
                             />
                     })}
                     </div>
