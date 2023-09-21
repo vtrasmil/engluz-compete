@@ -1,5 +1,5 @@
 import Head from "next/head";
-import { useUserIdContext } from "~/components/useUserIdContext";
+import { useUserIdContext } from "~/components/hooks/useUserIdContext";
 import dynamic from "next/dynamic";
 import { Analytics } from '@vercel/analytics/react';
 

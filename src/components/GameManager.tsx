@@ -1,8 +1,5 @@
-import { useState } from "react";
-import GameOverModal from "./GameOverModal";
-import Board from "./board";
-import { api } from "~/utils/api";
-import { useUserIdContext } from "./useUserIdContext";
+import Board from "./Board";
+import { useUserIdContext } from "./hooks/useUserIdContext";
 
 interface GameManagerProps {
     gameId: string,

@@ -2,14 +2,14 @@ import { LetterBlock } from "./LetterBlock";
 import { boggleDice, toFaceUpValues } from "~/server/diceManager";
 import { useEffect, useRef, useState } from "react";
 import useDrag from "./useDrag";
-import { useUserIdContext } from "./useUserIdContext";
+import { useUserIdContext } from "./hooks/useUserIdContext";
 import { useChannel } from "@ably-labs/react-hooks";
 import { WordSubmittedMessageData } from "~/server/api/routers/gameplayRouter";
 import { ablyChannelName } from "~/server/ably/ablyHelpers";
 import { api } from "~/utils/api";
 import { MaterialUISwitch } from "./MUISwitch";
 import { isHTMLElement } from "~/utils/helpers";
-import { useOverlapDetector } from "./useOverlapDetector";
+import { useOverlapDetector } from "./hooks/useOverlapDetector";
 interface BoardProps {
     config: string,
     roomCode: string,
@@ -29,6 +29,7 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
     const [dragMode, setDragMode] = useState<DragMode>('DragNDrop');
     const [draggedLetterElement, setDraggedLetterElement] = useState<HTMLDivElement>();
     const lettersRef = useRef<Map<number, HTMLDivElement> | null>(null);
+
 
     const submitWord = api.gameplay.submitWord.useMutation({
         onSettled: () => {
@@ -57,8 +58,6 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
             default:
                 break;
         }
-
-
     }
 
     const handleLetterBlockEnter = (e: PointerEvent, i: number) => {
@@ -82,9 +81,6 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
         }
 
     }
-
-
-
     const handlePointerUp = (e: PointerEvent) => {
 
         if (submitWord.isLoading) return;
@@ -145,10 +141,6 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
         }
     }, []);
 
-
-
-
-
     return (
         <>
             <div className="board flex flex-col">
@@ -161,7 +153,6 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
                         if (letter != undefined)
                             return <LetterBlock id={i} letter={letter}
                                 key={`${row}-${col}`}
-
 
                                 onPointerDown={handleLetterBlockDown} onPointerUp={handlePointerUp}
                                 onPointerEnter={handleLetterBlockEnter}

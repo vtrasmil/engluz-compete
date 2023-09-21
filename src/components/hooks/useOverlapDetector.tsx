@@ -12,7 +12,8 @@ export const useOverlapDetector =
             {
                 overlap = [...overlap, k];
             }
-            console.log(overlap);
+
         });
+        console.log(overlap);
         return overlap;
     };
