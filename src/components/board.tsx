@@ -1,7 +1,7 @@
 import { LetterBlock } from "./LetterBlock";
 import { boggleDice, toFaceUpValues } from "~/server/diceManager";
 import { useEffect, useRef, useState } from "react";
-import useDrag from "./useDrag";
+import useCustomDrag from "./useDrag";
 import { useUserIdContext } from "./hooks/useUserIdContext";
 import { useChannel } from "@ably-labs/react-hooks";
 import { WordSubmittedMessageData } from "~/server/api/routers/gameplayRouter";
@@ -9,10 +9,20 @@ import { ablyChannelName } from "~/server/ably/ablyHelpers";
 import { api } from "~/utils/api";
 import { MaterialUISwitch } from "./MUISwitch";
 import { isHTMLDivElement } from "~/utils/helpers";
+import LetterDropTarget from "./LetterDropTarget";
 interface BoardProps {
     config: string,
     roomCode: string,
     gameId: string,
+}
+
+export interface LetterDie {
+    letters: string,
+    gridPos: number
+}
+
+export interface BoardRepresentation {
+    dice: LetterDie[]
 }
 
 export type DragMode = 'DragToSelect' | 'DragNDrop';
@@ -121,7 +131,7 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
 
     // when pointerup happens outside a letter
     const windowRef = useRef<EventTarget>(window);
-    useDrag(windowRef, [isPointerDown, selectedLetters], {
+    useCustomDrag(windowRef, [isPointerDown, selectedLetters], {
         onPointerUp: handlePointerUp,
         dragMode: dragMode
     }, 'window');
@@ -153,31 +163,34 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
                         const letter = letterBlocks[i];
 
                         if (letter != undefined)
-                            return <LetterBlock id={i} letter={letter}
-                                key={`${row}-${col}`}
-                                ref={
-                                    (node) =>
-                                    {
-                                        const map = getMap();
-                                        if (node) {
-                                            map.set(i, node);
-                                        } else {
-                                            map.delete(i);
+                            return (
+                                <LetterDropTarget key={i} id={i}>
+                                    <LetterBlock id={i} letter={letter}
+                                        key={`${row}-${col}`}
+                                        ref={
+                                            (node) =>
+                                            {
+                                                const map = getMap();
+                                                if (node) {
+                                                    map.set(i, node);
+                                                } else {
+                                                    map.delete(i);
+                                                }
+                                            }
                                         }
-                                    }
-                                }
-                                getMap={getMap}
+                                        getMap={getMap}
 
-                                onPointerDown={handleLetterBlockDown} onPointerUp={handlePointerUp}
-                                onPointerEnter={handleLetterBlockEnter}
+                                        onPointerDown={handleLetterBlockDown} onPointerUp={handlePointerUp}
+                                        onPointerEnter={handleLetterBlockEnter}
 
-                                isSelected={selectedLetters.includes(i)}
-                                isPointerOver={pointerOver === i}
-                                blocksSelected={selectedLetters}
+                                        isSelected={selectedLetters.includes(i)}
+                                        isPointerOver={pointerOver === i}
+                                        blocksSelected={selectedLetters}
 
-                                dragMode={dragMode}
+                                        dragMode={dragMode}
 
-                            />
+                                    />
+                                </LetterDropTarget>)
                     })}
                     </div>
                 )}

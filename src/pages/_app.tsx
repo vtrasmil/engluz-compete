@@ -4,6 +4,8 @@ import "~/styles/globals.css";
 import { UserIdProvider } from "~/components/hooks/useUserIdContext";
 import { getUserIdFromSessionStorage } from "~/utils/helpers";
 import { CssBaseline } from "@mui/material";
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
 
 
 import '@fontsource/roboto/300.css';
@@ -30,11 +32,14 @@ const MyApp: AppType = ({ Component, pageProps }) => {
 
   if (userId !== undefined)
     return (
-      <UserIdProvider userId={userId}>
-        <CssBaseline>
-          <Component {...pageProps} />
-        </CssBaseline>
-      </UserIdProvider>
+
+      <DndProvider backend={HTML5Backend}>
+        <UserIdProvider userId={userId}>
+          <CssBaseline>
+            <Component {...pageProps} />
+          </CssBaseline>
+        </UserIdProvider>
+      </DndProvider>
     )
 };
 

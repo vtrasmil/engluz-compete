@@ -1,5 +1,6 @@
 import { forwardRef, useRef, useState } from "react";
-import useDrag, { DragMode } from "./useDrag.tsx";
+import useCustomDrag, { DragMode } from "./useDrag.tsx";
+import { useDrag } from "react-dnd";
 
 export interface LetterBlockProps {
     id: number;
@@ -28,7 +29,13 @@ export const LetterBlock = forwardRef<HTMLDivElement, LetterBlockProps>(function
     const [translate, setTranslate] = useState({ x: 0, y: 0 });
     const eventTargetRef = useRef<HTMLDivElement>(null);
 
-
+    const [{ isDragging }, drag] = useDrag(() => ({
+        type: 'letter',
+        item: { id: id },
+        collect: (monitor) => ({
+            isDragging: !!monitor.isDragging(),
+        }),
+    }));
 
 
     const handlePointerUp = (e: PointerEvent) => {
@@ -58,7 +65,7 @@ export const LetterBlock = forwardRef<HTMLDivElement, LetterBlockProps>(function
 
     };
 
-    const drag = useDrag(eventTargetRef, [isPointerDown && isPointerOver], {
+    const customDrag = useCustomDrag(eventTargetRef, [isPointerDown && isPointerOver], {
         onPointerDown: handlePointerDown,
         onPointerUp: handlePointerUp,
         onPointerEnter: handlePointerEnter,
@@ -68,19 +75,19 @@ export const LetterBlock = forwardRef<HTMLDivElement, LetterBlockProps>(function
 
     return (
         <div id={`letter-block-${id}`}
-            ref={eventTargetRef}
-            className={'border border-gray-400 letter-block m-2 flex justify-center items-center select-none' + ' ' + className}
+            ref={drag}
+            className={'border border-gray-400 letter-block flex justify-center items-center select-none' + ' ' + className}
                 style={{
                     width: `50px`,
                     height: `50px`,
                     transform: `translateX(${translate.x}px) translateY(${translate.y}px)`,
-                    zIndex: `${drag.isDragging ? 10 : 0}`
+                    zIndex: `${customDrag.isDragging ? 10 : 0}`
                 }}>
-            <div ref={divRef}>
-
-
-                {letter.toUpperCase()}
-            </div>
+            {/* <div ref={eventTargetRef}> */}
+                <div ref={divRef}>
+                    {letter.toUpperCase()}
+                </div>
+            {/* </div> */}
         </div>
     );
 });

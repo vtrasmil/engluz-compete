@@ -17,7 +17,7 @@ export type DragMode = 'DragToSelect' | 'DragNDrop';
 
 // should accept ref to window and HTMLElement
 // https://javascript.plainenglish.io/how-to-make-a-simple-custom-usedrag-react-hook-6b606d45d353
-export const useDrag = (ref: RefObject<HTMLDivElement | EventTarget>, deps: any[], options: DragOptions, blockId: number | string) => {
+export const useCustomDrag = (ref: RefObject<HTMLDivElement | EventTarget>, deps: any[], options: DragOptions, blockId: number | string) => {
     const {
         onPointerDown = (e: PointerEvent) => undefined,
         onPointerUp = (e: PointerEvent) => undefined,
@@ -141,4 +141,4 @@ export const useDrag = (ref: RefObject<HTMLDivElement | EventTarget>, deps: any[
     return { isDragging };
 }
 
-export default useDrag;
+export default useCustomDrag;
