@@ -29,8 +29,8 @@ export function isEventTarget(element: EventTarget | HTMLDivElement): element is
     return element instanceof EventTarget;
 }
 
-export function isHTMLElement(element: EventTarget): element is HTMLElement {
-    return element instanceof HTMLElement;
+export function isHTMLDivElement(element: EventTarget): element is HTMLDivElement {
+    return element instanceof HTMLDivElement;
 }
 
 export function assert(condition: unknown, msg?: string): asserts condition {

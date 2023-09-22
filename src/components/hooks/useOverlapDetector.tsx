@@ -1,19 +1,26 @@
+import { useEffect, useState } from "react";
 import { isOverlapping } from "~/utils/helpers";
 
 export const useOverlapDetector =
-    (target: HTMLDivElement | undefined,
-    objects: Map<number, HTMLDivElement> | null) => {
+    (target: HTMLDivElement | null,
+        objects: Map<number, HTMLDivElement> | null,
+        deps: any[]
+    ) => {
         // const [overlappedObjects, setOverlappedObjects] = useState<RefObject<HTMLElement>[]>();
+        const [overlap, setOverlap] = useState<number[]>([]);
+        useEffect(() => {
+            if (target == undefined || objects == undefined) return;
 
-        if (target == undefined || objects == undefined) return;
-        let overlap: number[] = [];
-        objects.forEach((v, k) => {
-            if (isOverlapping(target, v, 0.60))
-            {
-                overlap = [...overlap, k];
-            }
+            objects.forEach((v, k) => {
+                if (isOverlapping(target, v, 0.60))
+                {
+                    setOverlap([...overlap, k]);
+                }
 
-        });
-        console.log(overlap);
+            });
+            console.log(overlap);
+            return () => setOverlap([]);
+        }, [deps])
+
         return overlap;
     };

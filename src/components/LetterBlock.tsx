@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { forwardRef, useRef, useState } from "react";
 import useDrag, { DragMode } from "./useDrag.tsx";
 
 export interface LetterBlockProps {
@@ -12,20 +12,23 @@ export interface LetterBlockProps {
     isPointerOver: boolean;
     blocksSelected: number[];
     dragMode: DragMode;
+    getMap: () => Map<number, HTMLDivElement>
 
 
 
 }
 
-export function LetterBlock({
-    id, letter, isSelected, onPointerDown, onPointerUp, onPointerEnter, isPointerOver, isPointerDown, blocksSelected, dragMode,
-}: LetterBlockProps) {
+export const LetterBlock = forwardRef<HTMLDivElement, LetterBlockProps>(function LetterBlock({
+    id, letter, isSelected, onPointerDown, onPointerUp, onPointerEnter,
+    isPointerOver, isPointerDown, blocksSelected, dragMode, getMap
+}: LetterBlockProps, divRef) {
     const classNames: string[] = ['letterBlock'];
     if (isSelected) classNames.push('isSelected');
     const className = classNames.join(' ');
     const [translate, setTranslate] = useState({ x: 0, y: 0 });
-
     const eventTargetRef = useRef<HTMLDivElement>(null);
+
+
 
 
     const handlePointerUp = (e: PointerEvent) => {
@@ -64,20 +67,21 @@ export function LetterBlock({
     }, id);
 
     return (
-        <div
-            id={`letter-block-${id}`}
+        <div id={`letter-block-${id}`}
             ref={eventTargetRef}
-            // variant="outlined"
             className={'border border-gray-400 letter-block m-2 flex justify-center items-center select-none' + ' ' + className}
-            style={{
-                width: `50px`,
-                height: `50px`,
-                transform: `translateX(${translate.x}px) translateY(${translate.y}px)`,
-                zIndex: `${drag.isDragging ? 10 : 0}`
-            }}
-        >
-            {letter.toUpperCase()}
+                style={{
+                    width: `50px`,
+                    height: `50px`,
+                    transform: `translateX(${translate.x}px) translateY(${translate.y}px)`,
+                    zIndex: `${drag.isDragging ? 10 : 0}`
+                }}>
+            <div ref={divRef}>
+
+
+                {letter.toUpperCase()}
+            </div>
         </div>
     );
-}
+});
 
