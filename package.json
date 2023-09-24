@@ -16,6 +16,7 @@
     "@fontsource/roboto": "^5.0.8",
     "@mui/icons-material": "^5.14.3",
     "@mui/material": "^5.14.4",
+    "@node-redis/json": "^1.0.2",
     "@prisma/client": "^4.14.0",
     "@react-hooks-library/core": "^0.5.1",
     "@t3-oss/env-nextjs": "^0.3.1",

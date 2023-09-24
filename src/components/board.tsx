@@ -1,5 +1,5 @@
 import { LetterBlock } from "./LetterBlock";
-import { boggleDice, toFaceUpValues } from "~/server/diceManager";
+import { BoggleDice, toFaceUpValues } from "~/server/diceManager";
 import { useEffect, useRef, useState } from "react";
 import useCustomDrag from "./useDrag";
 import { useUserIdContext } from "./hooks/useUserIdContext";
@@ -16,14 +16,7 @@ interface BoardProps {
     gameId: string,
 }
 
-export interface LetterDie {
-    letters: string,
-    gridPos: number
-}
 
-export interface BoardRepresentation {
-    dice: LetterDie[]
-}
 
 export type DragMode = 'DragToSelect' | 'DragNDrop';
 
@@ -200,7 +193,7 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
     );
 }
 
-const boardWidth = Math.sqrt(boggleDice.length);
+const boardWidth = Math.sqrt(BoggleDice.length);
     if (![4, 5, 6].includes(boardWidth)) {
         throw new Error('Board must be square');
     }

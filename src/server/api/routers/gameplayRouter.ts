@@ -1,11 +1,11 @@
 import { createTRPCRouter, publicProcedure } from "../trpc";
 import { z } from "zod";
 import { getWordFromBoard, isWordValid } from "~/server/wordListManager";
-import { rollDice } from "~/server/diceManager";
+import { LetterDieSchema, rollDice } from "~/server/diceManager";
 import { ablyChannelName } from "~/server/ably/ablyHelpers";
 
 export interface WordSubmittedMessageData {
-    newBoard: string[]
+    newBoard: LetterDieSchema[]
 }
 
 export const gameplayRouter = createTRPCRouter({
@@ -35,6 +35,12 @@ export const gameplayRouter = createTRPCRouter({
             } else {
                 return { isValid: false, wordSubmitted: word };
             }
-    }),
+        }),
+
+    // swapLetters: publicProcedure
+    //     .input()
+    //     .mutation(async (opts) => {
+
+    //     }),
 
 })
