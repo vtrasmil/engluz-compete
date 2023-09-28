@@ -60,7 +60,7 @@ export class RedisBoggleCommands {
         // only return the data if it matches the type
         // I was playing with the idea of verifying this data, but this is not a good time.
         // Let the game logic do this.
-        return board;
+        return board as LetterDieSchema[];
         // throw new Error(`Redis error: ${key} does not match correct type. ${board}`);
 
     }

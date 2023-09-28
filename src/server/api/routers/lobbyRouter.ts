@@ -64,7 +64,7 @@ export const lobbyRouter = createTRPCRouter({
       const faceUpValues = toFaceUpValues(board);
 
       return {
-        board: faceUpValues,
+        board: board,
         roomCode: opts.input.roomCode,
         gameId: gameId,
       }
@@ -78,7 +78,7 @@ export const lobbyRouter = createTRPCRouter({
       const faceUpValues = toFaceUpValues(board);
 
       return {
-        'board': faceUpValues,
+        'board': board,
         'roomCode': roomCode,
         'gameId': gameId
       }

@@ -58,3 +58,32 @@ export function isOverlapping(element1: HTMLElement, element2: HTMLElement, thre
     // Return true if the percentage of overlap is greater than or equal to the threshold.
     return overlapPercentage >= threshold;
 }
+
+export function safeStringToInt(str: string): number | typeof NaN {
+  // Trim the string to remove leading and trailing whitespace.
+    str = str.trim();
+
+    // If the string is empty, return NaN.
+    if (str === '') {
+        return NaN;
+    }
+
+    // Try to parse the string as an integer. If the parse fails, return NaN.
+    const num = parseInt(str, 10);
+    if (isNaN(num)) {
+        return NaN;
+    }
+
+    // Return the parsed integer.
+    return num;
+}
+
+export function swap<T>(array: T[], index1: number, index2: number) {
+    let newArray = array.slice();
+    const value1 = newArray[index1];
+    const value2 = newArray[index2];
+    if (value1 == undefined || value2 == undefined) throw new Error('Index out of range');
+    newArray.splice(index1, 1, value2);
+    newArray.splice(index2, 1, value1);
+    return newArray;
+}

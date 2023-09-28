@@ -1,6 +1,7 @@
 import { BoggleRedisType, RedisBoggleCommands } from "./redis/api";
 import RedisClient from "@redis/client/dist/lib/client";
 import { promises as fs } from 'fs';
+import { LetterDieSchema } from "./diceManager";
 
 
 
@@ -48,7 +49,7 @@ async function loadDictIntoRedis(redis: BoggleRedisType) {
     }
 }
 
-export function getWordFromBoard(blocks: number[], board: string[]) {
-    return blocks.map((n) => board[n]?.substring(0,1)).join('');
+export function getWordFromBoard(blocks: number[], board: LetterDieSchema[]) {
+    return blocks.map((n) => board[n]?.letters.substring(0,1)).join('');
 
 }

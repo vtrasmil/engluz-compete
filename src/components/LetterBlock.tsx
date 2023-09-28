@@ -1,9 +1,10 @@
-import { forwardRef, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import useCustomDrag, { DragMode } from "./useDrag.tsx";
 import { useDrag } from "react-dnd";
 
 export interface LetterBlockProps {
-    id: number;
+    id: number,
+    currCell: number,
     letter: string;
     isSelected: boolean;
     onPointerDown: (e: PointerEvent, i: number) => void;
@@ -13,29 +14,31 @@ export interface LetterBlockProps {
     isPointerOver: boolean;
     blocksSelected: number[];
     dragMode: DragMode;
-    getMap: () => Map<number, HTMLDivElement>
+
 
 
 
 }
 
-export const LetterBlock = forwardRef<HTMLDivElement, LetterBlockProps>(function LetterBlock({
-    id, letter, isSelected, onPointerDown, onPointerUp, onPointerEnter,
-    isPointerOver, isPointerDown, blocksSelected, dragMode, getMap
-}: LetterBlockProps, divRef) {
+export function LetterBlock({
+    id, currCell, letter, isSelected, onPointerDown, onPointerUp, onPointerEnter,
+    isPointerOver, isPointerDown, blocksSelected, dragMode
+}: LetterBlockProps) {
     const classNames: string[] = ['letterBlock'];
     if (isSelected) classNames.push('isSelected');
+
     const className = classNames.join(' ');
     const [translate, setTranslate] = useState({ x: 0, y: 0 });
     const eventTargetRef = useRef<HTMLDivElement>(null);
 
     const [{ isDragging }, drag] = useDrag(() => ({
         type: 'letter',
-        item: { id: id },
+        item: { id: id, currCell: currCell, letter: letter },
         collect: (monitor) => ({
             isDragging: !!monitor.isDragging(),
         }),
     }));
+    if (isDragging) classNames.push('hidden');
 
 
     const handlePointerUp = (e: PointerEvent) => {
@@ -62,7 +65,6 @@ export const LetterBlock = forwardRef<HTMLDivElement, LetterBlockProps>(function
         });
         eventTargetRef.current?.setPointerCapture(e.pointerId);
         // console.log(`${translate.x} ${translate.y} hasPointerCapture: ${eventTargetRef.current?.hasPointerCapture(e.pointerId)}`)
-
     };
 
     const customDrag = useCustomDrag(eventTargetRef, [isPointerDown && isPointerOver], {
@@ -73,22 +75,25 @@ export const LetterBlock = forwardRef<HTMLDivElement, LetterBlockProps>(function
         dragMode: dragMode,
     }, id);
 
+    let style = {
+        width: `50px`, height: `50px`,
+        transform: `translateX(${translate.x}px) translateY(${translate.y}px)`,
+        zIndex: `${customDrag.isDragging ? 10 : 0}`
+    }
+
+
+
     return (
-        <div id={`letter-block-${id}`}
+        <div id={`letter-block-${id}`} data-current-cell={currCell}
             ref={drag}
-            className={'border border-gray-400 letter-block flex justify-center items-center select-none' + ' ' + className}
-                style={{
-                    width: `50px`,
-                    height: `50px`,
-                    transform: `translateX(${translate.x}px) translateY(${translate.y}px)`,
-                    zIndex: `${customDrag.isDragging ? 10 : 0}`
-                }}>
+            className={`border border-gray-400 letter-block flex justify-center items-center select-none ${isDragging ? 'hidden' : ''} ${isSelected ? 'isSelected' : ''}`}
+                style={style}>
             {/* <div ref={eventTargetRef}> */}
-                <div ref={divRef}>
+                {/* <div ref={divRef}> */}
                     {letter.toUpperCase()}
-                </div>
+                {/* </div> */}
             {/* </div> */}
         </div>
     );
-});
+};
 

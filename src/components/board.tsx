@@ -1,5 +1,5 @@
 import { LetterBlock } from "./LetterBlock";
-import { BoggleDice, toFaceUpValues } from "~/server/diceManager";
+import { BoggleDice, LetterDieSchema } from "~/server/diceManager";
 import { useEffect, useRef, useState } from "react";
 import useCustomDrag from "./useDrag";
 import { useUserIdContext } from "./hooks/useUserIdContext";
@@ -8,13 +8,14 @@ import { WordSubmittedMessageData } from "~/server/api/routers/gameplayRouter";
 import { ablyChannelName } from "~/server/ably/ablyHelpers";
 import { api } from "~/utils/api";
 import { MaterialUISwitch } from "./MUISwitch";
-import { isHTMLDivElement } from "~/utils/helpers";
 import LetterDropTarget from "./LetterDropTarget";
+import { swap } from "~/utils/helpers";
 interface BoardProps {
-    config: string,
+    config: LetterDieSchema[],
     roomCode: string,
     gameId: string,
 }
+
 
 
 
@@ -29,9 +30,6 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
     const [letters, setLetters] = useState(config);
 
     const [dragMode, setDragMode] = useState<DragMode>('DragNDrop');
-    const draggedLetterRef = useRef<HTMLDivElement | null>(null);
-    const lettersRef = useRef<Map<number, HTMLDivElement> | null>(null);
-    // const overlappedLetters = useOverlapDetector(draggedLetterRef.current, lettersRef.current, [draggedLetterRef.current?.style.transform]);
 
 
     const submitWord = api.gameplay.submitWord.useMutation({
@@ -42,11 +40,10 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
 
     const [channel] = useChannel(ablyChannelName(roomCode), 'wordSubmitted', (message) => {
         const msgData = message.data as WordSubmittedMessageData;
-        setLetterBlocks([...toFaceUpValues(msgData.newBoard)]);
+        setLetterBlocks(msgData.newBoard);
     });
 
     const userId = useUserIdContext();
-
 
     const handleLetterBlockDown = (e: PointerEvent, i: number) => {
         if (submitWord.isLoading) return;
@@ -56,9 +53,7 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
                 setSelectedLetters([i]);
                 break;
             case 'DragNDrop':
-                if (e.target && isHTMLDivElement(e.target)) {
-                    draggedLetterRef.current = e.target as HTMLDivElement;
-                };
+
                 break;
             default:
                 break;
@@ -84,7 +79,6 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
             default:
                 break;
         }
-
     }
     const handlePointerUp = (e: PointerEvent) => {
 
@@ -99,14 +93,21 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
                 handleSubmitLetters(selectedLetters);
                 break;
             case 'DragNDrop':
-                draggedLetterRef.current = null;
+
                 break;
 
             default:
                 break;
         }
-
     }
+
+    const handleSwapLetterToCell = (lowerLetterBlockId: number, fromCell: number, toCell: number) => {
+        // console.log(`swapping blocks: ${fromCell} to ${toCell}`)
+        if (fromCell === toCell) return;
+        setLetterBlocks(swap(letterBlocks, fromCell, toCell));
+        // setSwappedLetterInfo({ id: lowerLetterBlockId, sendToCell: toCell });
+
+    };
 
     const handleContextMenu = (e: MouseEvent) => {
         e.preventDefault();
@@ -129,13 +130,6 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
         dragMode: dragMode
     }, 'window');
 
-    function getMap() {
-        if (!lettersRef.current) {
-            lettersRef.current = new Map();
-        }
-        return lettersRef.current;
-    }
-
 
 
     // prevent tap-and-hold browser context menu from appearing
@@ -153,26 +147,15 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
                     <div key={row} className="board-row flex justify-center">
                     {rows.map(col => {
                         const i = boardWidth * row + col;
-                        const letter = letterBlocks[i];
-
-                        if (letter != undefined)
+                        const letterBlock = letterBlocks[i];
+                        const letter = letterBlock?.letters[0];
+                        if (i === 2) {
+                            console.log(`Board: rendering cell 2 as ${letterBlock?.id}/${letter}`)
+                        }
+                        if (letterBlock != undefined && letter != undefined)
                             return (
-                                <LetterDropTarget key={i} id={i}>
-                                    <LetterBlock id={i} letter={letter}
-                                        key={`${row}-${col}`}
-                                        ref={
-                                            (node) =>
-                                            {
-                                                const map = getMap();
-                                                if (node) {
-                                                    map.set(i, node);
-                                                } else {
-                                                    map.delete(i);
-                                                }
-                                            }
-                                        }
-                                        getMap={getMap}
-
+                                <LetterDropTarget key={i} cell={i} onDragOver={handleSwapLetterToCell} childLetterBlockId={letterBlock.id} childLetter={letterBlock.letters[0]}>
+                                    <LetterBlock key={letterBlock.id} id={letterBlock.id} letter={letter} currCell={i}
                                         onPointerDown={handleLetterBlockDown} onPointerUp={handlePointerUp}
                                         onPointerEnter={handleLetterBlockEnter}
 
@@ -218,7 +201,6 @@ const neighborMap = [
     [13, 9, 10, 11, 15],
     [14, 10, 11]
 ];
-
 
 function getNeighbors(i: number) {
     if (i < 0 || i >= neighborMap.length) throw new Error('Letter block index out of bounds');

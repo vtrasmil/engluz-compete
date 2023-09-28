@@ -1,9 +1,10 @@
+import { LetterDieSchema } from "~/server/diceManager";
 import Board from "./Board";
 import { useUserIdContext } from "./hooks/useUserIdContext";
 
 interface GameManagerProps {
     gameId: string,
-    initBoard: string,
+    initBoard: LetterDieSchema[],
     roomCode: string
 }
 
