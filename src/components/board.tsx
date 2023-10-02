@@ -37,8 +37,6 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
 
     const [dragMode, setDragMode] = useState<DragMode>('DragNDrop');
     const [swappedLetterState, setSwappedLetterState] = useState<SwappedLetterState | undefined>();
-    const [hoveredCell, setHoveredCell] = useState<number | undefined>(undefined);
-
 
     const submitWord = api.gameplay.submitWord.useMutation({
         onSettled: () => {
@@ -52,7 +50,6 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
     });
 
     const userId = useUserIdContext();
-
     const handleLetterBlockDown = (e: PointerEvent, i: number) => {
         if (submitWord.isLoading) return;
         setIsPointerDown(true);
@@ -101,8 +98,6 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
                 handleSubmitLetters(selectedLetters);
                 break;
             case 'DragNDrop':
-                setHoveredCell(undefined);
-
                 break;
 
             default:
@@ -110,31 +105,17 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
         }
     }
 
-    console.log(`swappedLetterState: ${swappedLetterState}`)
-
-    const handleHoverCellChange = (newHoveredCell: number) => {
-        if (newHoveredCell !== hoveredCell) {
-            setHoveredCell(newHoveredCell);
-        }
-    }
-
-    const handleHoverSwapLetter = (lowerLetterBlockId: number, targetCell: number, sourceCell: number) => {
-        console.log(`swapping blocks: ${sourceCell} to ${targetCell}`)
-        // console.log('handleHoverSwapLetter: setSwappedLetterState')
-        if (targetCell === hoveredCell) return;
-
+    const handleHoverSwapLetter = (targetCell: number, sourceCell: number) => {
         const newSwappedLetterState: SwappedLetterState = {
             swappedLetter: letterBlocks[targetCell],
             sourceCell: sourceCell,
             targetCell: targetCell,
         }
-
-        setSwappedLetterState(newSwappedLetterState);
-        console.log(newSwappedLetterState);
-
+        if (newSwappedLetterState != swappedLetterState) {
+            setSwappedLetterState(newSwappedLetterState);
+            console.log(newSwappedLetterState);
+        }
     };
-
-
 
     const handleDropLetter = (dropTargetCell: number, letterBlock: LetterDieSchema) => {
         console.log(`swappedLetterState (handleDropLetter): ${swappedLetterState}`)
@@ -201,7 +182,7 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
                             const letter = letterBlock?.letters[0];
 
                             return (
-                                <LetterDropTarget key={i} cellId={i} onDragOver={handleHoverSwapLetter}
+                                <LetterDropTarget key={i} cellId={i} onHover={handleHoverSwapLetter}
                                     onDrop={handleDropLetter} childLetterBlockId={letterBlock?.id}
                                     childLetter={letterBlock?.letters[0]} letterBlocks={letterBlocks}
                                     swappedLetterState={swappedLetterState} >
