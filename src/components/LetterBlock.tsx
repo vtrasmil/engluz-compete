@@ -1,11 +1,12 @@
 import { useRef, useState } from "react";
 import useCustomDrag, { DragMode } from "./useDrag.tsx";
 import { useDrag } from "react-dnd";
+import { LetterDieSchema } from "~/server/diceManager.tsx";
 
 export interface LetterBlockProps {
     id: number,
     currCell: number,
-    letter: string;
+    letters: string;
     isSelected: boolean;
     onPointerDown: (e: PointerEvent, i: number) => void;
     onPointerUp: (e: PointerEvent, i: number) => void;
@@ -14,32 +15,31 @@ export interface LetterBlockProps {
     isPointerOver: boolean;
     blocksSelected: number[];
     dragMode: DragMode;
+    onEnd: () => void;
+}
 
-
-
-
+export interface DraggedLetter extends LetterDieSchema {
+    currCell: number,
 }
 
 export function LetterBlock({
-    id, currCell, letter, isSelected, onPointerDown, onPointerUp, onPointerEnter,
-    isPointerOver, isPointerDown, blocksSelected, dragMode
+    id, currCell, letters, isSelected, onPointerDown, onPointerUp, onPointerEnter,
+    isPointerOver, isPointerDown, blocksSelected, dragMode, onEnd,
 }: LetterBlockProps) {
-    const classNames: string[] = ['letterBlock'];
-    if (isSelected) classNames.push('isSelected');
-
-    const className = classNames.join(' ');
     const [translate, setTranslate] = useState({ x: 0, y: 0 });
     const eventTargetRef = useRef<HTMLDivElement>(null);
 
     const [{ isDragging }, drag] = useDrag(() => ({
         type: 'letter',
-        item: { id: id, currCell: currCell, letter: letter },
+        item: { id: id, letters: letters, currCell: currCell } as DraggedLetter,
         collect: (monitor) => ({
             isDragging: !!monitor.isDragging(),
         }),
+        end: (item, monitor) => {
+            // monitor.
+            onEnd()
+        }
     }));
-    if (isDragging) classNames.push('hidden');
-
 
     const handlePointerUp = (e: PointerEvent) => {
         setTranslate({
@@ -81,8 +81,6 @@ export function LetterBlock({
         zIndex: `${customDrag.isDragging ? 10 : 0}`
     }
 
-
-
     return (
         <div id={`letter-block-${id}`} data-current-cell={currCell}
             ref={drag}
@@ -90,7 +88,7 @@ export function LetterBlock({
                 style={style}>
             {/* <div ref={eventTargetRef}> */}
                 {/* <div ref={divRef}> */}
-                    {letter.toUpperCase()}
+                    {letters?.[0]?.toUpperCase()}
                 {/* </div> */}
             {/* </div> */}
         </div>

@@ -21,8 +21,14 @@ interface BoardProps {
 
 export type DragMode = 'DragToSelect' | 'DragNDrop';
 
+export interface SwappedLetterState {
+    swappedLetter: LetterDieSchema | undefined,
+    sourceCell: number,
+    targetCell: number,
+}
+
 export default function Board({config, roomCode, gameId}: BoardProps) {
-    const [letterBlocks, setLetterBlocks] = useState([...config]);
+    const [letterBlocks, setLetterBlocks] = useState<(LetterDieSchema | undefined)[]>([...config]);
     const [selectedLetters, setSelectedLetters] = useState<number[]>([]);
     const [isPointerDown, setIsPointerDown] = useState<boolean>(false);
     const [pointerOver, setPointerOver] = useState<number>(); // pointerover
@@ -30,6 +36,8 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
     const [letters, setLetters] = useState(config);
 
     const [dragMode, setDragMode] = useState<DragMode>('DragNDrop');
+    const [swappedLetterState, setSwappedLetterState] = useState<SwappedLetterState | undefined>();
+    const [hoveredCell, setHoveredCell] = useState<number | undefined>(undefined);
 
 
     const submitWord = api.gameplay.submitWord.useMutation({
@@ -93,6 +101,7 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
                 handleSubmitLetters(selectedLetters);
                 break;
             case 'DragNDrop':
+                setHoveredCell(undefined);
 
                 break;
 
@@ -101,12 +110,45 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
         }
     }
 
-    const handleSwapLetterToCell = (lowerLetterBlockId: number, fromCell: number, toCell: number) => {
-        // console.log(`swapping blocks: ${fromCell} to ${toCell}`)
-        if (fromCell === toCell) return;
-        setLetterBlocks(swap(letterBlocks, fromCell, toCell));
-        // setSwappedLetterInfo({ id: lowerLetterBlockId, sendToCell: toCell });
+    console.log(`swappedLetterState: ${swappedLetterState}`)
 
+    const handleHoverCellChange = (newHoveredCell: number) => {
+        if (newHoveredCell !== hoveredCell) {
+            setHoveredCell(newHoveredCell);
+        }
+    }
+
+    const handleHoverSwapLetter = (lowerLetterBlockId: number, targetCell: number, sourceCell: number) => {
+        console.log(`swapping blocks: ${sourceCell} to ${targetCell}`)
+        // console.log('handleHoverSwapLetter: setSwappedLetterState')
+        if (targetCell === hoveredCell) return;
+
+        const newSwappedLetterState: SwappedLetterState = {
+            swappedLetter: letterBlocks[targetCell],
+            sourceCell: sourceCell,
+            targetCell: targetCell,
+        }
+
+        setSwappedLetterState(newSwappedLetterState);
+        console.log(newSwappedLetterState);
+
+    };
+
+
+
+    const handleDropLetter = (dropTargetCell: number, letterBlock: LetterDieSchema) => {
+        console.log(`swappedLetterState (handleDropLetter): ${swappedLetterState}`)
+        if (letterBlocks[dropTargetCell] == null)
+            throw new Error('Cannot drop letter in an occupied cell.');
+        if (swappedLetterState == undefined)
+            throw new Error('Cannot drop letter when SwappedLetterState is undefined');
+        const updated = swap(letterBlocks, dropTargetCell, swappedLetterState?.sourceCell);
+        setLetterBlocks(updated);
+    };
+
+    const clearSwappedLetterState = () => {
+        console.log('clearSwappedLetterState')
+        setSwappedLetterState(undefined);
     };
 
     const handleContextMenu = (e: MouseEvent) => {
@@ -145,29 +187,40 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
             <div className="board flex flex-col">
                 {rows.map((row) =>
                     <div key={row} className="board-row flex justify-center">
-                    {rows.map(col => {
-                        const i = boardWidth * row + col;
-                        const letterBlock = letterBlocks[i];
-                        const letter = letterBlock?.letters[0];
-                        if (i === 2) {
-                            console.log(`Board: rendering cell 2 as ${letterBlock?.id}/${letter}`)
-                        }
-                        if (letterBlock != undefined && letter != undefined)
+                        {rows.map(col => {
+                            const i = boardWidth * row + col;
+                            const letterBlock = (() => {
+                                if (swappedLetterState?.targetCell === i) {
+                                    return undefined
+                                } else if (swappedLetterState?.sourceCell === i) {
+                                    return swappedLetterState.swappedLetter;
+                                } else {
+                                    return letterBlocks[i];
+                                }
+                            })();
+                            const letter = letterBlock?.letters[0];
+
                             return (
-                                <LetterDropTarget key={i} cell={i} onDragOver={handleSwapLetterToCell} childLetterBlockId={letterBlock.id} childLetter={letterBlock.letters[0]}>
-                                    <LetterBlock key={letterBlock.id} id={letterBlock.id} letter={letter} currCell={i}
-                                        onPointerDown={handleLetterBlockDown} onPointerUp={handlePointerUp}
-                                        onPointerEnter={handleLetterBlockEnter}
+                                <LetterDropTarget key={i} cellId={i} onDragOver={handleHoverSwapLetter}
+                                    onDrop={handleDropLetter} childLetterBlockId={letterBlock?.id}
+                                    childLetter={letterBlock?.letters[0]} letterBlocks={letterBlocks}
+                                    swappedLetterState={swappedLetterState} >
+                                    {letterBlock != undefined && letter != undefined &&
+                                        <LetterBlock key={letterBlock.id} id={letterBlock.id} letters={letterBlock.letters} currCell={i}
+                                            onPointerDown={handleLetterBlockDown} onPointerUp={handlePointerUp}
+                                            onPointerEnter={handleLetterBlockEnter}
 
-                                        isSelected={selectedLetters.includes(i)}
-                                        isPointerOver={pointerOver === i}
-                                        blocksSelected={selectedLetters}
+                                            isSelected={selectedLetters.includes(i)}
+                                            isPointerOver={pointerOver === i}
+                                            blocksSelected={selectedLetters}
 
-                                        dragMode={dragMode}
-
-                                    />
-                                </LetterDropTarget>)
-                    })}
+                                            dragMode={dragMode}
+                                            onEnd={clearSwappedLetterState}
+                                        />
+                                    }
+                                </LetterDropTarget>
+                            )
+                        })}
                     </div>
                 )}
             </div>
