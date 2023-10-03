@@ -10,14 +10,12 @@ import { api } from "~/utils/api";
 import { MaterialUISwitch } from "./MUISwitch";
 import LetterDropTarget from "./LetterDropTarget";
 import { swap } from "~/utils/helpers";
+
 interface BoardProps {
     config: LetterDieSchema[],
     roomCode: string,
     gameId: string,
 }
-
-// test
-
 
 export type DragMode = 'DragToSelect' | 'DragNDrop';
 
