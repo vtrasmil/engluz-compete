@@ -118,7 +118,6 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
     };
 
     const handleDropLetter = (dropTargetCell: number, letterBlock: LetterDieSchema) => {
-        console.log(`swappedLetterState (handleDropLetter): ${swappedLetterState}`)
         if (letterBlocks[dropTargetCell] == null)
             throw new Error('Cannot drop letter in an occupied cell.');
         if (swappedLetterState == undefined)

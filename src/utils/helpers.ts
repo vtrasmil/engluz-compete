@@ -79,7 +79,7 @@ export function safeStringToInt(str: string): number | typeof NaN {
 }
 
 export function swap<T>(array: T[], index1: number, index2: number) {
-    let newArray = array.slice();
+    const newArray = array.slice();
     const value1 = newArray[index1];
     const value2 = newArray[index2];
     if (value1 == undefined || value2 == undefined) throw new Error('Index out of range');

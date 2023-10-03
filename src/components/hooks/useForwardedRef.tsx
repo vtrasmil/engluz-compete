@@ -1,6 +1,6 @@
-import { useEffect, useRef } from "react";
+import { MutableRefObject, useEffect, useRef } from "react";
 
-const useForwardedRef = (ref: any) => {
+const useForwardedRef = (ref: MutableRefObject<unknown> | ((arg: unknown) => unknown)) => {
     const innerRef = useRef(null);
 
     useEffect(() => {

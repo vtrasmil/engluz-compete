@@ -43,12 +43,13 @@ export class RedisBoggleCommands {
     }
 
     async getDice(gameId: string) {
-        let board: any;
+        // let board: ReturnType<typeof this.redis.json.get>;
+        let board: unknown;
         const key = `game:${gameId}:board`;
         if (this.redis instanceof RedisClient) {
             board = await this.redis.json.get(key);
         } else {
-            // this returns Promise<any>
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             board = await this.redis.json.get(key);
         }
         if (board == null) throw new Error(`No board found for gameId: ${gameId}`);

@@ -75,7 +75,7 @@ export function LetterBlock({
         dragMode: dragMode,
     }, id);
 
-    let style = {
+    const style = {
         width: `50px`, height: `50px`,
         transform: `translateX(${translate.x}px) translateY(${translate.y}px)`,
         zIndex: `${customDrag.isDragging ? 10 : 0}`
@@ -93,5 +93,5 @@ export function LetterBlock({
             {/* </div> */}
         </div>
     );
-};
+}
 
