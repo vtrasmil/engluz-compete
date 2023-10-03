@@ -1,5 +1,5 @@
 import { LetterDieSchema } from "~/server/diceManager";
-import Board from "./Board";
+import Board from "./Board.tsx";
 import { useUserIdContext } from "./hooks/useUserIdContext";
 
 interface GameManagerProps {
