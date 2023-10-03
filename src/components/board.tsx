@@ -16,7 +16,7 @@ interface BoardProps {
     gameId: string,
 }
 
-
+// test
 
 
 export type DragMode = 'DragToSelect' | 'DragNDrop';
