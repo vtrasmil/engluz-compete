@@ -26,7 +26,7 @@ export interface SwappedLetterState {
 }
 
 export default function Board({config, roomCode, gameId}: BoardProps) {
-    const [letterBlocks, setLetterBlocks] = useState<(LetterDieSchema | undefined)[]>([...config]);
+    const [letterBlocks, setLetterBlocks] = useState<LetterDieSchema[]>([...config]);
     const [selectedLetters, setSelectedLetters] = useState<number[]>([]);
     const [isPointerDown, setIsPointerDown] = useState<boolean>(false);
     const [pointerOver, setPointerOver] = useState<number>(); // pointerover
@@ -35,6 +35,7 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
 
     const [dragMode, setDragMode] = useState<DragMode>('DragNDrop');
     const [swappedLetterState, setSwappedLetterState] = useState<SwappedLetterState | undefined>();
+    const dropTargetsRef = useRef<Map<number, HTMLDivElement>|null>(null);
 
     const submitWord = api.gameplay.submitWord.useMutation({
         onSettled: () => {
@@ -61,6 +62,13 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
             default:
                 break;
         }
+    }
+
+    function getDropTargetsMap() {
+        if (!dropTargetsRef.current) {
+            dropTargetsRef.current = new Map();
+        }
+        return dropTargetsRef.current;
     }
 
     const handleLetterBlockEnter = (e: PointerEvent, i: number) => {
@@ -163,6 +171,7 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
     return (
         <>
             <div className="board flex flex-col">
+                <>
                 {rows.map((row) =>
                     <div key={row} className="board-row flex justify-center">
                         {rows.map(col => {
@@ -179,28 +188,43 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
                             const letter = letterBlock?.letters[0];
 
                             return (
+
                                 <LetterDropTarget key={i} cellId={i} onHover={handleHoverSwapLetter}
                                     onDrop={handleDropLetter} childLetterBlockId={letterBlock?.id}
                                     childLetter={letterBlock?.letters[0]} letterBlocks={letterBlocks}
-                                    swappedLetterState={swappedLetterState} >
-                                    {letterBlock != undefined && letter != undefined &&
-                                        <LetterBlock key={letterBlock.id} id={letterBlock.id} letters={letterBlock.letters} currCell={i}
-                                            onPointerDown={handleLetterBlockDown} onPointerUp={handlePointerUp}
-                                            onPointerEnter={handleLetterBlockEnter}
-
-                                            isSelected={selectedLetters.includes(i)}
-                                            isPointerOver={pointerOver === i}
-                                            blocksSelected={selectedLetters}
-
-                                            dragMode={dragMode}
-                                            onEnd={clearSwappedLetterState}
-                                        />
-                                    }
-                                </LetterDropTarget>
+                                    swappedLetterState={swappedLetterState}
+                                    ref={(node) => {
+                                        const map = getDropTargetsMap();
+                                        if (node) {
+                                            map.set(i, node);
+                                        } else {
+                                            map.delete(i);
+                                        }
+                                    }}
+                                />
                             )
                         })}
                     </div>
-                )}
+                    )}
+
+                    {console.log(dropTargetsRef)}
+                    {letterBlocks.map((letterBlock, i) => (
+                        <LetterBlock key={i} id={i} letters={letterBlock.letters}
+                            onPointerDown={handleLetterBlockDown} onPointerUp={handlePointerUp}
+                            onPointerEnter={handleLetterBlockEnter}
+
+                            isSelected={selectedLetters.includes(i)}
+                            isPointerOver={pointerOver === i}
+                            blocksSelected={selectedLetters}
+
+                            dragMode={dragMode} currCell={i}
+                            onEnd={clearSwappedLetterState}
+                            dropTargetRefs={dropTargetsRef.current}
+                        />
+
+                    ))
+                    }
+                </>
             </div>
             <MaterialUISwitch />
         </>

@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import useCustomDrag, { DragMode } from "./useDrag.tsx";
 import { useDrag } from "react-dnd";
 import { LetterDieSchema } from "~/server/diceManager.tsx";
+import useTransformAnimation from "./hooks/useTransformAnimation.tsx";
 
 export interface LetterBlockProps {
     id: number,
@@ -16,6 +17,7 @@ export interface LetterBlockProps {
     blocksSelected: number[];
     dragMode: DragMode;
     onEnd: () => void;
+    dropTargetRefs: Map<number, HTMLDivElement> | null;
 }
 
 export interface DraggedLetter extends LetterDieSchema {
@@ -24,7 +26,7 @@ export interface DraggedLetter extends LetterDieSchema {
 
 export function LetterBlock({
     id, currCell, letters, isSelected, onPointerDown, onPointerUp, onPointerEnter,
-    isPointerOver, isPointerDown, blocksSelected, dragMode, onEnd,
+    isPointerOver, isPointerDown, blocksSelected, dragMode, onEnd, dropTargetRefs
 }: LetterBlockProps) {
     const [translate, setTranslate] = useState({ x: 0, y: 0 });
     const eventTargetRef = useRef<HTMLDivElement>(null);
@@ -40,6 +42,9 @@ export function LetterBlock({
             onEnd()
         }
     }));
+
+    // const isAnimating = useReparentAnimation(eventTargetRef, isDragging, currCell);
+    useTransformAnimation(isDragging, currCell, dropTargetRefs);
 
     const handlePointerUp = (e: PointerEvent) => {
         setTranslate({
@@ -84,7 +89,7 @@ export function LetterBlock({
     return (
         <div id={`letter-block-${id}`} data-current-cell={currCell}
             ref={drag}
-            className={`border border-gray-400 letter-block flex justify-center items-center select-none ${isDragging ? 'hidden' : ''} ${isSelected ? 'isSelected' : ''}`}
+            className={`absolute border border-gray-400 letter-block flex justify-center items-center select-none ${isDragging ? 'hidden' : ''} ${isSelected ? 'isSelected' : ''}`}
                 style={style}>
             {/* <div ref={eventTargetRef}> */}
                 {/* <div ref={divRef}> */}
