@@ -35,7 +35,15 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
 
     const [dragMode, setDragMode] = useState<DragMode>('DragNDrop');
     const [swappedLetterState, setSwappedLetterState] = useState<SwappedLetterState | undefined>();
-    const dropTargetsRef = useRef<Map<number, HTMLDivElement>|null>(null);
+    const dropTargetsRef = useRef<Map<number, HTMLDivElement> | null>(null);
+    const [hasFirstRenderHappened, setHasFirstRenderHappened] = useState(false);
+
+    function getDropTargetsMap() {
+        if (!dropTargetsRef.current) {
+            dropTargetsRef.current = new Map();
+        }
+        return dropTargetsRef.current;
+    }
 
     const submitWord = api.gameplay.submitWord.useMutation({
         onSettled: () => {
@@ -64,12 +72,10 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
         }
     }
 
-    function getDropTargetsMap() {
-        if (!dropTargetsRef.current) {
-            dropTargetsRef.current = new Map();
-        }
-        return dropTargetsRef.current;
-    }
+    // force re-render in order to pass DOM refs to children
+    useEffect(() => {
+        setHasFirstRenderHappened(true);
+    }, [])
 
     const handleLetterBlockEnter = (e: PointerEvent, i: number) => {
         if (!isPointerDown || i == undefined || selectedLetters.includes(i) || submitWord.isLoading) return;
@@ -207,7 +213,7 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
                     </div>
                     )}
 
-                    {console.log(dropTargetsRef)}
+                    {/* {console.log(`Board render`)} */}
                     {letterBlocks.map((letterBlock, i) => (
                         <LetterBlock key={i} id={i} letters={letterBlock.letters}
                             onPointerDown={handleLetterBlockDown} onPointerUp={handlePointerUp}
@@ -221,8 +227,7 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
                             onEnd={clearSwappedLetterState}
                             dropTargetRefs={dropTargetsRef.current}
                         />
-
-                    ))
+                        ))
                     }
                 </>
             </div>

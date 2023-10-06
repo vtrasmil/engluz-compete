@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import useCustomDrag, { DragMode } from "./useDrag.tsx";
 import { useDrag } from "react-dnd";
 import { LetterDieSchema } from "~/server/diceManager.tsx";
@@ -28,7 +28,8 @@ export function LetterBlock({
     id, currCell, letters, isSelected, onPointerDown, onPointerUp, onPointerEnter,
     isPointerOver, isPointerDown, blocksSelected, dragMode, onEnd, dropTargetRefs
 }: LetterBlockProps) {
-    const [translate, setTranslate] = useState({ x: 0, y: 0 });
+    // const [translate, setTranslate] = useState({ x: 0, y: 0 });
+    // const divRef = useRef<HTMLDivElement>(null);
     const eventTargetRef = useRef<HTMLDivElement>(null);
 
     const [{ isDragging }, drag] = useDrag(() => ({
@@ -44,13 +45,13 @@ export function LetterBlock({
     }));
 
     // const isAnimating = useReparentAnimation(eventTargetRef, isDragging, currCell);
-    useTransformAnimation(isDragging, currCell, dropTargetRefs);
+    const position = useTransformAnimation(isDragging, currCell, eventTargetRef.current, dropTargetRefs);
 
     const handlePointerUp = (e: PointerEvent) => {
-        setTranslate({
+        /* setTranslate({
             x: 0,
             y: 0
-        });
+        }); */
         onPointerUp(e, id);
     };
 
@@ -64,10 +65,10 @@ export function LetterBlock({
     };
 
     const handleDrag = (e: PointerEvent) => {
-        setTranslate({
+        /* setTranslate({
             x: translate.x + e.movementX,
             y: translate.y + e.movementY
-        });
+        }); */
         eventTargetRef.current?.setPointerCapture(e.pointerId);
         // console.log(`${translate.x} ${translate.y} hasPointerCapture: ${eventTargetRef.current?.hasPointerCapture(e.pointerId)}`)
     };
@@ -82,20 +83,22 @@ export function LetterBlock({
 
     const style = {
         width: `50px`, height: `50px`,
-        transform: `translateX(${translate.x}px) translateY(${translate.y}px)`,
+        transform: position ? `translateX(${position.x}px) translateY(${position.y}px)` : undefined,
         zIndex: `${customDrag.isDragging ? 10 : 0}`
     }
+
+    // {console.log(`LetterBlock render`)}
 
     return (
         <div id={`letter-block-${id}`} data-current-cell={currCell}
             ref={drag}
-            className={`absolute border border-gray-400 letter-block flex justify-center items-center select-none ${isDragging ? 'hidden' : ''} ${isSelected ? 'isSelected' : ''}`}
+            className={`absolute border border-gray-400 letter-block select-none ${isDragging ? 'hidden' : ''} ${isSelected ? 'isSelected' : ''}`}
                 style={style}>
-            {/* <div ref={eventTargetRef}> */}
+            <div ref={eventTargetRef} className={`w-full h-full flex justify-center items-center `}>
                 {/* <div ref={divRef}> */}
                     {letters?.[0]?.toUpperCase()}
                 {/* </div> */}
-            {/* </div> */}
+            </div>
         </div>
     );
 }
