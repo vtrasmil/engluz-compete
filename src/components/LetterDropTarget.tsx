@@ -8,8 +8,6 @@ interface LetterDropTargetType {
     cellId: number,
     onHover: (fromCell: number, toCell: number) => void,
     onDrop: (cell: number, letterBlock: LetterDieSchema) => void,
-    childLetter: string | undefined,
-    letterBlocks: (LetterDieSchema | undefined)[],
     swappedLetterState: SwappedLetterState | undefined,
     isDragging: boolean,
 
@@ -17,7 +15,7 @@ interface LetterDropTargetType {
 }
 // {children, cellId, onHover, onDrop, childLetterBlockId, letterBlocks, swappedLetterState}
 const LetterDropTarget = forwardRef<HTMLDivElement, LetterDropTargetType>(
-    ({cellId, onHover, onDrop, letterBlocks, swappedLetterState, isDragging}, ref) =>
+    ({cellId, onHover, onDrop, swappedLetterState, isDragging}, ref) =>
     {
         // const outerRef = useForwardedRef(ref);
         const divRef = useRef(null);
@@ -39,7 +37,7 @@ const LetterDropTarget = forwardRef<HTMLDivElement, LetterDropTargetType>(
             collect: (monitor) => ({
                 isOver: !!monitor.isOver(),
             }),
-        }), [letterBlocks, swappedLetterState]);
+        }), [swappedLetterState]);
 
 
 

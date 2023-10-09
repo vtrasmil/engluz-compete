@@ -189,22 +189,9 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
                     <div key={row} className="board-row flex justify-center">
                         {rows.map(col => {
                             const i = boardWidth * row + col;
-                            const letterBlock = (() => {
-                                if (swappedLetterState?.targetCell === i) {
-                                    return undefined
-                                } else if (swappedLetterState?.sourceCell === i) {
-                                    return swappedLetterState.swappedLetter;
-                                } else {
-                                    return letterBlocks[i];
-                                }
-                            })();
-                            const letter = letterBlock?.letters[0];
-
                             return (
-
-                                <LetterDropTarget key={i} cellId={i} onHover={handleHoverSwapLetter}
-                                    onDrop={handleDropLetter}
-                                    childLetter={letterBlock?.letters[0]} letterBlocks={letterBlocks}
+                                <LetterDropTarget key={i} cellId={i}
+                                    onHover={handleHoverSwapLetter} onDrop={handleDropLetter}
                                     swappedLetterState={swappedLetterState} isDragging={isDragging}
                                     ref={(node) => {
                                         const map = getDropTargetsMap();
