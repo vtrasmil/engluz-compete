@@ -8,20 +8,21 @@ interface LetterDropTargetType {
     cellId: number,
     onHover: (fromCell: number, toCell: number) => void,
     onDrop: (cell: number, letterBlock: LetterDieSchema) => void,
-    childLetterBlockId: number | undefined,
     childLetter: string | undefined,
     letterBlocks: (LetterDieSchema | undefined)[],
     swappedLetterState: SwappedLetterState | undefined,
+    isDragging: boolean,
 
 
 }
 // {children, cellId, onHover, onDrop, childLetterBlockId, letterBlocks, swappedLetterState}
 const LetterDropTarget = forwardRef<HTMLDivElement, LetterDropTargetType>(
-    ({cellId, onHover, onDrop, childLetterBlockId, letterBlocks, swappedLetterState}, ref) =>
+    ({cellId, onHover, onDrop, letterBlocks, swappedLetterState, isDragging}, ref) =>
     {
         // const outerRef = useForwardedRef(ref);
         const divRef = useRef(null);
 
+        // for forwarding ref
         useEffect(() => {
             if (!ref) return;
             if (typeof ref === "function") {
@@ -40,6 +41,8 @@ const LetterDropTarget = forwardRef<HTMLDivElement, LetterDropTargetType>(
             }),
         }), [letterBlocks, swappedLetterState]);
 
+
+
         function hover(item: DraggedLetter, monitor: DropTargetMonitor) {
             onHover(cellId, item.currCell);
         }
@@ -56,8 +59,9 @@ const LetterDropTarget = forwardRef<HTMLDivElement, LetterDropTargetType>(
                     style={{
                         width: '50px', height: '50px'
                     }}
-                    className={'m-2 letter-drop-target'}>
-                    <div ref={divRef} />
+                className={`m-2 ${isDragging && 'z-10'} letter-drop-target ${collectedProps.isOver && `bg-slate-500 && opacity-25`}`}>
+
+                    <div ref={divRef} className={`h-full`} />
 
                 </div>
 

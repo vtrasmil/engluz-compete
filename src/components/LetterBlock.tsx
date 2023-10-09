@@ -16,6 +16,7 @@ export interface LetterBlockProps {
     isPointerOver: boolean;
     blocksSelected: number[];
     dragMode: DragMode;
+    onDrag: () => void;
     onEnd: () => void;
     dropTargetRefs: Map<number, HTMLDivElement> | null;
 }
@@ -26,7 +27,7 @@ export interface DraggedLetter extends LetterDieSchema {
 
 export function LetterBlock({
     id, currCell, letters, isSelected, onPointerDown, onPointerUp, onPointerEnter,
-    isPointerOver, isPointerDown, blocksSelected, dragMode, onEnd, dropTargetRefs
+    isPointerOver, isPointerDown, blocksSelected, dragMode, onEnd, dropTargetRefs, onDrag
 }: LetterBlockProps) {
     // const [translate, setTranslate] = useState({ x: 0, y: 0 });
     // const divRef = useRef<HTMLDivElement>(null);
@@ -38,11 +39,14 @@ export function LetterBlock({
         collect: (monitor) => ({
             isDragging: !!monitor.isDragging(),
         }),
+
         end: (item, monitor) => {
-            // monitor.
-            onEnd()
+            onEnd();
         }
     }));
+    if (isDragging) {
+        onDrag();
+    }
 
     // const isAnimating = useReparentAnimation(eventTargetRef, isDragging, currCell);
     const position = useTransformAnimation(isDragging, currCell, eventTargetRef.current, dropTargetRefs);
@@ -84,7 +88,7 @@ export function LetterBlock({
     const style = {
         width: `50px`, height: `50px`,
         transform: position ? `translateX(${position.x}px) translateY(${position.y}px)` : undefined,
-        zIndex: `${customDrag.isDragging ? 10 : 0}`
+        // transition: 'translateX 0.5'
     }
 
     // {console.log(`LetterBlock render`)}
@@ -92,7 +96,7 @@ export function LetterBlock({
     return (
         <div id={`letter-block-${id}`} data-current-cell={currCell}
             ref={drag}
-            className={`absolute border border-gray-400 letter-block select-none ${isDragging ? 'hidden' : ''} ${isSelected ? 'isSelected' : ''}`}
+            className={`absolute border ${isDragging && 'z-10'} border-gray-400 letter-block select-none ${isDragging ? 'hidden' : ''} ${isSelected ? 'isSelected' : ''}`}
                 style={style}>
             <div ref={eventTargetRef} className={`w-full h-full flex justify-center items-center `}>
                 {/* <div ref={divRef}> */}

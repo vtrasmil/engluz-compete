@@ -37,12 +37,15 @@ export default function useTransformAnimation(
         setPosition(getDropTargetPosition());
     }, [dropTargetDivMap])
 
+    const endState = {
+        
+    }
+
     function getDropTargetPosition() {
         const letterBlockAbsPos = letterBlockDiv && getXYPosition(letterBlockDiv);
         const dropTargetRef = dropTargetDivMap?.get(sourceCell);
         const dropTargetAbsPos = dropTargetRef && getXYPosition(dropTargetRef);
         const dropTargetRelPos = letterBlockAbsPos && dropTargetAbsPos && getPoint2DDelta(letterBlockAbsPos, dropTargetAbsPos);
-        console.log(`cell ${sourceCell}`,letterBlockAbsPos, dropTargetAbsPos)
         return dropTargetRelPos;
     }
 
