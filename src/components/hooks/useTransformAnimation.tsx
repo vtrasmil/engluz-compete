@@ -40,20 +40,12 @@ export default function useTransformAnimation(
     const [position, setPosition] = useState<Point2D | undefined>(getTransformPosition());
 
     useEffect(() => {
-        // if (sourceCell === 0) {
-        //     console.log(`useTransformAnimation: useEffect`);
-        // }
         if (letterBlockDiv && !initPos.current) {
             // 1st render: doesn't run, second render: sets
             initPos.current = getXYPosition(letterBlockDiv);
         }
         setPosition(getTransformPosition());
     }, [dropTargetDivMap, swappedLetterState, letterBlockDiv])
-
-    // if (sourceCell === 0) {
-    //     // console.log(`useTransformAnimation`, sourceCell, initPos, position)
-    //     console.log(`useTransformAnimation: render`)
-    // }
 
     function getTransformPosition() {
         if (!dropTargetDivMap || !initPos.current) return;

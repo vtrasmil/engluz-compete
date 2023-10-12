@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import useCustomDrag, { DragMode } from "./useDrag.tsx";
 import { useDrag } from "react-dnd";
 import { LetterDieSchema } from "~/server/diceManager.tsx";
@@ -27,24 +27,17 @@ export interface DraggedLetter extends LetterDieSchema {
     currCell: number,
 }
 
+
 export function LetterBlock({
     id, currCell, letters, isSelected, onPointerDown, onPointerUp, onPointerEnter,
     isPointerOver, isPointerDown, blocksSelected, dragMode, onEnd, dropTargetRefs, onDrag,
     swappedLetterState
 }: LetterBlockProps) {
-    // const [translate, setTranslate] = useState({ x: 0, y: 0 });
-    // const divRef = useRef<HTMLDivElement>(null);
     const eventTargetRef = useRef<HTMLDivElement>(null);
-    const [hasRefSet, setHasRefSet] = useState(false);
 
     if (currCell === 0) {
         console.log(`LetterBlock ${currCell} render ${eventTargetRef.current}`)
     }
-
-    // force re-render when divRef value changes
-    useEffect(() => {
-        setHasRefSet(true);
-    }, [eventTargetRef.current])
 
     const [{ isDragging }, drag] = useDrag(() => ({
         type: 'letter',
@@ -61,18 +54,10 @@ export function LetterBlock({
         onDrag();
     }
 
-    // const isAnimating = useReparentAnimation(eventTargetRef, isDragging, currCell);
     const position = useTransformAnimation(isDragging, currCell, eventTargetRef.current,
         dropTargetRefs, swappedLetterState);
 
-    // if (currCell === 0) console.log(position);
-
-
     const handlePointerUp = (e: PointerEvent) => {
-        /* setTranslate({
-            x: 0,
-            y: 0
-        }); */
         onPointerUp(e, id);
     };
 
@@ -81,17 +66,11 @@ export function LetterBlock({
     };
 
     const handlePointerEnter = (e: PointerEvent) => {
-        // console.log(`pointerenter: ${id}`)
         onPointerEnter(e, id);
     };
 
     const handleDrag = (e: PointerEvent) => {
-        /* setTranslate({
-            x: translate.x + e.movementX,
-            y: translate.y + e.movementY
-        }); */
         eventTargetRef.current?.setPointerCapture(e.pointerId);
-        // console.log(`${translate.x} ${translate.y} hasPointerCapture: ${eventTargetRef.current?.hasPointerCapture(e.pointerId)}`)
     };
 
     const customDrag = useCustomDrag(eventTargetRef, [isPointerDown && isPointerOver], {
@@ -105,18 +84,12 @@ export function LetterBlock({
     const style = {
         width: `50px`, height: `50px`,
         transform: position ? `translateX(${position.x}px) translateY(${position.y}px)` : undefined,
-        // transition: 'translateX 0.5'
     }
-
-    if (currCell === 0) console.log(style);
-
-
-
 
     return (
         <div id={`letter-block-${id}`} data-current-cell={currCell}
             ref={drag}
-            className={`absolute border ${isDragging && 'z-10'} border-gray-400 letter-block select-none ${isDragging ? 'hidden' : ''} ${isSelected ? 'isSelected' : ''}`}
+            className={`transition-transform absolute border ${isDragging && 'z-10'} border-gray-400 letter-block select-none ${isDragging ? 'hidden' : ''} ${isSelected ? 'isSelected' : ''}`}
                 style={style}>
             <div ref={eventTargetRef} className={`w-full h-full flex justify-center items-center `}>
                 {/* <div ref={divRef}> */}
