@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
+import { SwappedLetterState } from "../Board";
 
 
 
@@ -7,7 +8,8 @@ export type Point2D = {
     y: number
 }
 
-function getXYPosition(el: HTMLDivElement) {
+function getXYPosition(el: HTMLDivElement | null) {
+    if (!el) return;
     const pos: Point2D = {
         x: el.getBoundingClientRect().x,
         y: el.getBoundingClientRect().y
@@ -29,27 +31,43 @@ export default function useTransformAnimation(
     isDragging: boolean,
     sourceCell: number,
     letterBlockDiv: HTMLDivElement | null,
-    dropTargetDivMap: Map<number, HTMLDivElement> | null)
+    dropTargetDivMap: Map<number, HTMLDivElement> | null,
+    swappedLetterState: SwappedLetterState | undefined)
+
 {
-    const [position, setPosition] = useState<Point2D | null | undefined>(getDropTargetPosition());
-
+    // 1st render: letterBlockDiv is null, 2nd render: sets
+    const initPos = useRef<Point2D | null | undefined>(null);
+    const position = useRef<Point2D | null | undefined>(getTransformPosition());
+    
     useEffect(() => {
-        setPosition(getDropTargetPosition());
-    }, [dropTargetDivMap])
+        // if (sourceCell === 0) {
+        //     console.log(`useTransformAnimation: useEffect`);
+        // }
+        if (letterBlockDiv && !initPos.current) {
+            // 1st render: doesn't run, second render: sets
+            initPos.current = getXYPosition(letterBlockDiv);
+        }
+        position.current = getTransformPosition();
+    }, [dropTargetDivMap, swappedLetterState, letterBlockDiv])
 
-    const endState = {
-        
-    }
+    // if (sourceCell === 0) {
+    //     // console.log(`useTransformAnimation`, sourceCell, initPos, position)
+    //     console.log(`useTransformAnimation: render`)
+    // }
 
-    function getDropTargetPosition() {
-        const letterBlockAbsPos = letterBlockDiv && getXYPosition(letterBlockDiv);
-        const dropTargetRef = dropTargetDivMap?.get(sourceCell);
+    function getTransformPosition() {
+        if (!dropTargetDivMap || !initPos.current) return;
+        // const letterBlockAbsPos = letterBlockDiv && getXYPosition(letterBlockDiv);
+        const cell = (swappedLetterState && sourceCell === swappedLetterState.dropTargetCell) ?
+            swappedLetterState.dragSourceCell : sourceCell;
+        // const cell = sourceCell;
+        const dropTargetRef = dropTargetDivMap.get(cell);
         const dropTargetAbsPos = dropTargetRef && getXYPosition(dropTargetRef);
-        const dropTargetRelPos = letterBlockAbsPos && dropTargetAbsPos && getPoint2DDelta(letterBlockAbsPos, dropTargetAbsPos);
+        const dropTargetRelPos = dropTargetAbsPos && getPoint2DDelta(initPos.current, dropTargetAbsPos);
         return dropTargetRelPos;
     }
 
-    return position;
+    return position.current;
 
 }
 

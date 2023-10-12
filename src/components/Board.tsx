@@ -21,8 +21,8 @@ export type DragMode = 'DragToSelect' | 'DragNDrop';
 
 export interface SwappedLetterState {
     swappedLetter: LetterDieSchema | undefined,
-    sourceCell: number,
-    targetCell: number,
+    dragSourceCell: number,
+    dropTargetCell: number,
 }
 
 export default function Board({config, roomCode, gameId}: BoardProps) {
@@ -75,6 +75,7 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
 
     // force re-render in order to pass DOM refs to children
     useEffect(() => {
+        console.log(`Board: useEffect`)
         setHasFirstRenderHappened(true);
     }, [])
 
@@ -128,15 +129,16 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
         setSwappedLetterState(undefined);
     };
 
-    const handleHoverSwapLetter = (targetCell: number, sourceCell: number) => {
+    const handleHoverSwapLetter = (dropTargetCell: number, dragSourceCell: number) => {
         const newSwappedLetterState: SwappedLetterState = {
-            swappedLetter: letterBlocks[targetCell],
-            sourceCell: sourceCell,
-            targetCell: targetCell,
+            swappedLetter: letterBlocks[dropTargetCell],
+            dragSourceCell: dragSourceCell,
+            dropTargetCell: dropTargetCell,
         }
-        console.log(newSwappedLetterState);
-        if (newSwappedLetterState != swappedLetterState) {
+
+        if (!swappedLetterState || newSwappedLetterState.dropTargetCell != swappedLetterState.dropTargetCell) {
             setSwappedLetterState(newSwappedLetterState);
+            console.log(`setSwappedLetterState`);
 
         }
     };
@@ -146,7 +148,7 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
             throw new Error('Cannot drop letter in an occupied cell.');
         if (swappedLetterState == undefined)
             throw new Error('Cannot drop letter when SwappedLetterState is undefined');
-        const updated = swap(letterBlocks, dropTargetCell, swappedLetterState?.sourceCell);
+        const updated = swap(letterBlocks, dropTargetCell, swappedLetterState?.dragSourceCell);
         setLetterBlocks(updated);
     };
 
@@ -180,6 +182,8 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
             window.removeEventListener('contextmenu', handleContextMenu, true);
         }
     }, []);
+
+    console.log('Board render');
 
     return (
         <>
@@ -219,6 +223,7 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
                             onDrag={handleIsDragging}
                             onEnd={handleOnEndDrag}
                             dropTargetRefs={dropTargetsRef.current}
+                            swappedLetterState={swappedLetterState}
                         />
                         ))
                     }

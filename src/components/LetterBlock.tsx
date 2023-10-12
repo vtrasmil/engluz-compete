@@ -1,8 +1,9 @@
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import useCustomDrag, { DragMode } from "./useDrag.tsx";
 import { useDrag } from "react-dnd";
 import { LetterDieSchema } from "~/server/diceManager.tsx";
 import useTransformAnimation from "./hooks/useTransformAnimation.tsx";
+import { SwappedLetterState } from "./Board.tsx";
 
 export interface LetterBlockProps {
     id: number,
@@ -19,6 +20,7 @@ export interface LetterBlockProps {
     onDrag: () => void;
     onEnd: () => void;
     dropTargetRefs: Map<number, HTMLDivElement> | null;
+    swappedLetterState: SwappedLetterState | undefined;
 }
 
 export interface DraggedLetter extends LetterDieSchema {
@@ -27,11 +29,22 @@ export interface DraggedLetter extends LetterDieSchema {
 
 export function LetterBlock({
     id, currCell, letters, isSelected, onPointerDown, onPointerUp, onPointerEnter,
-    isPointerOver, isPointerDown, blocksSelected, dragMode, onEnd, dropTargetRefs, onDrag
+    isPointerOver, isPointerDown, blocksSelected, dragMode, onEnd, dropTargetRefs, onDrag,
+    swappedLetterState
 }: LetterBlockProps) {
     // const [translate, setTranslate] = useState({ x: 0, y: 0 });
     // const divRef = useRef<HTMLDivElement>(null);
     const eventTargetRef = useRef<HTMLDivElement>(null);
+    const [hasRefSet, setHasRefSet] = useState(false);
+
+    if (currCell === 0) {
+        console.log(`LetterBlock ${currCell} render ${eventTargetRef.current}`)
+    }
+
+    // force re-render when divRef value changes
+    useEffect(() => {
+        setHasRefSet(true);
+    }, [eventTargetRef.current])
 
     const [{ isDragging }, drag] = useDrag(() => ({
         type: 'letter',
@@ -49,7 +62,11 @@ export function LetterBlock({
     }
 
     // const isAnimating = useReparentAnimation(eventTargetRef, isDragging, currCell);
-    const position = useTransformAnimation(isDragging, currCell, eventTargetRef.current, dropTargetRefs);
+    const position = useTransformAnimation(isDragging, currCell, eventTargetRef.current,
+        dropTargetRefs, swappedLetterState);
+
+    // if (currCell === 0) console.log(position);
+
 
     const handlePointerUp = (e: PointerEvent) => {
         /* setTranslate({
@@ -91,7 +108,10 @@ export function LetterBlock({
         // transition: 'translateX 0.5'
     }
 
-    // {console.log(`LetterBlock render`)}
+    if (currCell === 0) console.log(style);
+
+
+
 
     return (
         <div id={`letter-block-${id}`} data-current-cell={currCell}
