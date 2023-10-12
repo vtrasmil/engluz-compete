@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { SwappedLetterState } from "../Board";
 
 
@@ -37,8 +37,8 @@ export default function useTransformAnimation(
 {
     // 1st render: letterBlockDiv is null, 2nd render: sets
     const initPos = useRef<Point2D | null | undefined>(null);
-    const position = useRef<Point2D | null | undefined>(getTransformPosition());
-    
+    const [position, setPosition] = useState<Point2D | undefined>(getTransformPosition());
+
     useEffect(() => {
         // if (sourceCell === 0) {
         //     console.log(`useTransformAnimation: useEffect`);
@@ -47,7 +47,7 @@ export default function useTransformAnimation(
             // 1st render: doesn't run, second render: sets
             initPos.current = getXYPosition(letterBlockDiv);
         }
-        position.current = getTransformPosition();
+        setPosition(getTransformPosition());
     }, [dropTargetDivMap, swappedLetterState, letterBlockDiv])
 
     // if (sourceCell === 0) {
@@ -67,7 +67,7 @@ export default function useTransformAnimation(
         return dropTargetRelPos;
     }
 
-    return position.current;
+    return position;
 
 }
 
