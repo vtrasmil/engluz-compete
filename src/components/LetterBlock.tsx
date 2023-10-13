@@ -39,9 +39,10 @@ export function LetterBlock({
         console.log(`LetterBlock ${currCell} render ${eventTargetRef.current}`)
     }
 
-    const [{ isDragging }, drag] = useDrag(() => ({
+    const [{ isDragging }, drag, dragPreview] = useDrag(() => ({
         type: 'letter',
         item: { id: id, letters: letters, currCell: currCell } as DraggedLetter,
+        canDrag: (monitor) => dragMode === 'DragNDrop',
         collect: (monitor) => ({
             isDragging: !!monitor.isDragging(),
         }),
