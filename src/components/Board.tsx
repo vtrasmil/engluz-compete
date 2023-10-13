@@ -33,7 +33,7 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
     const [lastSubmittedLetters, setLastSubmittedLetters] = useState<number[]>();
     const [letters, setLetters] = useState(config);
 
-    const [dragMode, setDragMode] = useState<DragMode>('DragNDrop');
+    const [dragMode, setDragMode] = useState<DragMode>('DragToSelect');
     const [swappedLetterState, setSwappedLetterState] = useState<SwappedLetterState | undefined>();
     const dropTargetsRef = useRef<Map<number, HTMLDivElement> | null>(null);
     const [hasFirstRenderHappened, setHasFirstRenderHappened] = useState(false);
@@ -157,7 +157,10 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
     }
 
     function handleSubmitLetters(letters: number[]) {
-
+        if (letters.length < 4) {
+            setSelectedLetters([]);
+            return;
+        };
         submitWord.mutate({
             userId: userId,
             gameId: gameId,
