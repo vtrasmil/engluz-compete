@@ -1,3 +1,5 @@
+import { BoardConfiguration } from "~/components/Board";
+import { LetterDieSchema } from "~/server/diceManager";
 
 export const uniqueId = function () {
     return "id-" + Math.random().toString(36).substring(2, 16);
@@ -78,6 +80,20 @@ export function safeStringToInt(str: string): number | typeof NaN {
     return num;
 }
 
+function cloneMap<K, V>(map: Map<K, V>): Map<K, V> {
+    const newMap = new Map<K, V>();
+    for (const [key, value] of map.entries()) {
+    newMap.set(key, value);
+    }
+    return newMap;
+}
+/**
+ *
+ * @param array An array
+ * @param index1 The first index
+ * @param index2 The second index
+ * @returns A new array
+ */
 export function swap<T>(array: T[], index1: number, index2: number) {
     const newArray = array.slice();
     const value1 = newArray[index1];
@@ -86,4 +102,32 @@ export function swap<T>(array: T[], index1: number, index2: number) {
     newArray.splice(index1, 1, value2);
     newArray.splice(index2, 1, value1);
     return newArray;
+}
+
+export function swapCells(map: BoardConfiguration, cell1: number, cell2: number) {
+    const newMap: BoardConfiguration = cloneMap(map);
+    const value1 = map.get(cell1);
+    const value2 = map.get(cell2);
+
+    if (value1 == undefined || value2 == undefined) throw new Error('Map does not contain index');
+    newMap.set(cell1, value2);
+    newMap.set(cell2, value1);
+
+    return newMap;
+}
+
+export function boardArrayToMap(array: LetterDieSchema[]) {
+    const map = new Map<number, LetterDieSchema>();
+    array.forEach((element, i) => {
+        map.set(i, element);
+    });
+    return map;
+}
+
+export function boardMapToArray(map: Map<number, LetterDieSchema>) {
+    const array = new Array<LetterDieSchema>();
+    map.forEach((v, k) => {
+        array[k] = v;
+    });
+    return map;
 }

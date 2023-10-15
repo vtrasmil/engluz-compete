@@ -1,10 +1,10 @@
 import { LetterDieSchema } from "~/server/diceManager";
-import Board from "./Board.tsx";
+import Board, { BoardConfiguration } from "./Board.tsx";
 import { useUserIdContext } from "./hooks/useUserIdContext";
 
 interface GameManagerProps {
     gameId: string,
-    initBoard: LetterDieSchema[],
+    initBoard: BoardConfiguration,
     roomCode: string
 }
 
@@ -19,7 +19,7 @@ export default function GameManager({gameId, initBoard, roomCode} : GameManagerP
     return (
         <>
             {initBoard &&
-                <Board config={initBoard} roomCode={roomCode} gameId={gameId} />
+                <Board boardConfig={initBoard} roomCode={roomCode} gameId={gameId} />
             }
 
             {/* {false && <GameOverModal />} */}

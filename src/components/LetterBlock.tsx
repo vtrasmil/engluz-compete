@@ -1,9 +1,9 @@
-import { useRef } from "react";
-import useCustomDrag, { DragMode } from "./useDrag.tsx";
+import { useEffect, useRef } from "react";
+import useCustomDrag from "./useDrag.tsx";
 import { useDrag } from "react-dnd";
 import { LetterDieSchema } from "~/server/diceManager.tsx";
 import useTransformAnimation from "./hooks/useTransformAnimation.tsx";
-import { SwappedLetterState } from "./Board.tsx";
+import { DragMode, SwappedLetterState } from "./Board.tsx";
 
 export interface LetterBlockProps {
     id: number,
@@ -17,8 +17,8 @@ export interface LetterBlockProps {
     isPointerOver: boolean;
     blocksSelected: number[];
     dragMode: DragMode;
-    onDrag: () => void;
-    onEnd: () => void;
+    onDragStart: () => void;
+    onDragEnd: () => void;
     dropTargetRefs: Map<number, HTMLDivElement> | null;
     swappedLetterState: SwappedLetterState | undefined;
 }
@@ -30,30 +30,31 @@ export interface DraggedLetter extends LetterDieSchema {
 
 export function LetterBlock({
     id, currCell, letters, isSelected, onPointerDown, onPointerUp, onPointerEnter,
-    isPointerOver, isPointerDown, blocksSelected, dragMode, onEnd, dropTargetRefs, onDrag,
+    isPointerOver, isPointerDown, blocksSelected, dragMode, dropTargetRefs, onDragStart, onDragEnd,
     swappedLetterState
 }: LetterBlockProps) {
     const eventTargetRef = useRef<HTMLDivElement>(null);
 
-    if (currCell === 0) {
-        console.log(`LetterBlock ${currCell} render ${eventTargetRef.current}`)
-    }
+    // if (currCell === 0) {
+    //     console.log(`LetterBlock ${currCell} render ${eventTargetRef.current}`)
+    // }
 
     const [{ isDragging }, drag, dragPreview] = useDrag(() => ({
         type: 'letter',
         item: { id: id, letters: letters, currCell: currCell } as DraggedLetter,
-        canDrag: (monitor) => dragMode === 'DragNDrop',
+        canDrag: (monitor) => dragMode === DragMode.DragNDrop,
         collect: (monitor) => ({
             isDragging: !!monitor.isDragging(),
         }),
 
-        end: (item, monitor) => {
-            onEnd();
-        }
+        // end: (item, monitor) => {
+        //     onDragEnd();
+        // }
     }));
-    if (isDragging) {
-        onDrag();
-    }
+
+    useEffect(() => {
+        isDragging ? onDragStart() : onDragEnd();
+    }, [isDragging])
 
     const position = useTransformAnimation(isDragging, currCell, eventTargetRef.current,
         dropTargetRefs, swappedLetterState);

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { toFaceUpValues } from "~/server/diceManager";
+import { boardArrayToMap } from "~/utils/helpers";
 
 
 
@@ -60,11 +61,11 @@ export const lobbyRouter = createTRPCRouter({
       const isRoomCodeActive = await opts.ctx.redis.isRoomCodeActive(opts.input.roomCode);
       if (!isRoomCodeActive) throw new Error(`Room code ${roomCode} is not currently active`);
       const gameId = await opts.ctx.redis.getGameId(roomCode);
-      const board = await opts.ctx.redis.getDice(gameId);
-      const faceUpValues = toFaceUpValues(board);
+      const boardArray = await opts.ctx.redis.getDice(gameId);
+      const boardConfig = boardArrayToMap(boardArray);
 
       return {
-        board: board,
+        board: boardConfig,
         roomCode: opts.input.roomCode,
         gameId: gameId,
       }
@@ -74,15 +75,14 @@ export const lobbyRouter = createTRPCRouter({
     .mutation(async (opts) => {
       const gameId = await opts.ctx.redis.createGameId();
       const roomCode = await opts.ctx.redis.createRoomCode(gameId);
-      const board = await opts.ctx.redis.createDice(gameId);
-      const faceUpValues = toFaceUpValues(board);
+      const boardArray = await opts.ctx.redis.createDice(gameId);
+      const boardConfig = boardArrayToMap(boardArray);
 
       return {
-        'board': board,
+        'board': boardConfig,
         'roomCode': roomCode,
         'gameId': gameId
       }
-
     }),
 
   ablySubscribeTest: publicProcedure

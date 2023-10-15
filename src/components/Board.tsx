@@ -4,20 +4,28 @@ import { useEffect, useRef, useState } from "react";
 import useCustomDrag from "./useDrag";
 import { useUserIdContext } from "./hooks/useUserIdContext";
 import { useChannel } from "@ably-labs/react-hooks";
-import { WordSubmittedMessageData } from "~/server/api/routers/gameplayRouter";
+import { DiceSwappedMessageData, WordSubmittedMessageData } from "~/server/api/routers/gameplayRouter";
 import { ablyChannelName } from "~/server/ably/ablyHelpers";
 import { api } from "~/utils/api";
 import { MaterialUISwitch } from "./MUISwitch";
 import LetterDropTarget from "./LetterDropTarget";
-import { swap } from "~/utils/helpers";
+import { boardArrayToMap, swapCells } from "~/utils/helpers";
 
 interface BoardProps {
-    config: LetterDieSchema[],
+    boardConfig: BoardConfiguration,
     roomCode: string,
     gameId: string,
 }
 
-export type DragMode = 'DragToSelect' | 'DragNDrop';
+export enum DragMode {
+    DragToSelect = 'dragToSelect',
+    DragNDrop = 'dragNDrop'
+}
+
+export enum AblyMessageType {
+    WordSubmitted = 'wordSubmitted',
+    DiceSwapped = 'diceSwapped',
+};
 
 export interface SwappedLetterState {
     swappedLetter: LetterDieSchema | undefined,
@@ -25,18 +33,19 @@ export interface SwappedLetterState {
     dropTargetCell: number,
 }
 
-export default function Board({config, roomCode, gameId}: BoardProps) {
-    const [letterBlocks, setLetterBlocks] = useState<LetterDieSchema[]>([...config]);
+export type BoardConfiguration = Map<number, LetterDieSchema>;
+
+export default function Board({boardConfig, roomCode, gameId}: BoardProps) {
+    const [letterBlocks, setLetterBlocks] = useState<BoardConfiguration>(boardConfig);
     const [selectedLetters, setSelectedLetters] = useState<number[]>([]);
     const [isPointerDown, setIsPointerDown] = useState<boolean>(false);
     const [pointerOver, setPointerOver] = useState<number>(); // pointerover
     const [lastSubmittedLetters, setLastSubmittedLetters] = useState<number[]>();
-    const [letters, setLetters] = useState(config);
 
-    const [dragMode, setDragMode] = useState<DragMode>('DragToSelect');
+    const [dragMode, setDragMode] = useState<DragMode>(DragMode.DragNDrop);
     const [swappedLetterState, setSwappedLetterState] = useState<SwappedLetterState | undefined>();
     const dropTargetsRef = useRef<Map<number, HTMLDivElement> | null>(null);
-    const [hasFirstRenderHappened, setHasFirstRenderHappened] = useState(false);
+    const [_, setHasFirstRenderHappened] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
 
     function getDropTargetsMap() {
@@ -52,9 +61,18 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
         }
     });
 
-    const [channel] = useChannel(ablyChannelName(roomCode), 'wordSubmitted', (message) => {
+    const swapDice = api.gameplay.swapDice.useMutation({
+
+    });
+
+    useChannel(ablyChannelName(roomCode), AblyMessageType.WordSubmitted, (message) => {
         const msgData = message.data as WordSubmittedMessageData;
-        setLetterBlocks(msgData.newBoard);
+        setLetterBlocks(boardArrayToMap(msgData.newBoard));
+    });
+
+    useChannel(ablyChannelName(roomCode), AblyMessageType.DiceSwapped, (message) => {
+        const msgData = message.data as DiceSwappedMessageData;
+        setLetterBlocks(boardArrayToMap(msgData.newBoard));
     });
 
     const userId = useUserIdContext();
@@ -62,10 +80,10 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
         if (submitWord.isLoading) return;
         setIsPointerDown(true);
         switch (dragMode) {
-            case 'DragToSelect':
+            case DragMode.DragToSelect:
                 setSelectedLetters([i]);
                 break;
-            case 'DragNDrop':
+            case DragMode.DragNDrop:
 
                 break;
             default:
@@ -75,7 +93,6 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
 
     // force re-render in order to pass DOM refs to children
     useEffect(() => {
-        console.log(`Board: useEffect`)
         setHasFirstRenderHappened(true);
     }, [])
 
@@ -83,7 +100,7 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
         if (!isPointerDown || i == undefined || selectedLetters.includes(i) || submitWord.isLoading) return;
 
         switch (dragMode) {
-            case 'DragToSelect':
+            case DragMode.DragToSelect:
                 const lastBlockSelected = selectedLetters.slice(-1)[0];
                 if (lastBlockSelected != undefined) {
                     const isNeighbor = getNeighbors(lastBlockSelected)?.includes(i);
@@ -92,7 +109,7 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
                 setPointerOver(i);
                 setSelectedLetters([...selectedLetters, i]);
                 break;
-            case 'DragNDrop':
+            case DragMode.DragNDrop:
 
                 break;
             default:
@@ -104,14 +121,14 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
         if (submitWord.isLoading) return;
         setIsPointerDown(false);
         switch (dragMode) {
-            case 'DragToSelect':
-                if (letters == undefined || letters.length < 3) {
+            case DragMode.DragToSelect:
+                if (selectedLetters.length <= 3) {
                     setSelectedLetters([]);
                     return;
                 }
                 handleSubmitLetters(selectedLetters);
                 break;
-            case 'DragNDrop':
+            case DragMode.DragNDrop:
                 break;
 
             default:
@@ -120,18 +137,18 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
     }
 
 
-    const handleIsDragging = () => {
+    const handleOnDragStart = () => {
         setIsDragging(true);
     }
 
-    const handleOnEndDrag = () => {
+    const handleOnDragEnd = () => {
         setIsDragging(false);
         setSwappedLetterState(undefined);
     };
 
     const handleHoverSwapLetter = (dropTargetCell: number, dragSourceCell: number) => {
         const newSwappedLetterState: SwappedLetterState = {
-            swappedLetter: letterBlocks[dropTargetCell],
+            swappedLetter: letterBlocks.get(dropTargetCell),
             dragSourceCell: dragSourceCell,
             dropTargetCell: dropTargetCell,
         }
@@ -144,12 +161,24 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
     };
 
     const handleDropLetter = (dropTargetCell: number, letterBlock: LetterDieSchema) => {
-        if (letterBlocks[dropTargetCell] == null)
+        if (letterBlocks.get(dropTargetCell) == undefined)
             throw new Error('Cannot drop letter in an occupied cell.');
         if (swappedLetterState == undefined)
             throw new Error('Cannot drop letter when SwappedLetterState is undefined');
-        const updated = swap(letterBlocks, dropTargetCell, swappedLetterState?.dragSourceCell);
-        setLetterBlocks(updated);
+        const updated = swapCells(letterBlocks, dropTargetCell, swappedLetterState?.dragSourceCell);
+
+        const letterBlockIdA = letterBlocks.get(dropTargetCell)?.id;
+        const letterBlockIdB = letterBlocks.get(swappedLetterState.dragSourceCell)?.id;
+        if (letterBlockIdA == undefined || letterBlockIdB == undefined) throw new Error('Missing LetterBlock ID(s)');
+
+        swapDice.mutate({
+            letterBlockIdA: letterBlockIdA,
+            letterBlockIdB: letterBlockIdB,
+            userId: userId,
+            gameId: gameId,
+            roomCode: roomCode,
+        });
+        // setLetterBlocks(updated);
     };
 
     const handleContextMenu = (e: MouseEvent) => {
@@ -186,7 +215,7 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
         }
     }, []);
 
-    console.log('Board render');
+    // console.log('Board render');
 
     return (
         <>
@@ -213,22 +242,24 @@ export default function Board({config, roomCode, gameId}: BoardProps) {
                         })}
                     </div>
                     )}
-                    {letterBlocks.map((letterBlock, i) => (
-                        <LetterBlock key={i} id={i} letters={letterBlock.letters}
-                            onPointerDown={handleLetterBlockDown} onPointerUp={handlePointerUp}
-                            onPointerEnter={handleLetterBlockEnter}
+                    {[...letterBlocks].map((mapEntry) => {
+                        const [cellId, letterBlock] = mapEntry;
+                        return (
+                            <LetterBlock key={letterBlock.id} id={cellId} letters={letterBlock.letters}
+                                onPointerDown={handleLetterBlockDown} onPointerUp={handlePointerUp}
+                                onPointerEnter={handleLetterBlockEnter}
 
-                            isSelected={selectedLetters.includes(i)}
-                            isPointerOver={pointerOver === i}
-                            blocksSelected={selectedLetters}
+                                isSelected={selectedLetters.includes(cellId)}
+                                isPointerOver={pointerOver === cellId}
+                                blocksSelected={selectedLetters}
 
-                            dragMode={dragMode} currCell={i}
-                            onDrag={handleIsDragging}
-                            onEnd={handleOnEndDrag}
-                            dropTargetRefs={dropTargetsRef.current}
-                            swappedLetterState={swappedLetterState}
-                        />
-                        ))
+                                dragMode={dragMode} currCell={cellId}
+                                onDragStart={handleOnDragStart}
+                                onDragEnd={handleOnDragEnd}
+                                dropTargetRefs={dropTargetsRef.current}
+                                swappedLetterState={swappedLetterState}
+                            />)
+                    })
                     }
                 </>
             </div>

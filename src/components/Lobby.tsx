@@ -8,6 +8,7 @@ import { useSessionStorage } from '@react-hooks-library/core';
 import GameManager from "~/components/GameManager";
 import { HostGameButton, JoinGameButton } from "~/components/LobbyButtons";
 import { LetterDieSchema } from "~/server/diceManager";
+import { BoardConfiguration } from "./Board";
 
 interface LobbyProps {
     userId: string,
@@ -18,7 +19,7 @@ export default function Lobby({userId}: LobbyProps) {
     const [roomCode, setRoomCode] = useState('');
     const [storedRoomCode, setStoredRoomCode] = useSessionStorage('roomCode', '');
     const [gameId, setGameId] = useState<string>();
-    const [initBoard, setInitBoard] = useState<LetterDieSchema[] | undefined>();
+    const [initBoard, setInitBoard] = useState<BoardConfiguration | undefined>();
     const joinGame = api.lobby.joinGame.useMutation({
         onSuccess: (data) => {
             setStoredRoomCode(data.roomCode);

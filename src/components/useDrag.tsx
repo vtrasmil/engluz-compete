@@ -1,5 +1,6 @@
 import { useState, useEffect, RefObject } from 'react';
 import { isPointerEvent } from '~/utils/helpers';
+import { DragMode } from './Board';
 
 
 interface DragOptions {
@@ -12,8 +13,6 @@ interface DragOptions {
     onDrag?: (e: PointerEvent) => void,
     dragMode: DragMode,
 }
-
-export type DragMode = 'DragToSelect' | 'DragNDrop';
 
 // should accept ref to window and HTMLElement
 // https://javascript.plainenglish.io/how-to-make-a-simple-custom-usedrag-react-hook-6b606d45d353
