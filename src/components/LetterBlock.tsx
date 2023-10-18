@@ -39,18 +39,18 @@ export function LetterBlock({
     //     console.log(`LetterBlock ${currCell} render ${eventTargetRef.current}`)
     // }
 
-    const [{ isDragging }, drag, dragPreview] = useDrag(() => ({
-        type: 'letter',
-        item: { id: id, letters: letters, currCell: currCell } as DraggedLetter,
-        canDrag: (monitor) => dragMode === DragMode.DragNDrop,
-        collect: (monitor) => ({
-            isDragging: !!monitor.isDragging(),
-        }),
-
-        // end: (item, monitor) => {
-        //     onDragEnd();
-        // }
-    }));
+    const [{ isDragging }, drag, dragPreview] = useDrag(() => {
+        const draggedLetter: DraggedLetter = { id: id, letters: letters, currCell: currCell };
+        return {
+            type: 'letter',
+            item: draggedLetter,
+            canDrag: (monitor) => dragMode === DragMode.DragNDrop,
+                collect: (monitor) => ({
+                    isDragging: !!monitor.isDragging(),
+                }),
+            end: (item, monitor) => {}
+        }
+    });
 
     useEffect(() => {
         isDragging ? onDragStart() : onDragEnd();
