@@ -47,6 +47,7 @@ export default function Board({boardConfig, roomCode, gameId}: BoardProps) {
     const dropTargetsRef = useRef<Map<number, HTMLDivElement> | null>(null);
     const [_, setHasFirstRenderHappened] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
+    const userId = useUserIdContext();
 
     function getDropTargetsMap() {
         if (!dropTargetsRef.current) {
@@ -67,15 +68,16 @@ export default function Board({boardConfig, roomCode, gameId}: BoardProps) {
 
     useChannel(ablyChannelName(roomCode), AblyMessageType.WordSubmitted, (message) => {
         const msgData = message.data as WordSubmittedMessageData;
+        // sent to all clients
         setLetterBlocks(boardArrayToMap(msgData.newBoard));
     });
 
     useChannel(ablyChannelName(roomCode), AblyMessageType.DiceSwapped, (message) => {
         const msgData = message.data as DiceSwappedMessageData;
+        if (msgData.userId == userId) return;
         setLetterBlocks(boardArrayToMap(msgData.newBoard));
     });
 
-    const userId = useUserIdContext();
     const handleLetterBlockDown = (e: PointerEvent, i: number) => {
         if (submitWord.isLoading) return;
         setIsPointerDown(true);
@@ -155,8 +157,6 @@ export default function Board({boardConfig, roomCode, gameId}: BoardProps) {
 
         if (!swappedLetterState || newSwappedLetterState.dropTargetCell != swappedLetterState.dropTargetCell) {
             setSwappedLetterState(newSwappedLetterState);
-            console.log(`setSwappedLetterState`);
-
         }
     };
 
@@ -177,8 +177,8 @@ export default function Board({boardConfig, roomCode, gameId}: BoardProps) {
             userId: userId,
             gameId: gameId,
             roomCode: roomCode,
-        });
-        // setLetterBlocks(updated);
+        })
+        setLetterBlocks(updated);
     };
 
     const handleContextMenu = (e: MouseEvent) => {
@@ -215,8 +215,6 @@ export default function Board({boardConfig, roomCode, gameId}: BoardProps) {
         }
     }, []);
 
-    // console.log('Board render');
-
     return (
         <>
             <div className="board flex flex-col">
@@ -242,10 +240,12 @@ export default function Board({boardConfig, roomCode, gameId}: BoardProps) {
                         })}
                     </div>
                     )}
-                    {[...letterBlocks].map((mapEntry) => {
+                    {/* should be rendered in order of letterBlockId -- divs should be static */}
+                    {[...letterBlocks].sort((a,b)=> a[1].id - b[1].id).map((mapEntry) => {
+
                         const [cellId, letterBlock] = mapEntry;
                         return (
-                            <LetterBlock key={letterBlock.id} id={cellId} letters={letterBlock.letters}
+                            <LetterBlock key={letterBlock.id} id={letterBlock.id} letters={letterBlock.letters}
                                 onPointerDown={handleLetterBlockDown} onPointerUp={handlePointerUp}
                                 onPointerEnter={handleLetterBlockEnter}
 
@@ -253,7 +253,8 @@ export default function Board({boardConfig, roomCode, gameId}: BoardProps) {
                                 isPointerOver={pointerOver === cellId}
                                 blocksSelected={selectedLetters}
 
-                                dragMode={dragMode} currCell={cellId}
+                                currCell={cellId}
+                                dragMode={dragMode}
                                 onDragStart={handleOnDragStart}
                                 onDragEnd={handleOnDragEnd}
                                 dropTargetRefs={dropTargetsRef.current}

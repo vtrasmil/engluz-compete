@@ -31,43 +31,12 @@ export const useCustomDrag = (ref: RefObject<HTMLDivElement | EventTarget>, deps
 
         e.stopPropagation();
         if (!isPointerEvent(e)) throw new Error('Event is not a PointerEvent');
-        // if (e.target && isHTMLDivElement(e.target)) e.target.releasePointerCapture(e.pointerId);
-
-        // console.log(`pointerdown: ${blockId}`)
-        switch (options.dragMode) {
-            case 'DragToSelect':
-
-                break;
-            case 'DragNDrop':
-                console.log(`pointerdown pointerId: ${e.pointerId}`)
-                setIsDragging(true);
-                break;
-            default:
-                break;
-        }
-
-
         onPointerDown(e);
     };
 
     const handlePointerUp = (e: Event) => {
         e.stopPropagation();
         if (!isPointerEvent(e)) throw new Error('Event is not a PointerEvent');
-
-
-        // console.log(`pointerup: ${blockId}`)
-        switch (options.dragMode) {
-            case 'DragToSelect':
-
-
-                break;
-            case 'DragNDrop':
-
-                setIsDragging(false);
-                break;
-            default:
-                break;
-        }
         onPointerUp(e);
     };
 
@@ -83,7 +52,7 @@ export const useCustomDrag = (ref: RefObject<HTMLDivElement | EventTarget>, deps
 
     const handlePointerMove = (e: Event) => {
         // console.log(`pointermove: ${blockId}`)
-        if (options.dragMode !== 'DragNDrop') return;
+        if (options.dragMode !== DragMode.DragNDrop) return;
         if (!isPointerEvent(e)) throw new Error('Event is not a PointerEvent');
 
         if (isDragging) {

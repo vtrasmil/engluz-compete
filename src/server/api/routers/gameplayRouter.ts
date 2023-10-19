@@ -3,17 +3,21 @@ import { z } from "zod";
 import { getWordFromBoard } from "~/server/wordListManager";
 import { LetterDieSchema, rollDice } from "~/server/diceManager";
 import { ablyChannelName } from "~/server/ably/ablyHelpers";
-import { boardArrayToMap, swap } from "~/utils/helpers";
-import { BoardConfiguration } from "~/components/Board";
+import { swap } from "~/utils/helpers";
 
-export interface WordSubmittedMessageData {
+interface DefaultAblyMessageData {
+    userId: string,
+}
+
+// NOTE: Ably only allows serialized data in messages
+export type WordSubmittedMessageData = {
     newBoard: LetterDieSchema[],
     wordSubmitted: string,
-}
+} & DefaultAblyMessageData;
 
-export interface DiceSwappedMessageData {
-    newBoard: LetterDieSchema[]
-}
+export type DiceSwappedMessageData = {
+    newBoard: LetterDieSchema[],
+} & DefaultAblyMessageData;
 
 export const gameplayRouter = createTRPCRouter({
 
@@ -34,6 +38,7 @@ export const gameplayRouter = createTRPCRouter({
                 const ably = opts.ctx.ably;
                 const channel = ably.channels.get(ablyChannelName(opts.input.roomCode));
                 const wordSubmittedMsg : WordSubmittedMessageData = {
+                    userId: userId,
                     newBoard: reroll,
                     wordSubmitted: word
                 }
@@ -53,7 +58,7 @@ export const gameplayRouter = createTRPCRouter({
             roomCode: z.string().min(1),
         }))
         .mutation(async (opts) => {
-            const { gameId, letterBlockIdA, letterBlockIdB } = opts.input;
+            const { userId, gameId, letterBlockIdA, letterBlockIdB } = opts.input;
             const dice = await opts.ctx.redis.getDice(gameId);
             const indexA = dice.findIndex(x => x.id === letterBlockIdA);
             const indexB = dice.findIndex(x => x.id === letterBlockIdB);
@@ -63,10 +68,11 @@ export const gameplayRouter = createTRPCRouter({
             const ably = opts.ctx.ably;
             const channel = ably.channels.get(ablyChannelName(opts.input.roomCode));
             const diceSwappedMsg : DiceSwappedMessageData = {
+                userId: userId,
                 newBoard: swappedDice
             }
             const publish = await channel.publish('diceSwapped', diceSwappedMsg);
-            return;
+            return diceSwappedMsg;
 
         }),
 

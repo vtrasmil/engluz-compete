@@ -30,14 +30,16 @@ const LetterDropTarget = forwardRef<HTMLDivElement, LetterDropTargetType>(
             }
         }, []); //TODO: call more often?
 
-        const [collectedProps, dropRef] = useDrop(() => ({
-            accept: 'letter',
-            hover: hover,
-            drop: drop,
-            collect: (monitor) => ({
-                isOver: !!monitor.isOver(),
-            }),
-        }), [swappedLetterState]);
+        const [collectedProps, dropRef] = useDrop(() => {
+            return {
+                accept: 'letter',
+                hover: hover,
+                drop: drop,
+                collect: (monitor) => ({
+                    isOver: !!monitor.isOver(),
+                })
+            }
+        }, [swappedLetterState]);
 
 
 
@@ -57,7 +59,10 @@ const LetterDropTarget = forwardRef<HTMLDivElement, LetterDropTargetType>(
                     style={{
                         width: '50px', height: '50px'
                     }}
-                className={`m-2 ${isDragging && 'z-10'} letter-drop-target ${collectedProps.isOver && `bg-slate-500 && opacity-25`}`}>
+                className={
+                    `m-2 ${isDragging && 'z-10'}
+                    letter-drop-target
+                    ${collectedProps.isOver && `bg-slate-500 && opacity-25`}`}>
 
                     <div ref={divRef} className={`h-full`} />
 

@@ -50,7 +50,7 @@ export function LetterBlock({
                 }),
             end: (item, monitor) => {}
         }
-    });
+    }, [currCell]);
 
     useEffect(() => {
         isDragging ? onDragStart() : onDragEnd();

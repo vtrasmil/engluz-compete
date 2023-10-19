@@ -44,8 +44,9 @@ export default function useTransformAnimation(
             // 1st render: doesn't run, second render: sets
             initPos.current = getXYPosition(letterBlockDiv);
         }
-        setPosition(getTransformPosition());
-    }, [dropTargetDivMap, swappedLetterState, letterBlockDiv])
+        const newPos = getTransformPosition();
+        setPosition(newPos);
+    }, [dropTargetDivMap, swappedLetterState, letterBlockDiv, sourceCell])
 
     function getTransformPosition() {
         if (!dropTargetDivMap || !initPos.current) return;
