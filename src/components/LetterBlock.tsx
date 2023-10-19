@@ -35,10 +35,6 @@ export function LetterBlock({
 }: LetterBlockProps) {
     const eventTargetRef = useRef<HTMLDivElement>(null);
 
-    // if (currCell === 0) {
-    //     console.log(`LetterBlock ${currCell} render ${eventTargetRef.current}`)
-    // }
-
     const [{ isDragging }, drag, dragPreview] = useDrag(() => {
         const draggedLetter: DraggedLetter = { id: id, letters: letters, currCell: currCell };
         return {
@@ -90,8 +86,13 @@ export function LetterBlock({
     return (
         <div id={`letter-block-${id}`} data-current-cell={currCell}
             ref={drag}
-            className={`transition-transform absolute border ${isDragging ? 'z-10' : ''} border-gray-400 letter-block select-none ${isDragging ? 'hidden' : ''} ${isSelected ? 'isSelected' : ''}`}
-                style={style}>
+            className={
+                `transition-transform absolute border ${isDragging ? 'z-10' : ''}
+                border-gray-400 letter-block select-none
+                ${isDragging ? 'hidden' : ''} ${isSelected ? 'isSelected' : ''}`
+            }
+            style={style}
+        >
             <div ref={eventTargetRef} className={`w-full h-full flex justify-center items-center `}>
                 {letters?.[0]?.toUpperCase()}
             </div>
