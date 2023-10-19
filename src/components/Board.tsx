@@ -25,7 +25,7 @@ export enum DragMode {
 export enum AblyMessageType {
     WordSubmitted = 'wordSubmitted',
     DiceSwapped = 'diceSwapped',
-};
+}
 
 export interface SwappedLetterState {
     swappedLetter: LetterDieSchema | undefined,
@@ -189,7 +189,7 @@ export default function Board({boardConfig, roomCode, gameId}: BoardProps) {
         if (letters.length < 4) {
             setSelectedLetters([]);
             return;
-        };
+        }
         submitWord.mutate({
             userId: userId,
             gameId: gameId,

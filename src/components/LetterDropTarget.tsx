@@ -13,7 +13,7 @@ interface LetterDropTargetType {
 
 
 }
-// {children, cellId, onHover, onDrop, childLetterBlockId, letterBlocks, swappedLetterState}
+
 const LetterDropTarget = forwardRef<HTMLDivElement, LetterDropTargetType>(
     ({cellId, onHover, onDrop, swappedLetterState, isDragging}, ref) =>
     {
@@ -60,9 +60,9 @@ const LetterDropTarget = forwardRef<HTMLDivElement, LetterDropTargetType>(
                         width: '50px', height: '50px'
                     }}
                 className={
-                    `m-2 ${isDragging && 'z-10'}
+                    `m-2 ${isDragging ? 'z-10' : ''}
                     letter-drop-target
-                    ${collectedProps.isOver && `bg-slate-500 && opacity-25`}`}>
+                    ${collectedProps.isOver ? `bg-slate-500 && opacity-25` : ''}`}>
 
                     <div ref={divRef} className={`h-full`} />
 
@@ -72,4 +72,5 @@ const LetterDropTarget = forwardRef<HTMLDivElement, LetterDropTargetType>(
     }
 );
 
+LetterDropTarget.displayName = 'LetterDropTarget';
 export default LetterDropTarget;

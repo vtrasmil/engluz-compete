@@ -48,7 +48,6 @@ export function LetterBlock({
                 collect: (monitor) => ({
                     isDragging: !!monitor.isDragging(),
                 }),
-            end: (item, monitor) => {}
         }
     }, [currCell]);
 
@@ -91,12 +90,10 @@ export function LetterBlock({
     return (
         <div id={`letter-block-${id}`} data-current-cell={currCell}
             ref={drag}
-            className={`transition-transform absolute border ${isDragging && 'z-10'} border-gray-400 letter-block select-none ${isDragging ? 'hidden' : ''} ${isSelected ? 'isSelected' : ''}`}
+            className={`transition-transform absolute border ${isDragging ? 'z-10' : ''} border-gray-400 letter-block select-none ${isDragging ? 'hidden' : ''} ${isSelected ? 'isSelected' : ''}`}
                 style={style}>
             <div ref={eventTargetRef} className={`w-full h-full flex justify-center items-center `}>
-                {/* <div ref={divRef}> */}
-                    {letters?.[0]?.toUpperCase()}
-                {/* </div> */}
+                {letters?.[0]?.toUpperCase()}
             </div>
         </div>
     );
