@@ -32,6 +32,8 @@ export const gameplayRouter = createTRPCRouter({
             const { userId, gameId } = opts.input;
             const dice = await opts.ctx.redis.getDice(gameId);
             const word = getWordFromBoard(opts.input.letterBlocks, dice)
+            // const isValid = await isWordValid(word, opts.ctx.redis);
+            const isValid = true;
             if (isValid) {
                 const reroll = rollDice(dice, opts.input.letterBlocks);
                 await opts.ctx.redis.setDice(opts.input.gameId, reroll);
