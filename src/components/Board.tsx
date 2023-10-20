@@ -7,9 +7,10 @@ import { useChannel } from "@ably-labs/react-hooks";
 import { DiceSwappedMessageData, WordSubmittedMessageData } from "~/server/api/routers/gameplayRouter";
 import { ablyChannelName } from "~/server/ably/ablyHelpers";
 import { api } from "~/utils/api";
-import { MaterialUISwitch } from "./MUISwitch";
 import LetterDropTarget from "./LetterDropTarget";
 import { boardArrayToMap, swapCells } from "~/utils/helpers";
+import { FormGroup, Stack, Typography } from "@mui/material";
+import { AntSwitch } from "./AntSwitch";
 
 interface BoardProps {
     boardConfig: BoardConfiguration,
@@ -198,6 +199,12 @@ export default function Board({boardConfig, roomCode, gameId}: BoardProps) {
         })
     }
 
+    function handleDragModeChange() {
+        dragMode === DragMode.DragNDrop ?
+            setDragMode(DragMode.DragToSelect) :
+            setDragMode(DragMode.DragNDrop);
+    }
+
     // when pointerup happens outside a letter
     const windowRef = useRef<EventTarget>(window);
     useCustomDrag(windowRef, [isPointerDown, selectedLetters], {
@@ -264,7 +271,13 @@ export default function Board({boardConfig, roomCode, gameId}: BoardProps) {
                     }
                 </>
             </div>
-            <MaterialUISwitch />
+            {<FormGroup className="flex items-center">
+                <Stack direction="row" spacing={1} alignItems="center">
+                    <Typography>Drag to Select</Typography>
+                        <AntSwitch checked={dragMode === DragMode.DragNDrop} onChange={handleDragModeChange} inputProps={{ 'aria-label': 'ant design' }} />
+                    <Typography>Drag & Drop</Typography>
+                </Stack>
+            </FormGroup>}
         </>
     );
 }
