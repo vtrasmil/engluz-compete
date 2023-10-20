@@ -1,5 +1,4 @@
 import { BoardConfiguration } from "~/components/Board";
-import { LetterDieSchema } from "~/server/diceManager";
 
 export const uniqueId = function () {
     return "id-" + Math.random().toString(36).substring(2, 16);
@@ -104,8 +103,8 @@ export function swap<T>(array: T[], index1: number, index2: number) {
     return newArray;
 }
 
-export function swapCells(map: BoardConfiguration, cell1: number, cell2: number) {
-    const newMap: BoardConfiguration = cloneMap(map);
+export function swapCells(board: BoardConfiguration, cell1: number, cell2: number) {
+    /* const newMap: BoardConfiguration = cloneMap(map);
     const value1 = map.get(cell1);
     const value2 = map.get(cell2);
 
@@ -113,10 +112,18 @@ export function swapCells(map: BoardConfiguration, cell1: number, cell2: number)
     newMap.set(cell1, value2);
     newMap.set(cell2, value1);
 
-    return newMap;
+    return newMap; */
+    const boardCopy = board.slice();
+    boardCopy.map(x => {
+        if (x.cellId === cell1) { x.cellId = cell2 }
+        else if (x.cellId === cell2) { x.cellId = cell1 };
+        return x;
+    })
+    return boardCopy;
+
 }
 
-export function boardArrayToMap(array: LetterDieSchema[]) {
+/* export function boardArrayToMap(array: LetterDieSchema[]) {
     const map = new Map<number, LetterDieSchema>();
     array.forEach((element, i) => {
         map.set(i, element);
@@ -130,15 +137,17 @@ export function boardMapToArray(map: Map<number, LetterDieSchema>) {
         array[k] = v;
     });
     return map;
-}
+} */
 
 export function getCellIdFromLetterId(board: BoardConfiguration, letterBlockId: number) {
-    const cell = [...board].filter(x => x[1].id === letterBlockId)[0];
-    if (cell == undefined) throw new Error('Cell is undefined');
-    return cell[0];
+    const boardLetter = board.find(x => x.letterBlock.id === letterBlockId);
+    if (!boardLetter) throw new Error(`No board letter with letterBlockId ${letterBlockId}`)
+    return boardLetter.cellId;
 }
 
-export function getCellIdsFromLetterIds(board: BoardConfiguration, letterBlockIds: number[]) {
-    return letterBlockIds.map(x => getCellIdFromLetterId(board, x));
+export function getLetterAtCell(cellId: number, board: BoardConfiguration) {
+    const boardLetterDie = board.find(x => x.cellId === cellId);
+    if (!boardLetterDie) throw new Error('BoardLetterDie undefined')
+    return boardLetterDie.letterBlock;
 }
 

@@ -1,7 +1,5 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
-import { toFaceUpValues } from "~/server/diceManager";
-import { boardArrayToMap } from "~/utils/helpers";
 
 
 
@@ -62,8 +60,11 @@ export const lobbyRouter = createTRPCRouter({
       if (!isRoomCodeActive) throw new Error(`Room code ${roomCode} is not currently active`);
       const gameId = await opts.ctx.redis.getGameId(roomCode);
       const boardArray = await opts.ctx.redis.getDice(gameId);
-      const boardConfig = boardArrayToMap(boardArray);
-
+      const boardConfig = boardArray.map((lb, i) => (
+        {
+          cellId: i,
+          letterBlock: lb
+        }));
       return {
         board: boardConfig,
         roomCode: opts.input.roomCode,
@@ -76,7 +77,11 @@ export const lobbyRouter = createTRPCRouter({
       const gameId = await opts.ctx.redis.createGameId();
       const roomCode = await opts.ctx.redis.createRoomCode(gameId);
       const boardArray = await opts.ctx.redis.createDice(gameId);
-      const boardConfig = boardArrayToMap(boardArray);
+      const boardConfig = boardArray.map((lb, i) => (
+        {
+          cellId: i,
+          letterBlock: lb
+        }));
 
       return {
         'board': boardConfig,

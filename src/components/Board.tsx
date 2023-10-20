@@ -8,12 +8,12 @@ import { DiceSwappedMessageData, WordSubmittedMessageData } from "~/server/api/r
 import { ablyChannelName } from "~/server/ably/ablyHelpers";
 import { api } from "~/utils/api";
 import LetterDropTarget from "./LetterDropTarget";
-import { boardArrayToMap, getCellIdFromLetterId, getCellIdsFromLetterIds, swapCells } from "~/utils/helpers";
+import { getCellIdFromLetterId, getLetterAtCell, swapCells } from "~/utils/helpers";
 import { FormGroup, Stack, Typography } from "@mui/material";
 import { AntSwitch } from "./AntSwitch";
 
 interface BoardProps {
-    boardConfig: BoardConfiguration,
+    initBoardConfig: BoardConfiguration,
     roomCode: string,
     gameId: string,
 }
@@ -34,11 +34,16 @@ export interface SwappedLetterState {
     dropTargetCell: number,
 }
 
-export type BoardConfiguration = Map<number, LetterDieSchema>;
+export type BoardLetterDie = {
+    cellId: number,
+    letterBlock: LetterDieSchema
+}
+export type BoardConfiguration = BoardLetterDie[];
 
-export default function Board({boardConfig, roomCode, gameId}: BoardProps) {
-    const [letterBlocks, setLetterBlocks] = useState<BoardConfiguration>(boardConfig);
-    const [selectedLetters, setSelectedLetters] = useState<number[]>([]);
+
+export default function Board({initBoardConfig, roomCode, gameId}: BoardProps) {
+    const [boardConfig, setBoardConfig] = useState<BoardConfiguration>(initBoardConfig);
+    const [selectedLetterIds, setSelectedLetterIds] = useState<number[]>([]);
     const [isPointerDown, setIsPointerDown] = useState<boolean>(false);
     const [pointerOver, setPointerOver] = useState<number>(); // pointerover
     const [lastSubmittedLetters, setLastSubmittedLetters] = useState<number[]>();
@@ -59,7 +64,7 @@ export default function Board({boardConfig, roomCode, gameId}: BoardProps) {
 
     const submitWord = api.gameplay.submitWord.useMutation({
         onSettled: () => {
-            setSelectedLetters([]);
+            setSelectedLetterIds([]);
         }
     });
 
@@ -70,13 +75,13 @@ export default function Board({boardConfig, roomCode, gameId}: BoardProps) {
     useChannel(ablyChannelName(roomCode), AblyMessageType.WordSubmitted, (message) => {
         const msgData = message.data as WordSubmittedMessageData;
         // sent to all clients
-        setLetterBlocks(boardArrayToMap(msgData.newBoard));
+        setBoardConfig(msgData.newBoard);
     });
 
     useChannel(ablyChannelName(roomCode), AblyMessageType.DiceSwapped, (message) => {
         const msgData = message.data as DiceSwappedMessageData;
         if (msgData.userId == userId) return;
-        setLetterBlocks(boardArrayToMap(msgData.newBoard));
+        setBoardConfig(msgData.newBoard);
     });
 
     const handleLetterBlockDown = (e: PointerEvent, letterBlockId: number) => {
@@ -84,7 +89,7 @@ export default function Board({boardConfig, roomCode, gameId}: BoardProps) {
         setIsPointerDown(true);
         switch (dragMode) {
             case DragMode.DragToSelect:
-                setSelectedLetters([letterBlockId]);
+                setSelectedLetterIds([letterBlockId]);
                 break;
             case DragMode.DragNDrop:
 
@@ -100,20 +105,20 @@ export default function Board({boardConfig, roomCode, gameId}: BoardProps) {
     }, [])
 
     const handleLetterBlockEnter = (e: PointerEvent, letterBlockId: number) => {
-        if (!isPointerDown || letterBlockId == undefined || selectedLetters.includes(letterBlockId) || submitWord.isLoading) return;
+        if (!isPointerDown || letterBlockId == undefined || selectedLetterIds.includes(letterBlockId) || submitWord.isLoading) return;
 
         switch (dragMode) {
             case DragMode.DragToSelect:
-                const lastBlockSelected = selectedLetters.slice(-1)[0];
+                const lastBlockSelected = selectedLetterIds.slice(-1)[0];
                 if (lastBlockSelected == undefined) return;
-                const lastCellSelected = getCellIdFromLetterId(letterBlocks, lastBlockSelected);
-                const currCellSelected = getCellIdFromLetterId(letterBlocks, letterBlockId);
+                const lastCellSelected = getCellIdFromLetterId(boardConfig, lastBlockSelected);
+                const currCellSelected = getCellIdFromLetterId(boardConfig, letterBlockId);
                 if (lastCellSelected != undefined && currCellSelected != undefined) {
                     const isNeighbor = getNeighbors(lastCellSelected)?.includes(currCellSelected);
                     if (!isNeighbor) return;
                 }
                 setPointerOver(letterBlockId);
-                setSelectedLetters([...selectedLetters, letterBlockId]);
+                setSelectedLetterIds([...selectedLetterIds, letterBlockId]);
                 break;
             case DragMode.DragNDrop:
 
@@ -128,11 +133,11 @@ export default function Board({boardConfig, roomCode, gameId}: BoardProps) {
         setIsPointerDown(false);
         switch (dragMode) {
             case DragMode.DragToSelect:
-                if (selectedLetters.length <= 3) {
-                    setSelectedLetters([]);
+                if (selectedLetterIds.length <= 3) {
+                    setSelectedLetterIds([]);
                     return;
                 }
-                handleSubmitLetters(selectedLetters);
+                handleSubmitLetters(selectedLetterIds);
                 break;
             case DragMode.DragNDrop:
                 break;
@@ -154,7 +159,7 @@ export default function Board({boardConfig, roomCode, gameId}: BoardProps) {
 
     const handleHoverSwapLetter = (dropTargetCell: number, dragSourceCell: number) => {
         const newSwappedLetterState: SwappedLetterState = {
-            swappedLetter: letterBlocks.get(dropTargetCell),
+            swappedLetter: getLetterAtCell(dropTargetCell, boardConfig),
             dragSourceCell: dragSourceCell,
             dropTargetCell: dropTargetCell,
         }
@@ -165,14 +170,12 @@ export default function Board({boardConfig, roomCode, gameId}: BoardProps) {
     };
 
     const handleDropLetter = (dropTargetCell: number, letterBlock: LetterDieSchema) => {
-        if (letterBlocks.get(dropTargetCell) == undefined)
-            throw new Error('Cannot drop letter in an occupied cell.');
         if (swappedLetterState == undefined)
             throw new Error('Cannot drop letter when SwappedLetterState is undefined');
-        const updated = swapCells(letterBlocks, dropTargetCell, swappedLetterState?.dragSourceCell);
+        const updated = swapCells(boardConfig, dropTargetCell, swappedLetterState?.dragSourceCell);
 
-        const letterBlockIdA = letterBlocks.get(dropTargetCell)?.id;
-        const letterBlockIdB = letterBlocks.get(swappedLetterState.dragSourceCell)?.id;
+        const letterBlockIdA = getLetterAtCell(dropTargetCell, boardConfig).id;
+        const letterBlockIdB = getLetterAtCell(swappedLetterState.dragSourceCell, boardConfig).id;
         if (letterBlockIdA == undefined || letterBlockIdB == undefined) throw new Error('Missing LetterBlock ID(s)');
 
         swapDice.mutate({
@@ -182,7 +185,7 @@ export default function Board({boardConfig, roomCode, gameId}: BoardProps) {
             gameId: gameId,
             roomCode: roomCode,
         })
-        setLetterBlocks(updated);
+        setBoardConfig(updated);
     };
 
     const handleContextMenu = (e: MouseEvent) => {
@@ -191,13 +194,14 @@ export default function Board({boardConfig, roomCode, gameId}: BoardProps) {
 
     function handleSubmitLetters(letterIds: number[]) {
         if (letterIds.length < 4) {
-            setSelectedLetters([]);
+            setSelectedLetterIds([]);
             return;
         }
         submitWord.mutate({
             userId: userId,
             gameId: gameId,
-            cellIds: getCellIdsFromLetterIds(letterBlocks, letterIds),
+            // cellIds: getCellIdsFromLetterIds(boardConfig, letterIds),
+            cellIds: letterIds.map(lid => getCellIdFromLetterId(boardConfig, lid)),
             roomCode: roomCode,
         })
     }
@@ -210,7 +214,7 @@ export default function Board({boardConfig, roomCode, gameId}: BoardProps) {
 
     // when pointerup happens outside a letter
     const windowRef = useRef<EventTarget>(window);
-    useCustomDrag(windowRef, [isPointerDown, selectedLetters], {
+    useCustomDrag(windowRef, [isPointerDown, selectedLetterIds], {
         onPointerUp: handlePointerUp,
         dragMode: dragMode
     }, 'window');
@@ -250,18 +254,19 @@ export default function Board({boardConfig, roomCode, gameId}: BoardProps) {
                         })}
                     </div>
                     )}
-                    {/* should be rendered in order of letterBlockId -- divs should be static */}
-                    {[...letterBlocks].sort((a,b)=> a[1].id - b[1].id).map((mapEntry) => {
-
-                        const [cellId, letterBlock] = mapEntry;
+                    {/* must be rendered in order of letterBlockId -- divs should be static */}
+                    {boardConfig.sort((a,b) => a.letterBlock.id - b.letterBlock.id).map(boardLetter => {
+                    {/* {[...boardConfig].sort((a, b) => a[1].id - b[1].id).map((mapEntry) => { */}
+                        const cellId = boardLetter.cellId;
+                        const letterBlock = boardLetter.letterBlock;
                         return (
                             <LetterBlock key={letterBlock.id} id={letterBlock.id} letters={letterBlock.letters}
                                 onPointerDown={handleLetterBlockDown} onPointerUp={handlePointerUp}
                                 onPointerEnter={handleLetterBlockEnter}
 
-                                isSelected={selectedLetters.includes(letterBlock.id)}
+                                isSelected={selectedLetterIds.includes(letterBlock.id)}
                                 isPointerOver={pointerOver === cellId}
-                                blocksSelected={selectedLetters}
+                                blocksSelected={selectedLetterIds}
 
                                 currCell={cellId}
                                 dragMode={dragMode}

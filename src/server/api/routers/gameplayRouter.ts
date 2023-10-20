@@ -1,9 +1,10 @@
 import { createTRPCRouter, publicProcedure } from "../trpc";
 import { z } from "zod";
 import { getWordFromBoard } from "~/server/wordListManager";
-import { LetterDieSchema, rollDice } from "~/server/diceManager";
+import { rollDice } from "~/server/diceManager";
 import { ablyChannelName } from "~/server/ably/ablyHelpers";
 import { swap } from "~/utils/helpers";
+import { BoardConfiguration } from "~/components/Board";
 
 interface DefaultAblyMessageData {
     userId: string,
@@ -11,12 +12,12 @@ interface DefaultAblyMessageData {
 
 // NOTE: Ably only allows serialized data in messages
 export type WordSubmittedMessageData = {
-    newBoard: LetterDieSchema[],
+    newBoard: BoardConfiguration,
     wordSubmitted: string,
 } & DefaultAblyMessageData;
 
 export type DiceSwappedMessageData = {
-    newBoard: LetterDieSchema[],
+    newBoard: BoardConfiguration,
 } & DefaultAblyMessageData;
 
 export const gameplayRouter = createTRPCRouter({
@@ -41,7 +42,10 @@ export const gameplayRouter = createTRPCRouter({
                 const channel = ably.channels.get(ablyChannelName(opts.input.roomCode));
                 const wordSubmittedMsg : WordSubmittedMessageData = {
                     userId: userId,
-                    newBoard: reroll,
+                    newBoard: reroll.map((lb, i) => ({
+                        cellId: i,
+                        letterBlock: lb
+                    })),
                     wordSubmitted: word
                 }
                 const publish = await channel.publish('wordSubmitted', wordSubmittedMsg);
@@ -71,7 +75,10 @@ export const gameplayRouter = createTRPCRouter({
             const channel = ably.channels.get(ablyChannelName(opts.input.roomCode));
             const diceSwappedMsg : DiceSwappedMessageData = {
                 userId: userId,
-                newBoard: swappedDice
+                newBoard: swappedDice.map((lb, i) => ({
+                        cellId: i,
+                        letterBlock: lb
+                    })),
             }
             const publish = await channel.publish('diceSwapped', diceSwappedMsg);
             return diceSwappedMsg;
