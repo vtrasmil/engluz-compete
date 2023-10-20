@@ -3,11 +3,10 @@ import { api } from "~/utils/api";
 
 import { useEffect, useState, FormEvent, ChangeEvent } from "react";
 
-import { Input, Button } from "@mui/material";
+import { Button, TextField } from "@mui/material";
 import { useSessionStorage } from '@react-hooks-library/core';
 import GameManager from "~/components/GameManager";
 import { HostGameButton, JoinGameButton } from "~/components/LobbyButtons";
-import { LetterDieSchema } from "~/server/diceManager";
 import { BoardConfiguration } from "./Board";
 
 interface LobbyProps {
@@ -65,10 +64,13 @@ export default function Lobby({userId}: LobbyProps) {
         return roomCode.length !== 4;
     };
 
+    function handleRoomCodeInputChange(e: ChangeEvent<HTMLInputElement>) {
+        setRoomCode(e.target.value.toUpperCase());
+    }
 
-
-    function handleChange(e: ChangeEvent<HTMLInputElement>) {
-        setRoomCode(e.target.value);
+    const roomCodeInputProps = {
+        maxLength: 4,
+        // onchange: handleRoomCodeInputChange,
     }
 
     return (
@@ -84,10 +86,11 @@ export default function Lobby({userId}: LobbyProps) {
                         <HostGameButton/>
                     </form>
                     <form className="flex flex-row" onSubmit={handleJoinGame}>
-                        <Input className="flex-1" onChange={handleChange} placeholder="enter room code" autoFocus={true} />
+                        <TextField className="flex-1" onChange={handleRoomCodeInputChange} placeholder="enter room code"
+                            autoFocus={true} inputProps={roomCodeInputProps} value={roomCode} />
                         <JoinGameButton disabled={isJoinGameDisabled()} />
                     </form>
-                    {joinGame.error && <div>Something went wrong! {joinGame.error.message}</div>}
+                    {joinGame.error && <div>{joinGame.error.message}</div>}
                 </>
             }
         </>
