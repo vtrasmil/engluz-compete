@@ -15,7 +15,7 @@ interface LetterDropTargetType {
 }
 
 const LetterDropTarget = forwardRef<HTMLDivElement, LetterDropTargetType>(
-    ({cellId, onHover, onDrop, swappedLetterState, isDragging}, ref) =>
+    ({ cellId, onHover, onDrop, swappedLetterState, isDragging }, ref) =>
     {
         // const outerRef = useForwardedRef(ref);
         const divRef = useRef(null);
@@ -39,7 +39,7 @@ const LetterDropTarget = forwardRef<HTMLDivElement, LetterDropTargetType>(
                     isOver: !!monitor.isOver(),
                 })
             }
-        }, [swappedLetterState]);
+        }, [swappedLetterState, isDragging]);
 
 
 

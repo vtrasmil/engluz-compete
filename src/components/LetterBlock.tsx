@@ -40,12 +40,12 @@ export function LetterBlock({
         return {
             type: 'letter',
             item: draggedLetter,
-            canDrag: (monitor) => dragMode === DragMode.DragNDrop,
-                collect: (monitor) => ({
-                    isDragging: !!monitor.isDragging(),
-                }),
+            canDrag: () => dragMode === DragMode.DragNDrop,
+            collect: (monitor) => ({
+                isDragging: !!monitor.isDragging(),
+            }),
         }
-    }, [currCell]);
+    }, [currCell, dragMode]);
 
     useEffect(() => {
         isDragging ? onDragStart() : onDragEnd();

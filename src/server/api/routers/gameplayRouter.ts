@@ -25,17 +25,17 @@ export const gameplayRouter = createTRPCRouter({
         .input(z.object({
             userId: z.string().min(1),
             gameId: z.string().min(1),
-            letterBlocks: z.number().array(),
+            cellIds: z.number().array(),
             roomCode: z.string().min(1),
         }))
         .mutation(async (opts) => {
             const { userId, gameId } = opts.input;
             const dice = await opts.ctx.redis.getDice(gameId);
-            const word = getWordFromBoard(opts.input.letterBlocks, dice)
+            const word = getWordFromBoard(opts.input.cellIds, dice)
             // const isValid = await isWordValid(word, opts.ctx.redis);
             const isValid = true;
             if (isValid) {
-                const reroll = rollDice(dice, opts.input.letterBlocks);
+                const reroll = rollDice(dice, opts.input.cellIds);
                 await opts.ctx.redis.setDice(opts.input.gameId, reroll);
                 const ably = opts.ctx.ably;
                 const channel = ably.channels.get(ablyChannelName(opts.input.roomCode));

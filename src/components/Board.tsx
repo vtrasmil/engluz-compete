@@ -8,7 +8,7 @@ import { DiceSwappedMessageData, WordSubmittedMessageData } from "~/server/api/r
 import { ablyChannelName } from "~/server/ably/ablyHelpers";
 import { api } from "~/utils/api";
 import LetterDropTarget from "./LetterDropTarget";
-import { boardArrayToMap, swapCells } from "~/utils/helpers";
+import { boardArrayToMap, getCellIdFromLetterId, getCellIdsFromLetterIds, swapCells } from "~/utils/helpers";
 import { FormGroup, Stack, Typography } from "@mui/material";
 import { AntSwitch } from "./AntSwitch";
 
@@ -79,12 +79,12 @@ export default function Board({boardConfig, roomCode, gameId}: BoardProps) {
         setLetterBlocks(boardArrayToMap(msgData.newBoard));
     });
 
-    const handleLetterBlockDown = (e: PointerEvent, i: number) => {
+    const handleLetterBlockDown = (e: PointerEvent, letterBlockId: number) => {
         if (submitWord.isLoading) return;
         setIsPointerDown(true);
         switch (dragMode) {
             case DragMode.DragToSelect:
-                setSelectedLetters([i]);
+                setSelectedLetters([letterBlockId]);
                 break;
             case DragMode.DragNDrop:
 
@@ -99,18 +99,21 @@ export default function Board({boardConfig, roomCode, gameId}: BoardProps) {
         setHasFirstRenderHappened(true);
     }, [])
 
-    const handleLetterBlockEnter = (e: PointerEvent, i: number) => {
-        if (!isPointerDown || i == undefined || selectedLetters.includes(i) || submitWord.isLoading) return;
+    const handleLetterBlockEnter = (e: PointerEvent, letterBlockId: number) => {
+        if (!isPointerDown || letterBlockId == undefined || selectedLetters.includes(letterBlockId) || submitWord.isLoading) return;
 
         switch (dragMode) {
             case DragMode.DragToSelect:
                 const lastBlockSelected = selectedLetters.slice(-1)[0];
-                if (lastBlockSelected != undefined) {
-                    const isNeighbor = getNeighbors(lastBlockSelected)?.includes(i);
+                if (lastBlockSelected == undefined) return;
+                const lastCellSelected = getCellIdFromLetterId(letterBlocks, lastBlockSelected);
+                const currCellSelected = getCellIdFromLetterId(letterBlocks, letterBlockId);
+                if (lastCellSelected != undefined && currCellSelected != undefined) {
+                    const isNeighbor = getNeighbors(lastCellSelected)?.includes(currCellSelected);
                     if (!isNeighbor) return;
                 }
-                setPointerOver(i);
-                setSelectedLetters([...selectedLetters, i]);
+                setPointerOver(letterBlockId);
+                setSelectedLetters([...selectedLetters, letterBlockId]);
                 break;
             case DragMode.DragNDrop:
 
@@ -186,15 +189,15 @@ export default function Board({boardConfig, roomCode, gameId}: BoardProps) {
         e.preventDefault();
     }
 
-    function handleSubmitLetters(letters: number[]) {
-        if (letters.length < 4) {
+    function handleSubmitLetters(letterIds: number[]) {
+        if (letterIds.length < 4) {
             setSelectedLetters([]);
             return;
         }
         submitWord.mutate({
             userId: userId,
             gameId: gameId,
-            letterBlocks: letters,
+            cellIds: getCellIdsFromLetterIds(letterBlocks, letterIds),
             roomCode: roomCode,
         })
     }
@@ -256,7 +259,7 @@ export default function Board({boardConfig, roomCode, gameId}: BoardProps) {
                                 onPointerDown={handleLetterBlockDown} onPointerUp={handlePointerUp}
                                 onPointerEnter={handleLetterBlockEnter}
 
-                                isSelected={selectedLetters.includes(cellId)}
+                                isSelected={selectedLetters.includes(letterBlock.id)}
                                 isPointerOver={pointerOver === cellId}
                                 blocksSelected={selectedLetters}
 
@@ -308,7 +311,7 @@ const neighborMap = [
     [14, 10, 11]
 ];
 
-function getNeighbors(i: number) {
-    if (i < 0 || i >= neighborMap.length) throw new Error('Letter block index out of bounds');
-    return neighborMap[i];
+function getNeighbors(cellId: number) {
+    if (cellId < 0 || cellId >= neighborMap.length) throw new Error('Letter block index out of bounds');
+    return neighborMap[cellId];
 }

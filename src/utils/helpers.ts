@@ -131,3 +131,14 @@ export function boardMapToArray(map: Map<number, LetterDieSchema>) {
     });
     return map;
 }
+
+export function getCellIdFromLetterId(board: BoardConfiguration, letterBlockId: number) {
+    const cell = [...board].filter(x => x[1].id === letterBlockId)[0];
+    if (cell == undefined) throw new Error('Cell is undefined');
+    return cell[0];
+}
+
+export function getCellIdsFromLetterIds(board: BoardConfiguration, letterBlockIds: number[]) {
+    return letterBlockIds.map(x => getCellIdFromLetterId(board, x));
+}
+
