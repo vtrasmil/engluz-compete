@@ -1,7 +1,7 @@
 import { LetterBlock } from "./LetterBlock";
 import { BoggleDice, LetterDieSchema } from "~/server/diceManager";
 import { useEffect, useRef, useState } from "react";
-import useCustomDrag from "./useDrag";
+import useSelectionDrag from "./useSelectionDrag.tsx";
 import { useUserIdContext } from "./hooks/useUserIdContext";
 import { useChannel } from "@ably-labs/react-hooks";
 import { DiceSwappedMessageData, WordSubmittedMessageData } from "~/server/api/routers/gameplayRouter";
@@ -214,7 +214,7 @@ export default function Board({initBoardConfig, roomCode, gameId}: BoardProps) {
 
     // when pointerup happens outside a letter
     const windowRef = useRef<EventTarget>(window);
-    useCustomDrag(windowRef, [isPointerDown, selectedLetterIds], {
+    useSelectionDrag(windowRef, [isPointerDown, selectedLetterIds], {
         onPointerUp: handlePointerUp,
         dragMode: dragMode
     }, 'window');

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import useCustomDrag from "./useDrag.tsx";
+import useSelectionDrag from "./useSelectionDrag.tsx";
 import { useDrag } from "react-dnd";
 import { LetterDieSchema } from "~/server/diceManager.tsx";
 import useTransformAnimation from "./hooks/useTransformAnimation.tsx";
@@ -70,7 +70,7 @@ export function LetterBlock({
         eventTargetRef.current?.setPointerCapture(e.pointerId);
     };
 
-    const customDrag = useCustomDrag(eventTargetRef, [isPointerDown && isPointerOver], {
+    const customDrag = useSelectionDrag(eventTargetRef, [isPointerDown && isPointerOver], {
         onPointerDown: handlePointerDown,
         onPointerUp: handlePointerUp,
         onPointerEnter: handlePointerEnter,
