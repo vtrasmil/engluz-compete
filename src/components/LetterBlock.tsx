@@ -81,20 +81,25 @@ export function LetterBlock({
     const style = {
         width: `50px`, height: `50px`,
         transform: position ? `translateX(${position.x}px) translateY(${position.y}px)` : undefined,
+        transition: `background-color 0.3s, transform 0.5s`,
+        fontFamily: `Poppins, sans-serif`,
+        fontWeight: 400,
+        fontSize: `x-large`,
     }
 
     return (
         <div id={`letter-block-${id}`} data-current-cell={currCell}
             ref={drag}
             className={
-                `transition-transform absolute border ${isDragging ? 'z-10' : ''}
+                `absolute border ${isDragging ? 'z-10' : ''}
                 border-gray-400 letter-block select-none
-                ${isDragging ? 'hidden' : ''} ${isSelected ? 'isSelected' : ''}`
+                ${isDragging ? 'hidden' : ''}
+                ${isSelected ? `bg-blue-200` : ''}`
             }
             style={style}
         >
             <div ref={eventTargetRef} className={`w-full h-full flex justify-center items-center `}>
-                {letters?.[0]?.toUpperCase()}
+                {letters.at(0)?.toUpperCase().replace('Q', 'Qu')}
             </div>
         </div>
     );

@@ -17,16 +17,12 @@ export async function isWordValid(str: string, redis: RedisBoggleCommands) {
         exists = await redis.redis.exists(dictionaryKey);
         if (!exists) throw new Error(`Key ${dictionaryKey} not found in redis`);
         valid = await redis.redis.sIsMember(dictionaryKey, str.toUpperCase());
-
     } else {
         exists = await redis.redis.exists(dictionaryKey);
         if (!exists) throw new Error(`Key ${dictionaryKey} not found in redis`);
         valid = await redis.redis.sismember(dictionaryKey, str.toUpperCase());
     }
-
     return valid;
-
-
 }
 
 async function isDictionaryInRedis(redis: BoggleRedisType) {
@@ -40,7 +36,6 @@ async function loadDictIntoRedis(redis: BoggleRedisType) {
         array = data.split('\r\n')
         if (redis instanceof RedisClient) {
             await redis.sAdd(dictionaryKey, array);
-
         } else {
             await redis.sadd(dictionaryKey, array);
         }
@@ -51,5 +46,4 @@ async function loadDictIntoRedis(redis: BoggleRedisType) {
 
 export function getWordFromBoard(blocks: number[], board: LetterDieSchema[]) {
     return blocks.map((n) => board[n]?.letters.substring(0,1)).join('');
-
 }
