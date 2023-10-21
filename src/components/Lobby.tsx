@@ -87,10 +87,9 @@ export default function Lobby({userId}: LobbyProps) {
                     </form>
                     <form className="flex flex-row" onSubmit={handleJoinGame}>
                         <TextField className="flex-1" onChange={handleRoomCodeInputChange} placeholder="enter room code"
-                            autoFocus={true} inputProps={roomCodeInputProps} value={roomCode} />
+                            autoFocus={true} inputProps={roomCodeInputProps} value={roomCode} helperText={joinGame.error?.message} />
                         <JoinGameButton disabled={isJoinGameDisabled()} />
                     </form>
-                    {joinGame.error && <div>{joinGame.error.message}</div>}
                 </>
             }
         </>
