@@ -28,9 +28,13 @@ export const useSelectionDrag = (ref: RefObject<HTMLDivElement | EventTarget>, d
     const [isDragging, setIsDragging] = useState(false);
 
     const handlePointerDown = (e: Event) => {
+        console.log(`pointerdown: ${blockId}`);
         e.stopPropagation();
         if (!isPointerEvent(e)) throw new Error('Event is not a PointerEvent');
         onPointerDown(e);
+        if (ref.current instanceof HTMLDivElement) {
+            ref.current.releasePointerCapture(e.pointerId);
+        }
     };
 
     const handlePointerUp = (e: Event) => {
@@ -40,16 +44,13 @@ export const useSelectionDrag = (ref: RefObject<HTMLDivElement | EventTarget>, d
     };
 
     const handlePointerEnter = (e: Event) => {
-        // console.log(`pointerenter: ${blockId}`);
-
-        // e.stopPropagation();
         if (!isPointerEvent(e)) throw new Error('Event is not a PointerEvent');
-
         onPointerEnter(e);
 
     }
 
     const handlePointerMove = (e: Event) => {
+        console.log(`pointermove: ${blockId}`);
         if (options.dragMode !== DragMode.DragNDrop) return;
         if (!isPointerEvent(e)) throw new Error('Event is not a PointerEvent');
         if (isDragging) {
@@ -59,10 +60,8 @@ export const useSelectionDrag = (ref: RefObject<HTMLDivElement | EventTarget>, d
 
     const handleGotPointerCapture = (e: Event) => {
         if (!isPointerEvent(e)) throw new Error('Event is not a PointerEvent');
-
         console.log(`gotPointerCapture pointerId: ${e.pointerId}`)
         console.log(`got pointer capture: ${blockId}`)
-
         // e.target?.addEventListener('pointermove', handlePointerMove);
         // e.target?.addEventListener('pointerenter', handlePointerEnter);
     }
@@ -83,7 +82,7 @@ export const useSelectionDrag = (ref: RefObject<HTMLDivElement | EventTarget>, d
             element.addEventListener('pointerup', handlePointerUp);
             element.addEventListener('pointerenter', handlePointerEnter);
             element.addEventListener('pointermove', handlePointerMove);
-            /*  if (isHTMLDivElement(element)) {
+            /* if (isHTMLDivElement(element)) {
                 element.addEventListener('gotpointercapture', handleGotPointerCapture);
                 element.addEventListener('lostpointercapture', handleLostPointerCapture);
             } */
