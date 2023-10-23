@@ -50,8 +50,7 @@ export function LetterBlock({
     }, [currCell, dragMode]);
 
     useEffect(() => {
-        console.log(`isDragging: ${isDragging}`);
-        isDragging && onDragStart();
+        if(isDragging) onDragStart();
     }, [isDragging, onDragStart])
 
     const positionVector = useTransformAnimation(isDragging, currCell, eventTargetRef.current,
