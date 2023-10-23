@@ -32,10 +32,10 @@ export class RedisBoggleCommands {
         const key = `game:${gameId}:board`;
         let boardAdded: "OK" | null;
         if (this.redis instanceof RedisClient) {
-            boardAdded = await this.redis.json.set(key, '.', newRoll);
+            boardAdded = await this.redis.json.set(key, '$', newRoll);
         }
         else {
-            boardAdded = await this.redis.json.set(key, '.', newRoll);
+            boardAdded = await this.redis.json.set(key, '$', newRoll);
         }
         if (!boardAdded) throw new Error(`Board not added in game ${gameId}`);
 
@@ -70,10 +70,10 @@ export class RedisBoggleCommands {
         const key = `game:${gameId}:board`;
         let set: "OK" | null;
         if (this.redis instanceof RedisClient) {
-            set = await this.redis.json.set(key, '.', dice);
+            set = await this.redis.json.set(key, '$', dice);
 
         } else {
-            set = await this.redis.json.set(key, '.', dice);
+            set = await this.redis.json.set(key, '$', dice);
         }
         if (set !== "OK") throw new Error(`Board not set for gameId: ${gameId}`);
         return true;
