@@ -54,7 +54,7 @@ export const lobbyRouter = createTRPCRouter({
       newGame: z.boolean(),
     }))
     .mutation(async (opts) => {
-      let gameId, roomCode, boardArray, boardConfig, isRoomCodeActive;
+      let gameId, roomCode, boardArray, isRoomCodeActive;
       if (opts.input.newGame) {
         // hosting
         gameId = await opts.ctx.redis.createGameId();
@@ -69,7 +69,7 @@ export const lobbyRouter = createTRPCRouter({
         gameId = await opts.ctx.redis.getGameId(roomCode);
         boardArray = await opts.ctx.redis.getDice(gameId);
       }
-      boardConfig = boardArray.map((lb, i) => (
+      const boardConfig = boardArray.map((lb, i) => (
         {
           cellId: i,
           letterBlock: lb
