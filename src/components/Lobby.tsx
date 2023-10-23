@@ -26,7 +26,7 @@ export default function Lobby({userId}: LobbyProps) {
             setInitBoard(data.board);
         }
     });
-    const hostGame = api.lobby.hostGame.useMutation({
+    const hostGame = api.lobby.joinGame.useMutation({
         onSuccess: (data) => {
             setStoredRoomCode(data.roomCode);
             setInitBoard(data.board);
@@ -37,7 +37,7 @@ export default function Lobby({userId}: LobbyProps) {
         if (storedRoomCode === '') return;
         joinGame.mutate({
             roomCode: storedRoomCode.toUpperCase(),
-            userId: userId
+            newGame: false
         });
     }, [storedRoomCode, userId, joinGame]) */
 
@@ -46,14 +46,16 @@ export default function Lobby({userId}: LobbyProps) {
         // TODO: joinGame mutation gets called twice this way
         joinGame.mutate({
             roomCode: roomCode.toUpperCase(),
-            userId: userId
+            newGame: false
         });
 
     }
 
     function handleHostGame(e: FormEvent) {
         e.preventDefault();
-        hostGame.mutate();
+        joinGame.mutate({
+            newGame: true
+        });
     }
 
     function handleLeaveRoom() {

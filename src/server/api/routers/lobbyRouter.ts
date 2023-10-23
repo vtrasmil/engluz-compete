@@ -49,44 +49,35 @@ export const lobbyRouter = createTRPCRouter({
   joinGame: publicProcedure
     // TODO: map room codes to gameIds in redis hash
     .input(z.object({
-      roomCode: z.string(),
-      userId: z.string(),
+      roomCode: z.string().optional(),
+      // userId: z.string(),
+      newGame: z.boolean(),
     }))
     .mutation(async (opts) => {
-
-
-      const roomCode = opts.input.roomCode;
-      const isRoomCodeActive = await opts.ctx.redis.isRoomCodeActive(opts.input.roomCode);
-      if (!isRoomCodeActive) throw new Error(`Room code ${roomCode} is not currently active`);
-      const gameId = await opts.ctx.redis.getGameId(roomCode);
-      const boardArray = await opts.ctx.redis.getDice(gameId);
-      const boardConfig = boardArray.map((lb, i) => (
+      let gameId, roomCode, boardArray, boardConfig, isRoomCodeActive;
+      if (opts.input.newGame) {
+        // hosting
+        gameId = await opts.ctx.redis.createGameId();
+        roomCode = await opts.ctx.redis.createRoomCode(gameId);
+        boardArray = await opts.ctx.redis.createDice(gameId);
+      } else {
+        // joining
+        roomCode = opts.input.roomCode;
+        if (roomCode == undefined) throw new Error(`Please enter a room code`);
+        isRoomCodeActive = await opts.ctx.redis.isRoomCodeActive(roomCode);
+        if (!isRoomCodeActive) throw new Error(`Room code ${roomCode} is not currently active`);
+        gameId = await opts.ctx.redis.getGameId(roomCode);
+        boardArray = await opts.ctx.redis.getDice(gameId);
+      }
+      boardConfig = boardArray.map((lb, i) => (
         {
           cellId: i,
           letterBlock: lb
         }));
       return {
         board: boardConfig,
-        roomCode: opts.input.roomCode,
+        roomCode: roomCode,
         gameId: gameId,
-      }
-    }),
-
-  hostGame: publicProcedure
-    .mutation(async (opts) => {
-      const gameId = await opts.ctx.redis.createGameId();
-      const roomCode = await opts.ctx.redis.createRoomCode(gameId);
-      const boardArray = await opts.ctx.redis.createDice(gameId);
-      const boardConfig = boardArray.map((lb, i) => (
-        {
-          cellId: i,
-          letterBlock: lb
-        }));
-
-      return {
-        'board': boardConfig,
-        'roomCode': roomCode,
-        'gameId': gameId
       }
     }),
 
