@@ -3,8 +3,7 @@ import { isOverlapping } from "~/utils/helpers";
 
 export const useOverlapDetector =
     (target: HTMLDivElement | null,
-        objects: Map<number, HTMLDivElement> | null,
-        deps: any[]
+        objects: Map<number, HTMLDivElement> | null
     ) => {
         // const [overlappedObjects, setOverlappedObjects] = useState<RefObject<HTMLElement>[]>();
         const [overlap, setOverlap] = useState<number[]>([]);
@@ -20,7 +19,7 @@ export const useOverlapDetector =
             });
             console.log(overlap);
             return () => setOverlap([]);
-        }, [deps])
+        }, [objects, overlap, target])
 
         return overlap;
     };

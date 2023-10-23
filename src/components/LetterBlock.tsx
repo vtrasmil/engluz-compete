@@ -45,12 +45,14 @@ export function LetterBlock({
             collect: (monitor) => ({
                 isDragging: !!monitor.isDragging(),
             }),
+            end: () => onDragEnd()
         }
     }, [currCell, dragMode]);
 
     useEffect(() => {
-        isDragging ? onDragStart() : onDragEnd();
-    }, [isDragging])
+        console.log(`isDragging: ${isDragging}`);
+        isDragging && onDragStart();
+    }, [isDragging, onDragStart])
 
     const positionVector = useTransformAnimation(isDragging, currCell, eventTargetRef.current,
         dropTargetRefs, swappedLetterState, boardDiv);

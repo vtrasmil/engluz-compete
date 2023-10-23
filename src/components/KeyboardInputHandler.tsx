@@ -31,17 +31,17 @@ export default function KeyboardInputHandler({
                 case 'Escape':
                     onClearLetter();
                     break;
-                default: 
-                    
+                default:
+
             }
             setLastEvent(e);
         };
-            
+
         document.addEventListener('keydown', handleKeyDown);
         return () => {
             document.removeEventListener('keydown', handleKeyDown);
         };
-    }, [guess, puzzleLetters]);
+    }, [guess, puzzleLetters, onClearLetter, onDeleteLetter, onTypeLetter]);
     return <></>;
 }
 

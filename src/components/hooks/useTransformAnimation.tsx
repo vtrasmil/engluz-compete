@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { SwappedLetterState } from "../Board";
 import { useWindowSize } from "@react-hooks-library/core";
 
@@ -38,6 +38,20 @@ export default function useTransformAnimation(
 )
 
 {
+
+    const getTransformVector = useCallback(
+        () => {
+            if (!dropTargetDivMap || !boardDiv) return;
+            const cellId = (swappedLetterState && sourceCell === swappedLetterState.dropTargetCell) ?
+                swappedLetterState.dragSourceCell : sourceCell;
+            const dropTargetDiv = dropTargetDivMap.get(cellId);
+            const boardAbsPos = boardDiv && getXYPosition(boardDiv);
+            const dropTargetAbsPos = dropTargetDiv && getXYPosition(dropTargetDiv);
+            const deltaPos = boardAbsPos && dropTargetAbsPos && getPoint2DDelta(boardAbsPos, dropTargetAbsPos);
+            return deltaPos;
+        }
+        , [dropTargetDivMap, boardDiv, swappedLetterState, sourceCell]);
+
     // 1st render: letterBlockDiv and boardDiv are null, 2nd render: sets
     const [vector, setVector] = useState<Point2D | undefined>(getTransformVector());
     const windowSize = useWindowSize({initialWidth: window.innerWidth, initialHeight: window.innerHeight});
@@ -45,23 +59,15 @@ export default function useTransformAnimation(
     useEffect(() => {
         const newVec = getTransformVector();
         setVector(newVec);
-    }, [dropTargetDivMap, swappedLetterState, letterBlockDiv, sourceCell, windowSize.width, windowSize.height])
+    }, [dropTargetDivMap, swappedLetterState, letterBlockDiv, sourceCell,
+        windowSize.width, windowSize.height, getTransformVector])
 
 
     /**
      *  Since blocks are rendered initially at top-left of board, we use board div
      * as our anchor point.
      */
-    function getTransformVector() {
-        if (!dropTargetDivMap || !boardDiv) return;
-        const cellId = (swappedLetterState && sourceCell === swappedLetterState.dropTargetCell) ?
-            swappedLetterState.dragSourceCell : sourceCell;
-        const dropTargetDiv = dropTargetDivMap.get(cellId);
-        const boardAbsPos = boardDiv && getXYPosition(boardDiv);
-        const dropTargetAbsPos = dropTargetDiv && getXYPosition(dropTargetDiv);
-        const deltaPos = boardAbsPos && dropTargetAbsPos && getPoint2DDelta(boardAbsPos, dropTargetAbsPos);
-        return deltaPos;
-    }
+
 
     return vector;
 

@@ -17,8 +17,8 @@ export function CountDownTimer({ round, totalRounds, duration, onTimeUp }: Count
     const timer = useTimer({ delay: timerCallbackEvery * 1000 }, updateTimerVisual);
     const [timeLeft, setTimeLeft] = useState(duration);
 
-    
-    
+
+
     function updateTimerVisual() {
         const newTimeLeft = timeLeft - timerCallbackEvery;
         setTimeLeft(newTimeLeft);
@@ -35,31 +35,31 @@ export function CountDownTimer({ round, totalRounds, duration, onTimeUp }: Count
             timer.start();
             setTimeLeft(duration);
         }
-    }, [round]);
-    
+    }, [round, duration, timer, totalRounds]);
+
 
     return (
-        
+
         <div>
             Time left: {timeLeft}
         </div >
     )
 }
-        
+
 
 
 function HintButton() {
-    
+
     const [hintsRemaining, setHintsRemaining] = useState(2);
 
     function useHint() {
         if (hintsRemaining < 1) return;
-        
+
         setHintsRemaining(hintsRemaining - 1);
     }
 
 
-    
+
     return <>
         <button disabled={hintsRemaining < 1} onClick={useHint}>Use Hint</button>
     </>;

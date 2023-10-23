@@ -116,28 +116,12 @@ export function swapCells(board: BoardConfiguration, cell1: number, cell2: numbe
     const boardCopy = board.slice();
     boardCopy.map(x => {
         if (x.cellId === cell1) { x.cellId = cell2 }
-        else if (x.cellId === cell2) { x.cellId = cell1 };
+        else if (x.cellId === cell2) { x.cellId = cell1 }
         return x;
     })
     return boardCopy;
 
 }
-
-/* export function boardArrayToMap(array: LetterDieSchema[]) {
-    const map = new Map<number, LetterDieSchema>();
-    array.forEach((element, i) => {
-        map.set(i, element);
-    });
-    return map;
-}
-
-export function boardMapToArray(map: Map<number, LetterDieSchema>) {
-    const array = new Array<LetterDieSchema>();
-    map.forEach((v, k) => {
-        array[k] = v;
-    });
-    return map;
-} */
 
 export function getCellIdFromLetterId(board: BoardConfiguration, letterBlockId: number) {
     const boardLetter = board.find(x => x.letterBlock.id === letterBlockId);

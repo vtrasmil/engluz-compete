@@ -50,7 +50,6 @@ export const useSelectionDrag = (ref: RefObject<HTMLDivElement | EventTarget>, d
     }
 
     const handlePointerMove = (e: Event) => {
-        console.log(`pointermove: ${blockId}`);
         if (options.dragMode !== DragMode.DragNDrop) return;
         if (!isPointerEvent(e)) throw new Error('Event is not a PointerEvent');
         if (isDragging) {

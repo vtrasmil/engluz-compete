@@ -28,7 +28,7 @@ const LetterDropTarget = forwardRef<HTMLDivElement, LetterDropTargetType>(
             } else {
                 ref.current = divRef.current;
             }
-        }, []); //TODO: call more often?
+        }, [ref]);
 
         const [collectedProps, dropRef] = useDrop(() => {
             return {

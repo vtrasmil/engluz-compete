@@ -1,7 +1,7 @@
 
 import { api } from "~/utils/api";
 
-import { useEffect, useState, FormEvent, ChangeEvent } from "react";
+import { useState, FormEvent, ChangeEvent } from "react";
 
 import { Button, TextField } from "@mui/material";
 import { useSessionStorage } from '@react-hooks-library/core';
@@ -32,14 +32,14 @@ export default function Lobby({userId}: LobbyProps) {
             setInitBoard(data.board);
         }
     })
-
-    useEffect(() => {
+    // auto-join a room you already joined
+    /* useEffect(() => {
         if (storedRoomCode === '') return;
         joinGame.mutate({
             roomCode: storedRoomCode.toUpperCase(),
             userId: userId
         });
-    }, [storedRoomCode])
+    }, [storedRoomCode, userId, joinGame]) */
 
     function handleJoinGame(e: FormEvent) {
         e.preventDefault();
