@@ -51,6 +51,7 @@ export default function Board({initBoardConfig, roomCode, gameId}: BoardProps) {
     const [dragMode, setDragMode] = useState<DragMode>(DragMode.DragNDrop);
     const [swappedLetterState, setSwappedLetterState] = useState<SwappedLetterState | undefined>();
     const dropTargetsRef = useRef<Map<number, HTMLDivElement> | null>(null);
+    const boardRef = useRef<HTMLDivElement | null>(null);
     const [_, setHasFirstRenderHappened] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const userId = useUserIdContext();
@@ -231,7 +232,7 @@ export default function Board({initBoardConfig, roomCode, gameId}: BoardProps) {
 
     return (
         <>
-            <div className="board flex flex-col">
+            <div className="board flex flex-col" ref={boardRef}>
                 <>
                 {rows.map((row) =>
                     <div key={row} className="board-row flex justify-center">
@@ -254,9 +255,8 @@ export default function Board({initBoardConfig, roomCode, gameId}: BoardProps) {
                         })}
                     </div>
                     )}
-                    {/* must be rendered in order of letterBlockId -- divs should be static */}
+                    {/* LetterBlocks must be rendered in order of letterBlockId -- divs should be static */}
                     {boardConfig.sort((a,b) => a.letterBlock.id - b.letterBlock.id).map(boardLetter => {
-                    {/* {[...boardConfig].sort((a, b) => a[1].id - b[1].id).map((mapEntry) => { */}
                         const cellId = boardLetter.cellId;
                         const letterBlock = boardLetter.letterBlock;
                         return (
@@ -274,6 +274,7 @@ export default function Board({initBoardConfig, roomCode, gameId}: BoardProps) {
                                 onDragEnd={handleOnDragEnd}
                                 dropTargetRefs={dropTargetsRef.current}
                                 swappedLetterState={swappedLetterState}
+                                boardDiv={boardRef.current}
                             />)
                     })
                     }

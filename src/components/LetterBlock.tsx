@@ -21,6 +21,7 @@ export interface LetterBlockProps {
     onDragEnd: () => void;
     dropTargetRefs: Map<number, HTMLDivElement> | null;
     swappedLetterState: SwappedLetterState | undefined;
+    boardDiv: HTMLDivElement | null;
 }
 
 export interface DraggedLetter extends LetterDieSchema {
@@ -31,7 +32,7 @@ export interface DraggedLetter extends LetterDieSchema {
 export function LetterBlock({
     id, currCell, letters, isSelected, onPointerDown, onPointerUp, onPointerEnter,
     isPointerOver, isPointerDown, blocksSelected, dragMode, dropTargetRefs, onDragStart, onDragEnd,
-    swappedLetterState
+    swappedLetterState, boardDiv,
 }: LetterBlockProps) {
     const eventTargetRef = useRef<HTMLDivElement>(null);
 
@@ -51,8 +52,8 @@ export function LetterBlock({
         isDragging ? onDragStart() : onDragEnd();
     }, [isDragging])
 
-    const position = useTransformAnimation(isDragging, currCell, eventTargetRef.current,
-        dropTargetRefs, swappedLetterState);
+    const positionVector = useTransformAnimation(isDragging, currCell, eventTargetRef.current,
+        dropTargetRefs, swappedLetterState, boardDiv);
 
     const handlePointerUp = (e: PointerEvent) => {
         onPointerUp(e, id);
@@ -80,7 +81,7 @@ export function LetterBlock({
 
     const style = {
         width: `50px`, height: `50px`,
-        transform: position ? `translateX(${position.x}px) translateY(${position.y}px)` : undefined,
+        transform: positionVector ? `translateX(${positionVector.x}px) translateY(${positionVector.y}px)` : undefined,
         transition: `background-color 0.3s, transform 0.5s`,
         fontFamily: `Poppins, sans-serif`,
         fontWeight: 400,
@@ -88,20 +89,22 @@ export function LetterBlock({
     }
 
     return (
-        <div id={`letter-block-${id}`} data-current-cell={currCell}
-            ref={drag}
-            className={
-                `absolute border ${isDragging ? 'z-10' : ''}
-                border-gray-400 letter-block select-none
-                ${isDragging ? 'hidden' : ''}
-                ${isSelected ? `bg-blue-200` : ''}`
-            }
-            style={style}
-        >
-            <div ref={eventTargetRef} className={`w-full h-full flex justify-center items-center `}>
-                {letters.at(0)?.toUpperCase().replace('Q', 'Qu')}
+        <>
+            <div id={`letter-block-${id}`} data-current-cell={currCell}
+                ref={drag}
+                className={
+                    `absolute border ${isDragging ? 'z-10' : ''}
+                    border-gray-400 letter-block select-none
+                    ${isDragging ? 'hidden' : ''}
+                    ${isSelected ? `bg-blue-200` : ''}`
+                }
+                style={style}
+            >
+                <div ref={eventTargetRef} className={`w-full h-full flex justify-center items-center `}>
+                    {letters.at(0)?.toUpperCase().replace('Q', 'Qu')}
+                </div>
             </div>
-        </div>
+        </>
     );
 }
 

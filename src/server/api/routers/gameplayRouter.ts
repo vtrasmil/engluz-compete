@@ -1,6 +1,6 @@
 import { createTRPCRouter, publicProcedure } from "../trpc";
 import { z } from "zod";
-import { getWordFromBoard } from "~/server/wordListManager";
+import { getWordFromBoard, isWordValid } from "~/server/wordListManager";
 import { rollDice } from "~/server/diceManager";
 import { ablyChannelName } from "~/server/ably/ablyHelpers";
 import { swap } from "~/utils/helpers";
@@ -32,9 +32,9 @@ export const gameplayRouter = createTRPCRouter({
         .mutation(async (opts) => {
             const { userId, gameId } = opts.input;
             const dice = await opts.ctx.redis.getDice(gameId);
-            const word = getWordFromBoard(opts.input.cellIds, dice)
-            // const isValid = await isWordValid(word, opts.ctx.redis);
-            const isValid = false;
+            const word = getWordFromBoard(opts.input.cellIds, dice).replace('Q', 'QU');
+            const isValid = await isWordValid(word, opts.ctx.redis);
+            // const isValid = true;
             if (isValid) {
                 const reroll = rollDice(dice, opts.input.cellIds);
                 await opts.ctx.redis.setDice(opts.input.gameId, reroll);
