@@ -39,9 +39,8 @@ const MyApp: AppType = ({ Component, pageProps }) => {
   }
   const userId = getUserIdFromSessionStorage();
 
-  const ablyAuthUrlHost = process.env.NEXT_PUBLIC_VERCEL_URL ?? `localhost:${process.env.PORT ?? 3000}`;
   configureAbly({
-        authUrl: `http${process.env.NEXT_PUBLIC_VERCEL_URL ? 's' : ''}:\/\/${ablyAuthUrlHost}/api/createTokenRequest`,
+        authUrl: `http${process.env.NEXT_PUBLIC_VERCEL_URL ? 's' : ''}:\/\/${getUrlHost()}/api/createTokenRequest`,
         useTokenAuth: true,
   });
 
@@ -60,3 +59,8 @@ const MyApp: AppType = ({ Component, pageProps }) => {
 };
 
 export default api.withTRPC(MyApp);
+
+function getUrlHost() {
+  if (process.env.NEXT_PUBLIC_VERCEL_ENV === 'development') return `${window.location.hostname}:${window.location.port}`
+  return window.location.hostname;
+}
