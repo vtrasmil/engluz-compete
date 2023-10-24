@@ -1,5 +1,5 @@
 import { type AppType } from "next/app";
-import { api, getBaseServerUrl } from "~/utils/api";
+import { api, getBaseUrl } from "~/utils/api";
 import "~/styles/globals.css";
 import { UserIdProvider } from "~/components/hooks/useUserIdContext";
 import { getUserIdFromSessionStorage } from "~/utils/helpers";
@@ -40,7 +40,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
   const userId = getUserIdFromSessionStorage();
 
   configureAbly({
-    authUrl: `${getBaseServerUrl()}/api/createTokenRequest`,
+    authUrl: `${getBaseUrl()}/api/createTokenRequest`,
         useTokenAuth: true,
   });
 
