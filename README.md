@@ -1,28 +1,23 @@
-# Create T3 App
+# Words Words Words
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+Swap letters, find words. (A work-in-progress)
 
-## What's next? How do I make an app with this?
+Try it out at https://word-scramble-react.vercel.app/
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+<a href="https://word-scramble-react.vercel.app/">![Screen Recording 2023-10-24 at 12 25 10 AM](https://github.com/mikey555/word-scramble-react/assets/983004/e8af9f14-22d9-4f65-a711-bc0ea30bdfa0)</a>
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+## Key Features
+- **Selecting words**: selected word is validated via dictionary in Redis. I implemented a custom hook `useSelectionDrag()` using PointerEvents.
+- **Swapping letters**: I used [React DnD](https://react-dnd.github.io/react-dnd/about), a popular drag-and-drop library, to implement letter swapping. I also built a custom hook `useTransformAnimation()` that manages letter position and animation. Swapping works with both touch and mouse interaction.
+- **Real-time multiplayer**: players can interact with the same board. Built using pub-sub messaging client Ably.
+- **Lobby**: players can start a game or join an existing game with a 4-letter room code.
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+## Tools I Used
+- React
+- Typescript
+- Redis DB for storing game state, rooms, and dictionary
+- Tanstack / React Query
+- T3: Next.js, tRPC, Tailwind CSS
+- Some Material UI components
 
-## Learn More
-
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
-
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
-
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
-
-## How do I deploy this?
-
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+Although I've implemented the foundations, the game is a work-in-progress. I'm now working on game design - coming up with engaging multiplayer experience.
