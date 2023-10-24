@@ -29,6 +29,7 @@ export default function Lobby({userId}: LobbyProps) {
     const hostGame = api.lobby.joinGame.useMutation({
         onSuccess: (data) => {
             setStoredRoomCode(data.roomCode);
+            setGameId(data.gameId);
             setInitBoard(data.board);
         }
     })
@@ -53,7 +54,7 @@ export default function Lobby({userId}: LobbyProps) {
 
     function handleHostGame(e: FormEvent) {
         e.preventDefault();
-        joinGame.mutate({
+        hostGame.mutate({
             newGame: true
         });
     }
@@ -86,13 +87,16 @@ export default function Lobby({userId}: LobbyProps) {
                 <div className="flex flex-col items-center m-3">
                     <h1 className="text-3xl mb-10">WORDS WORDS WORDS</h1>
                     <form className="" onSubmit={handleHostGame}>
-                        <LoadingButton loading={joinGame.isLoading} variant="contained" type="submit">Start a Game</LoadingButton>
+                        <LoadingButton loading={hostGame.isLoading} disabled={joinGame.isLoading} variant="contained" type="submit">Start a Game</LoadingButton>
                     </form>
                     <p className="my-10">－ OR －</p>
                     <form className="flex flex-col w-44" onSubmit={handleJoinGame}>
                         <TextField className="flex-1" onChange={handleRoomCodeInputChange} placeholder="enter room code"
                             autoFocus={true} inputProps={roomCodeInputProps} value={roomCode} helperText={joinGame.error?.message} />
-                        <LoadingButton loading={joinGame.isLoading} variant="contained" type="submit" className="flex-1" disabled={isJoinGameDisabled()}>Join a Game</LoadingButton>
+                        <LoadingButton loading={joinGame.isLoading} variant="contained" type="submit"
+                            className="flex-1" disabled={roomCode.length !== 4 || hostGame.isLoading}>
+                            Join a Game
+                        </LoadingButton>
                     </form>
                 </div>
 
