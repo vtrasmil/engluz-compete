@@ -1,5 +1,5 @@
 import { type AppType } from "next/app";
-import { api } from "~/utils/api";
+import { api, getBaseServerUrl } from "~/utils/api";
 import "~/styles/globals.css";
 import { UserIdProvider } from "~/components/hooks/useUserIdContext";
 import { getUserIdFromSessionStorage } from "~/utils/helpers";
@@ -40,7 +40,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
   const userId = getUserIdFromSessionStorage();
 
   configureAbly({
-        authUrl: `http${process.env.NEXT_PUBLIC_VERCEL_URL ? 's' : ''}:\/\/${getUrlHost()}/api/createTokenRequest`,
+    authUrl: `${getBaseServerUrl()}/api/createTokenRequest`,
         useTokenAuth: true,
   });
 
@@ -59,8 +59,3 @@ const MyApp: AppType = ({ Component, pageProps }) => {
 };
 
 export default api.withTRPC(MyApp);
-
-function getUrlHost() {
-  if (process.env.NEXT_PUBLIC_VERCEL_ENV === 'development') return `${window.location.hostname}:${window.location.port}`
-  return window.location.hostname;
-}
