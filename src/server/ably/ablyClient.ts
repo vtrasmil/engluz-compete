@@ -21,7 +21,6 @@ export function getAblyClient() {
         if (connectionState.reason != undefined) {
             string += `: reason: ${connectionState.reason.name}: ${connectionState.reason.message}}`
         }
-        console.log(string);
     })
 
     return realtime;

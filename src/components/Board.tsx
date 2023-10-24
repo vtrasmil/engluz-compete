@@ -150,12 +150,9 @@ export default function Board({initBoardConfig, roomCode, gameId}: BoardProps) {
 
     const handleOnDragStart = () => {
         setIsDragging(true);
-        console.log(`handleOnDragStart`);
-
     }
 
     const handleOnDragEnd = () => {
-        console.log(`handleOnDragEnd`);
         setIsDragging(false);
         setSwappedLetterState(undefined);
     };
@@ -173,7 +170,6 @@ export default function Board({initBoardConfig, roomCode, gameId}: BoardProps) {
     };
 
     const handleDropLetter = (dropTargetCell: number, letterBlock: LetterDieSchema) => {
-        console.log(`handleDropLetter`);
         if (swappedLetterState == undefined)
             throw new Error('Cannot drop letter when SwappedLetterState is undefined');
         const updated = swapCells(boardConfig, dropTargetCell, swappedLetterState?.dragSourceCell);

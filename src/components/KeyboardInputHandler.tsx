@@ -16,7 +16,6 @@ export default function KeyboardInputHandler({
     onClearLetter
 }: KeyboardInputHandlerProps) {
     const [lastEvent, setLastEvent] = useState<KeyboardEvent>();
-    // console.log('KeyboardInputHandler render: ' + lastEvent?.key);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {

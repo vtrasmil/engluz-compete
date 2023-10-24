@@ -28,7 +28,6 @@ export const useSelectionDrag = (ref: RefObject<HTMLDivElement | EventTarget>, d
     const [isDragging, setIsDragging] = useState(false);
 
     const handlePointerDown = (e: Event) => {
-        console.log(`pointerdown: ${blockId}`);
         e.stopPropagation();
         if (!isPointerEvent(e)) throw new Error('Event is not a PointerEvent');
         onPointerDown(e);
@@ -59,14 +58,11 @@ export const useSelectionDrag = (ref: RefObject<HTMLDivElement | EventTarget>, d
 
     const handleGotPointerCapture = (e: Event) => {
         if (!isPointerEvent(e)) throw new Error('Event is not a PointerEvent');
-        console.log(`gotPointerCapture pointerId: ${e.pointerId}`)
-        console.log(`got pointer capture: ${blockId}`)
         // e.target?.addEventListener('pointermove', handlePointerMove);
         // e.target?.addEventListener('pointerenter', handlePointerEnter);
     }
 
     const handleLostPointerCapture = (e: Event) => {
-        console.log(`lost pointer capture: ${blockId}`)
         if (!isPointerEvent(e)) throw new Error('Event is not a PointerEvent');
         // e.target?.removeEventListener('pointermove', handlePointerMove);
         // e.target?.removeEventListener('pointerenter', handlePointerEnter);
