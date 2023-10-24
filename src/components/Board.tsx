@@ -219,7 +219,9 @@ export default function Board({initBoardConfig, roomCode, gameId}: BoardProps) {
         dragMode: dragMode
     }, 'window');
 
-
+    const smallText = {
+        color: '#ABB'
+    }
 
     // prevent tap-and-hold browser context menu from appearing
     useEffect(() => {
@@ -281,9 +283,9 @@ export default function Board({initBoardConfig, roomCode, gameId}: BoardProps) {
             </div>
             {<FormGroup className="flex items-center">
                 <Stack direction="row" spacing={1} alignItems="center">
-                    <Typography>Drag to Select</Typography>
+                    <Typography  sx={dragMode === DragMode.DragNDrop ? smallText : {}}>Select Words</Typography>
                         <AntSwitch checked={dragMode === DragMode.DragNDrop} onChange={handleDragModeChange} inputProps={{ 'aria-label': 'ant design' }} />
-                    <Typography>Drag & Drop</Typography>
+                    <Typography sx={dragMode === DragMode.DragToSelect ? smallText : {}}>Swap Letters</Typography>
                 </Stack>
             </FormGroup>}
         </>
