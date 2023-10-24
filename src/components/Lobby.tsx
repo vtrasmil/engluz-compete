@@ -7,6 +7,7 @@ import { Button, TextField } from "@mui/material";
 import { useSessionStorage } from '@react-hooks-library/core';
 import GameManager from "~/components/GameManager";
 import { BoardConfiguration } from "./Board";
+import { LoadingButton } from "@mui/lab";
 
 interface LobbyProps {
     userId: string,
@@ -85,13 +86,13 @@ export default function Lobby({userId}: LobbyProps) {
                 <div className="flex flex-col items-center m-3">
                     <h1 className="text-3xl mb-10">WORDS WORDS WORDS</h1>
                     <form className="" onSubmit={handleHostGame}>
-                        <Button variant="contained" type="submit">Host Game</Button>
+                        <LoadingButton loading={joinGame.isLoading} variant="contained" type="submit">Host Game</LoadingButton>
                     </form>
                     <p className="my-10">－ OR －</p>
                     <form className="flex flex-col w-44" onSubmit={handleJoinGame}>
                         <TextField className="flex-1" onChange={handleRoomCodeInputChange} placeholder="enter room code"
                             autoFocus={true} inputProps={roomCodeInputProps} value={roomCode} helperText={joinGame.error?.message} />
-                        <Button variant="contained" type="submit" className="flex-1" disabled={isJoinGameDisabled()}>Join Game</Button>
+                        <LoadingButton loading={joinGame.isLoading} variant="contained" type="submit" className="flex-1" disabled={isJoinGameDisabled()}>Join Game</LoadingButton>
                     </form>
                 </div>
 
