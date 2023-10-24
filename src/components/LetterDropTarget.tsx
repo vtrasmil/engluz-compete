@@ -10,8 +10,6 @@ interface LetterDropTargetType {
     onDrop: (cell: number, letterBlock: LetterDieSchema) => void,
     swappedLetterState: SwappedLetterState | undefined,
     isDragging: boolean,
-
-
 }
 
 const LetterDropTarget = forwardRef<HTMLDivElement, LetterDropTargetType>(
@@ -41,8 +39,6 @@ const LetterDropTarget = forwardRef<HTMLDivElement, LetterDropTargetType>(
             }
         }, [swappedLetterState, isDragging]);
 
-
-
         function hover(item: DraggedLetter, monitor: DropTargetMonitor) {
             onHover(cellId, item.currCell);
         }
@@ -53,7 +49,6 @@ const LetterDropTarget = forwardRef<HTMLDivElement, LetterDropTargetType>(
         }
 
         return (
-
                 <div ref={dropRef} id={`letter-drop-target-${cellId.toString()}`}
                     style={{
                         width: '50px', height: '50px'
@@ -62,11 +57,8 @@ const LetterDropTarget = forwardRef<HTMLDivElement, LetterDropTargetType>(
                     `m-2 ${isDragging ? 'z-10' : ''}
                     letter-drop-target
                     ${collectedProps.isOver ? `bg-slate-500 && opacity-25` : ''}`}>
-
                     <div ref={divRef} className={`h-full`} />
-
                 </div>
-
         );
     }
 );

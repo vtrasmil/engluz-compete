@@ -11,20 +11,11 @@ export default function GameManager({gameId, initBoard, roomCode} : GameManagerP
     const userId = useUserIdContext();
     const duration = 10;
 
-    // const gameState = api.example.getGameState.useQuery({'gameId': gameId})
-
-
-
     return (
         <>
             {initBoard &&
                 <Board initBoardConfig={initBoard} roomCode={roomCode} gameId={gameId} />
             }
-
-            {/* {false && <GameOverModal />} */}
-
-
-
         </>
     )
 
