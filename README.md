@@ -4,7 +4,7 @@ Swap letters, find words. (A work-in-progress)
 
 Try it out at https://word-scramble-react.vercel.app/
 
-<a href="https://word-scramble-react.vercel.app/">![Screen Recording 2023-10-24 at 12 25 10 AM](https://github.com/mikey555/word-scramble-react/assets/983004/e8af9f14-22d9-4f65-a711-bc0ea30bdfa0)</a>
+<a href="https://word-scramble-react.vercel.app/">![Screen Recording 2023-10-24 at 12 25 10 AM](https://github.com/mikey555/word-scramble-react/assets/983004/8f4be654-54db-45d2-a899-50cb0866de73)</a>
 
 ## Key Features
 - **Selecting words**: I implemented a custom hook `useSelectionDrag()` using PointerEvents.
