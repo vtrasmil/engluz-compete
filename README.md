@@ -1,6 +1,6 @@
 # Words Words Words
 
-Currently: swap letters, find words. (A work-in-progress)
+Currently: swap letters, find words, with friends. (A work-in-progress)
 <br/>
 Eventually: Boggle but competitive.
 
