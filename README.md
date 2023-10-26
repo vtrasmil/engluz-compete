@@ -15,7 +15,7 @@ Try it out at https://word-scramble-react.vercel.app/
 ## Tools I Used
 - React
 - Typescript
-- Redis DB for storing game state, rooms, and dictionary
+- Redis DB for storing game state, rooms
 - Tanstack / React Query
 - T3: Next.js, tRPC, Tailwind CSS
 - Some Material UI components
