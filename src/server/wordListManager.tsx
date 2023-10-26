@@ -3,26 +3,15 @@ import RedisClient from "@redis/client/dist/lib/client";
 import { promises as fs } from 'fs';
 import { LetterDieSchema } from "./diceManager";
 
-
-
-
 const dictionaryKey = 'dictionary';
-const dictionaryFilePath = `https://${process.env.VERCEL_URL || ''}/CSW2019.txt`;
+const dictionaryFilePath = `/public/CSW2019.txt`;
+export let dictionary: Set<string>;
 
-export async function isWordValid(str: string, redis: RedisBoggleCommands) {
-
-    let exists: boolean | number;
-    let valid: boolean | number;
-    if (redis.redis instanceof RedisClient) {
-        exists = await redis.redis.exists(dictionaryKey);
-        if (!exists) throw new Error(`Key ${dictionaryKey} not found in redis`);
-        valid = await redis.redis.sIsMember(dictionaryKey, str.toUpperCase());
-    } else {
-        exists = await redis.redis.exists(dictionaryKey);
-        if (!exists) throw new Error(`Key ${dictionaryKey} not found in redis`);
-        valid = await redis.redis.sismember(dictionaryKey, str.toUpperCase());
+export async function isWordValid(str: string, redis?: RedisBoggleCommands) {
+    if (dictionary == undefined) {
+        await loadDictIntoMem();
     }
-    return valid;
+    return dictionary.has(str);
 }
 
 async function isDictionaryInRedis(redis: BoggleRedisType) {
@@ -39,6 +28,16 @@ async function loadDictIntoRedis(redis: BoggleRedisType) {
         } else {
             await redis.sadd(dictionaryKey, array);
         }
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+async function loadDictIntoMem() {
+    try {
+        const data = await fs.readFile(process.cwd() + dictionaryFilePath, { encoding: 'utf8' });
+        const array = data.split('\r\n')
+        dictionary = new Set(array);
     } catch (err) {
         console.error(err);
     }

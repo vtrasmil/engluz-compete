@@ -193,7 +193,7 @@ export default function Board({initBoardConfig, roomCode, gameId}: BoardProps) {
     }
 
     function handleSubmitLetters(letterIds: number[]) {
-        if (letterIds.length < 4) {
+        if (letterIds.length < 3) {
             setSelectedLetterIds([]);
             return;
         }
