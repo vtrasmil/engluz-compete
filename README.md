@@ -9,7 +9,7 @@ Try it out at https://word-scramble-react.vercel.app/
 ## Key Features
 - **Selecting words**: selected word is validated via dictionary in Redis. I implemented a custom hook `useSelectionDrag()` using PointerEvents.
 - **Swapping letters**: I used [React DnD](https://react-dnd.github.io/react-dnd/about), a popular drag-and-drop library, to implement letter swapping. I also built a custom hook `useTransformAnimation()` that manages letter position and animation. Swapping works with both touch and mouse interaction.
-- **Real-time multiplayer**: players can interact with the same board. Built using pub-sub messaging client Ably.
+- **Real-time multiplayer**: players can interact with a shared board. Built using pub-sub messaging client Ably.
 - **Lobby**: players can start a game or join an existing game with a 4-letter room code.
 
 ## Tools I Used
