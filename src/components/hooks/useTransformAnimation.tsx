@@ -74,7 +74,7 @@ export default function useTransformAnimation(
         prevVectorRef.current = currVector;
 
     }, [dropTargetDivMap, swappedLetterState, letterBlockDiv, sourceCell, windowSize.width, windowSize.height,
-        // getTransformVector, setCurrVector, setCurrSourceCell
+        getTransformVector, setCurrVector
     ])
 
     const springs = useSpring({
