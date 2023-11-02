@@ -240,7 +240,15 @@ export default function Board({initBoardConfig, roomCode, gameId}: BoardProps) {
                     )}
                     {/* LetterBlocks must be rendered in order of letterBlockId -- divs should be static */}
                     {boardConfig.sort((a,b) => a.letterBlock.id - b.letterBlock.id).map(boardLetter => {
-                        const cellId = boardLetter.cellId;
+                        const sourceCellId = boardLetter.cellId;
+                        const tempCellId = () => {
+                            if (swappedLetterState?.dropTargetCell === sourceCellId) {
+                                return swappedLetterState.dragSourceCell;
+                            } else if (swappedLetterState?.dragSourceCell === sourceCellId) {
+                                return swappedLetterState.dropTargetCell;
+                            }
+                            return undefined;
+                        }
                         const letterBlock = boardLetter.letterBlock;
                         return (
                             <LetterBlock key={letterBlock.id} id={letterBlock.id} letters={letterBlock.letters}
@@ -248,10 +256,11 @@ export default function Board({initBoardConfig, roomCode, gameId}: BoardProps) {
                                 onPointerEnter={handleLetterBlockEnter}
 
                                 isSelected={selectedLetterIds.includes(letterBlock.id)}
-                                isPointerOver={pointerOver === cellId}
+                                isPointerOver={pointerOver === sourceCellId}
                                 blocksSelected={selectedLetterIds}
 
-                                currCell={cellId}
+                                sourceCell={sourceCellId}
+                                temporaryCell={tempCellId()}
                                 dragMode={dragMode}
                                 onDragStart={handleOnDragStart}
                                 onDragEnd={handleOnDragEnd}

@@ -9,7 +9,8 @@ import { animated } from '@react-spring/web';
 
 export interface LetterBlockProps {
     id: number,
-    currCell: number,
+    sourceCell: number,
+    temporaryCell: number | undefined,
     letters: string;
     isSelected: boolean;
     onPointerDown: (e: PointerEvent, i: number) => void;
@@ -32,15 +33,15 @@ export interface DraggedLetter extends LetterDieSchema {
 
 
 export function LetterBlock({
-    id, currCell, letters, isSelected, onPointerDown, onPointerUp, onPointerEnter,
+    id, sourceCell, temporaryCell, letters, isSelected, onPointerDown, onPointerUp, onPointerEnter,
     isPointerOver, isPointerDown, blocksSelected, dragMode, dropTargetRefs, onDragStart, onDragEnd,
     swappedLetterState, boardDiv,
 }: LetterBlockProps) {
     const eventTargetRef = useRef<HTMLDivElement>(null);
-    const prevCell = useRef(currCell);
+    const prevCell = useRef(sourceCell);
 
     const [{ isDragging }, drag, dragPreview] = useDrag(() => {
-        const draggedLetter: DraggedLetter = { id: id, letters: letters, currCell: currCell };
+        const draggedLetter: DraggedLetter = { id: id, letters: letters, currCell: sourceCell };
         return {
             type: 'letter',
             item: draggedLetter,
@@ -50,19 +51,14 @@ export function LetterBlock({
             }),
             end: () => onDragEnd()
         }
-    }, [currCell, dragMode]);
+    }, [sourceCell, dragMode]);
 
     useEffect(() => {
         if(isDragging) onDragStart();
     }, [isDragging, onDragStart])
 
-    const animation = useTransformAnimation(isDragging, currCell, prevCell.current, eventTargetRef.current,
+    const animation = useTransformAnimation(isDragging, sourceCell, prevCell.current, temporaryCell, eventTargetRef.current,
         dropTargetRefs, swappedLetterState, boardDiv);
-
-    if (prevCell.current != currCell) {
-        animation.setPosAtCell(currCell);
-    }
-    prevCell.current = currCell;
 
     const handlePointerUp = (e: PointerEvent) => {
         onPointerUp(e, id);
@@ -80,7 +76,7 @@ export function LetterBlock({
         eventTargetRef.current?.setPointerCapture(e.pointerId);
     };
 
-    const customDrag = useSelectionDrag(eventTargetRef, [isPointerDown && isPointerOver], {
+    useSelectionDrag(eventTargetRef, [isPointerDown && isPointerOver], {
         onPointerDown: handlePointerDown,
         onPointerUp: handlePointerUp,
         onPointerEnter: handlePointerEnter,
@@ -88,19 +84,17 @@ export function LetterBlock({
         dragMode: dragMode,
     }, id);
 
-
-
     const style = {
         width: `50px`, height: `50px`,
         fontFamily: `Poppins, sans-serif`,
         fontWeight: 400,
         fontSize: `x-large`,
-        ...animation.springs
+        ...animation
     }
 
     return (
         <>
-            <animated.div id={`letter-block-${id}`} data-current-cell={currCell} data-letter={letters[0]}
+            <animated.div id={`letter-block-${id}`} data-current-cell={sourceCell} data-letter={letters[0]}
                 ref={drag}
                 className={
                     `absolute border ${isDragging ? 'z-10' : ''}

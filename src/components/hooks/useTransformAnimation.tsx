@@ -1,9 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from "react";
 import { SwappedLetterState } from "../Board";
 import { useWindowSize } from "@react-hooks-library/core";
 import { useSpring } from "@react-spring/web";
-
-
 
 export type Point2D = {
     x: number,
@@ -16,8 +13,6 @@ function getXYPosition(el: HTMLDivElement | null) {
         x: el.getBoundingClientRect().x,
         y: el.getBoundingClientRect().y
     };
-
-
     return pos;
 }
 
@@ -33,68 +28,43 @@ export default function useTransformAnimation(
     isDragging: boolean,
     sourceCell: number,
     prevSourceCell: number,
+    temporaryCell: number | undefined,
     letterBlockDiv: HTMLDivElement | null,
     dropTargetDivMap: Map<number, HTMLDivElement> | null,
     swappedLetterState: SwappedLetterState | undefined,
     boardDiv: HTMLDivElement | null,
 )
 {
-    // generate vector based on where cell should be according to swappedLetterState or sourceCell
-    // useCallback required for exhaustive deps
-    const getTransformVector = useCallback(() => {
+    const getTransformVector = () => {
         if (!dropTargetDivMap || !boardDiv) return;
-        let cellId;
-        if (swappedLetterState == undefined) {
-            cellId = sourceCell;
-        }
-        else if (sourceCell === swappedLetterState.dropTargetCell) {
-            cellId = swappedLetterState.dragSourceCell;
-        }
-        else if (sourceCell === swappedLetterState.dragSourceCell) {
-            cellId = swappedLetterState.dropTargetCell;
-        } else {
-            cellId = sourceCell;
-        }
+        const cellId = temporaryCell != undefined ? temporaryCell : sourceCell;
         const dropTargetDiv = dropTargetDivMap.get(cellId);
         const boardAbsPos = boardDiv && getXYPosition(boardDiv);
         const dropTargetAbsPos = dropTargetDiv && getXYPosition(dropTargetDiv);
         const deltaPos = boardAbsPos && dropTargetAbsPos && getPoint2DDelta(boardAbsPos, dropTargetAbsPos);
         return deltaPos;
-    }, [dropTargetDivMap, boardDiv, swappedLetterState, sourceCell]);
+    };
     // 1st render: letterBlockDiv and boardDiv are null, 2nd render: sets
-    const prevVectorRef = useRef<Point2D | undefined>(getTransformVector());
-    const [currVector, setCurrVector] = useState<Point2D | undefined>(getTransformVector());
-    const windowSize = useWindowSize({ initialWidth: window.innerWidth, initialHeight: window.innerHeight });
 
-    // it's difficult to change the animation on source cell change since it
-    // takes an additional render for vector change to take effect
-    useEffect(() => {
-        const newVec = getTransformVector();
+    useWindowSize({ initialWidth: window.innerWidth, initialHeight: window.innerHeight });
 
-        setCurrVector(newVec);
-        prevVectorRef.current = currVector;
-
-    }, [dropTargetDivMap, swappedLetterState, letterBlockDiv, sourceCell, windowSize.width, windowSize.height,
-        getTransformVector, setCurrVector, currVector
-    ])
+    const currVector = getTransformVector();
 
     const springs = useSpring({
-        from: { x: prevVectorRef.current?.x, y: prevVectorRef.current?.y },
-        to: { x: currVector?.x, y: currVector?.y }
+        to: { x: currVector?.x, y: currVector?.y },
+        immediate: temporaryCell == undefined && swappedLetterState == undefined,
+        config: {
+            tension: 300,
+            friction: 26,
+            mass: 1
+        }
     });
-
-    const setPosAtCell = (cellId: number) => {
-        // api.set(to);
-    }
 
     /**
      *  Since blocks are rendered initially at top-left of board, we use board div
      * as our anchor point.
      */
-
-
-
-    return { springs, setPosAtCell };
+    return springs;
 
 }
 
