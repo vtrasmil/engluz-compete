@@ -11,6 +11,8 @@ import LetterDropTarget from "./LetterDropTarget";
 import { getCellIdFromLetterId, getLetterAtCell, swapCells } from "~/utils/helpers";
 import { FormGroup, Stack, Typography } from "@mui/material";
 import { AntSwitch } from "./AntSwitch";
+import { animated } from '@react-spring/web'
+
 
 interface BoardProps {
     initBoardConfig: BoardConfiguration,

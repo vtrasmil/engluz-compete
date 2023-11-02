@@ -4,6 +4,8 @@ import { useDrag } from "react-dnd";
 import { LetterDieSchema } from "~/server/diceManager.tsx";
 import useTransformAnimation from "./hooks/useTransformAnimation.tsx";
 import { DragMode, SwappedLetterState } from "./Board.tsx";
+import { animated } from '@react-spring/web';
+
 
 export interface LetterBlockProps {
     id: number,
@@ -35,6 +37,7 @@ export function LetterBlock({
     swappedLetterState, boardDiv,
 }: LetterBlockProps) {
     const eventTargetRef = useRef<HTMLDivElement>(null);
+    const prevCell = useRef(currCell);
 
     const [{ isDragging }, drag, dragPreview] = useDrag(() => {
         const draggedLetter: DraggedLetter = { id: id, letters: letters, currCell: currCell };
@@ -53,8 +56,13 @@ export function LetterBlock({
         if(isDragging) onDragStart();
     }, [isDragging, onDragStart])
 
-    const positionVector = useTransformAnimation(isDragging, currCell, eventTargetRef.current,
+    const animation = useTransformAnimation(isDragging, currCell, prevCell.current, eventTargetRef.current,
         dropTargetRefs, swappedLetterState, boardDiv);
+
+    if (prevCell.current != currCell) {
+        animation.setPosAtCell(currCell);
+    }
+    prevCell.current = currCell;
 
     const handlePointerUp = (e: PointerEvent) => {
         onPointerUp(e, id);
@@ -80,18 +88,19 @@ export function LetterBlock({
         dragMode: dragMode,
     }, id);
 
+
+
     const style = {
         width: `50px`, height: `50px`,
-        transform: positionVector ? `translateX(${positionVector.x}px) translateY(${positionVector.y}px)` : undefined,
-        transition: `background-color 0.3s, transform 0.5s`,
         fontFamily: `Poppins, sans-serif`,
         fontWeight: 400,
         fontSize: `x-large`,
+        ...animation.springs
     }
 
     return (
         <>
-            <div id={`letter-block-${id}`} data-current-cell={currCell}
+            <animated.div id={`letter-block-${id}`} data-current-cell={currCell} data-letter={letters[0]}
                 ref={drag}
                 className={
                     `absolute border ${isDragging ? 'z-10' : ''}
@@ -104,7 +113,7 @@ export function LetterBlock({
                 <div ref={eventTargetRef} className={`w-full h-full flex justify-center items-center `}>
                     {letters.at(0)?.toUpperCase().replace('Q', 'Qu')}
                 </div>
-            </div>
+            </animated.div>
         </>
     );
 }
