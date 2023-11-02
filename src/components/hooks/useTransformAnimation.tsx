@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { SwappedLetterState } from "../Board";
 import { useWindowSize } from "@react-hooks-library/core";
 import { useSpring } from "@react-spring/web";
@@ -40,7 +40,8 @@ export default function useTransformAnimation(
 )
 {
     // generate vector based on where cell should be according to swappedLetterState or sourceCell
-    const getTransformVector = () => {
+    // useCallback required for exhaustive deps
+    const getTransformVector = useCallback(() => {
         if (!dropTargetDivMap || !boardDiv) return;
         let cellId;
         if (swappedLetterState == undefined) {
@@ -59,7 +60,7 @@ export default function useTransformAnimation(
         const dropTargetAbsPos = dropTargetDiv && getXYPosition(dropTargetDiv);
         const deltaPos = boardAbsPos && dropTargetAbsPos && getPoint2DDelta(boardAbsPos, dropTargetAbsPos);
         return deltaPos;
-    }
+    }, [dropTargetDivMap, boardDiv, swappedLetterState, sourceCell]);
     // 1st render: letterBlockDiv and boardDiv are null, 2nd render: sets
     const prevVectorRef = useRef<Point2D | undefined>(getTransformVector());
     const [currVector, setCurrVector] = useState<Point2D | undefined>(getTransformVector());
@@ -74,7 +75,7 @@ export default function useTransformAnimation(
         prevVectorRef.current = currVector;
 
     }, [dropTargetDivMap, swappedLetterState, letterBlockDiv, sourceCell, windowSize.width, windowSize.height,
-        getTransformVector, setCurrVector
+        getTransformVector, setCurrVector, currVector
     ])
 
     const springs = useSpring({
