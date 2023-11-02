@@ -11,6 +11,8 @@ import LetterDropTarget from "./LetterDropTarget";
 import { getCellIdFromLetterId, getLetterAtCell, swapCells } from "~/utils/helpers";
 import { FormGroup, Stack, Typography } from "@mui/material";
 import { AntSwitch } from "./AntSwitch";
+import { MIN_WORD_LENGTH } from "./Constants.tsx";
+
 
 interface BoardProps {
     initBoardConfig: BoardConfiguration,
@@ -88,15 +90,8 @@ export default function Board({initBoardConfig, roomCode, gameId}: BoardProps) {
     const handleLetterBlockDown = (e: PointerEvent, letterBlockId: number) => {
         if (submitWord.isLoading) return;
         setIsPointerDown(true);
-        switch (dragMode) {
-            case DragMode.DragToSelect:
-                setSelectedLetterIds([letterBlockId]);
-                break;
-            case DragMode.DragNDrop:
-
-                break;
-            default:
-                break;
+        if (dragMode == DragMode.DragToSelect) {
+            setSelectedLetterIds([letterBlockId]);
         }
     }
 
@@ -107,46 +102,33 @@ export default function Board({initBoardConfig, roomCode, gameId}: BoardProps) {
 
     const handleLetterBlockEnter = (e: PointerEvent, letterBlockId: number) => {
         if (!isPointerDown || letterBlockId == undefined || selectedLetterIds.includes(letterBlockId) || submitWord.isLoading) return;
-
-        switch (dragMode) {
-            case DragMode.DragToSelect:
-                const lastBlockSelected = selectedLetterIds.slice(-1)[0];
-                if (lastBlockSelected == undefined) return;
-                const lastCellSelected = getCellIdFromLetterId(boardConfig, lastBlockSelected);
-                const currCellSelected = getCellIdFromLetterId(boardConfig, letterBlockId);
-                if (lastCellSelected != undefined && currCellSelected != undefined) {
-                    const isNeighbor = getNeighbors(lastCellSelected)?.includes(currCellSelected);
-                    if (!isNeighbor) return;
-                }
-                setPointerOver(letterBlockId);
-                setSelectedLetterIds([...selectedLetterIds, letterBlockId]);
-                break;
-            case DragMode.DragNDrop:
-
-                break;
-            default:
-                break;
+        if (dragMode === DragMode.DragToSelect)
+        {
+            const lastBlockSelected = selectedLetterIds.slice(-1)[0];
+            if (lastBlockSelected == undefined) return;
+            const lastCellSelected = getCellIdFromLetterId(boardConfig, lastBlockSelected);
+            const currCellSelected = getCellIdFromLetterId(boardConfig, letterBlockId);
+            if (lastCellSelected != undefined && currCellSelected != undefined) {
+                const isNeighbor = getNeighbors(lastCellSelected)?.includes(currCellSelected);
+                if (!isNeighbor) return;
+            }
+            setPointerOver(letterBlockId);
+            setSelectedLetterIds([...selectedLetterIds, letterBlockId]);
         }
     }
+
     const handlePointerUp = (e: PointerEvent) => {
 
         if (submitWord.isLoading) return;
         setIsPointerDown(false);
-        switch (dragMode) {
-            case DragMode.DragToSelect:
-                if (selectedLetterIds.length <= 3) {
-                    setSelectedLetterIds([]);
-                    return;
-                }
-                handleSubmitLetters(selectedLetterIds);
-                break;
-            case DragMode.DragNDrop:
-                break;
-
-            default:
-                break;
+        if (selectedLetterIds.length < MIN_WORD_LENGTH) {
+            setSelectedLetterIds([]);
+            return;
         }
+        handleSubmitLetters(selectedLetterIds);
     }
+
+
 
     const handleOnDragStart = () => {
         setIsDragging(true);

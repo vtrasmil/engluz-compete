@@ -13,7 +13,7 @@ export const BoggleDice: LetterDieSchema[] =
     [
         { letters: "AACIOT", id: 0 },
         { letters: "ABILTY", id: 1 },
-        { letters: "ABJMOQ", id: 2 },    // TODO: Q --> Qu
+        { letters: "ABJMOQ", id: 2 },
         { letters: "ACDEMP", id: 3 },
         { letters: "ACELRS", id: 4 },
         { letters: "ADENVZ", id: 5 },

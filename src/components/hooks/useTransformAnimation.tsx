@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { SwappedLetterState } from "../Board";
 import { useWindowSize } from "@react-hooks-library/core";
+import { useSpring } from "@react-spring/web";
 
 
 
@@ -31,37 +32,60 @@ function getPoint2DDelta(a: Point2D, b: Point2D) {
 export default function useTransformAnimation(
     isDragging: boolean,
     sourceCell: number,
+    prevSourceCell: number,
     letterBlockDiv: HTMLDivElement | null,
     dropTargetDivMap: Map<number, HTMLDivElement> | null,
     swappedLetterState: SwappedLetterState | undefined,
     boardDiv: HTMLDivElement | null,
 )
-
 {
-
-    const getTransformVector = useCallback(
-        () => {
-            if (!dropTargetDivMap || !boardDiv) return;
-            const cellId = (swappedLetterState && sourceCell === swappedLetterState.dropTargetCell) ?
-                swappedLetterState.dragSourceCell : sourceCell;
-            const dropTargetDiv = dropTargetDivMap.get(cellId);
-            const boardAbsPos = boardDiv && getXYPosition(boardDiv);
-            const dropTargetAbsPos = dropTargetDiv && getXYPosition(dropTargetDiv);
-            const deltaPos = boardAbsPos && dropTargetAbsPos && getPoint2DDelta(boardAbsPos, dropTargetAbsPos);
-            return deltaPos;
+    // generate vector based on where cell should be according to swappedLetterState or sourceCell
+    // useCallback required for exhaustive deps
+    const getTransformVector = useCallback(() => {
+        if (!dropTargetDivMap || !boardDiv) return;
+        let cellId;
+        if (swappedLetterState == undefined) {
+            cellId = sourceCell;
         }
-        , [dropTargetDivMap, boardDiv, swappedLetterState, sourceCell]);
-
+        else if (sourceCell === swappedLetterState.dropTargetCell) {
+            cellId = swappedLetterState.dragSourceCell;
+        }
+        else if (sourceCell === swappedLetterState.dragSourceCell) {
+            cellId = swappedLetterState.dropTargetCell;
+        } else {
+            cellId = sourceCell;
+        }
+        const dropTargetDiv = dropTargetDivMap.get(cellId);
+        const boardAbsPos = boardDiv && getXYPosition(boardDiv);
+        const dropTargetAbsPos = dropTargetDiv && getXYPosition(dropTargetDiv);
+        const deltaPos = boardAbsPos && dropTargetAbsPos && getPoint2DDelta(boardAbsPos, dropTargetAbsPos);
+        return deltaPos;
+    }, [dropTargetDivMap, boardDiv, swappedLetterState, sourceCell]);
     // 1st render: letterBlockDiv and boardDiv are null, 2nd render: sets
-    const [vector, setVector] = useState<Point2D | undefined>(getTransformVector());
-    const windowSize = useWindowSize({initialWidth: window.innerWidth, initialHeight: window.innerHeight});
+    const prevVectorRef = useRef<Point2D | undefined>(getTransformVector());
+    const [currVector, setCurrVector] = useState<Point2D | undefined>(getTransformVector());
+    const windowSize = useWindowSize({ initialWidth: window.innerWidth, initialHeight: window.innerHeight });
 
+    // it's difficult to change the animation on source cell change since it
+    // takes an additional render for vector change to take effect
     useEffect(() => {
         const newVec = getTransformVector();
-        setVector(newVec);
-    }, [dropTargetDivMap, swappedLetterState, letterBlockDiv, sourceCell,
-        windowSize.width, windowSize.height, getTransformVector])
 
+        setCurrVector(newVec);
+        prevVectorRef.current = currVector;
+
+    }, [dropTargetDivMap, swappedLetterState, letterBlockDiv, sourceCell, windowSize.width, windowSize.height,
+        getTransformVector, setCurrVector, currVector
+    ])
+
+    const springs = useSpring({
+        from: { x: prevVectorRef.current?.x, y: prevVectorRef.current?.y },
+        to: { x: currVector?.x, y: currVector?.y }
+    });
+
+    const setPosAtCell = (cellId: number) => {
+        // api.set(to);
+    }
 
     /**
      *  Since blocks are rendered initially at top-left of board, we use board div
@@ -69,7 +93,8 @@ export default function useTransformAnimation(
      */
 
 
-    return vector;
+
+    return { springs, setPosAtCell };
 
 }
 
