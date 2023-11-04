@@ -121,10 +121,6 @@ export default function Board({initBoardConfig, roomCode, gameId}: BoardProps) {
 
         if (submitWord.isLoading) return;
         setIsPointerDown(false);
-        if (selectedLetterIds.length < MIN_WORD_LENGTH) {
-            setSelectedLetterIds([]);
-            return;
-        }
         handleSubmitLetters(selectedLetterIds);
     }
 
@@ -175,7 +171,7 @@ export default function Board({initBoardConfig, roomCode, gameId}: BoardProps) {
     }
 
     function handleSubmitLetters(letterIds: number[]) {
-        if (letterIds.length < 3) {
+        if (letterIds.length < MIN_WORD_LENGTH) {
             setSelectedLetterIds([]);
             return;
         }
