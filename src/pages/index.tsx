@@ -36,7 +36,7 @@ export default function Home() {
         <meta name="viewport" content="initial-scale=1, width=device-width" />
       </Head>
 
-      <main className="flex justify-center h-screen touch-none">
+      <main className="flex justify-center h-full touch-none">
           <div className="flex flex-col w-full md:max-w-2xl mt-10">
             <Lobby userId={userId} />
             <Analytics />
