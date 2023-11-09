@@ -263,6 +263,7 @@ export default function Board({initBoardConfig, roomCode, gameId}: BoardProps) {
                                 dropTargetRefs={dropTargetsRef.current}
                                 swappedLetterState={swappedLetterState}
                                 boardDiv={boardRef.current}
+                                numTimesRolled={letterBlock.numTimesRolled}
                             />)
                     })
                     }

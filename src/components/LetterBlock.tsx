@@ -5,6 +5,7 @@ import { LetterDieSchema } from "~/server/diceManager.tsx";
 import useTransformAnimation from "./hooks/useTransformAnimation.tsx";
 import { DragMode, SwappedLetterState } from "./Board.tsx";
 import { animated } from '@react-spring/web';
+import useColorAnim from "./hooks/useColorAnim.tsx";
 
 
 export interface LetterBlockProps {
@@ -25,6 +26,7 @@ export interface LetterBlockProps {
     dropTargetRefs: Map<number, HTMLDivElement> | null;
     swappedLetterState: SwappedLetterState | undefined;
     boardDiv: HTMLDivElement | null;
+    numTimesRolled: number;
 }
 
 export interface DraggedLetter extends LetterDieSchema {
@@ -35,13 +37,13 @@ export interface DraggedLetter extends LetterDieSchema {
 export function LetterBlock({
     id, sourceCell, temporaryCell, letters, isSelected, onPointerDown, onPointerUp, onPointerEnter,
     isPointerOver, isPointerDown, blocksSelected, dragMode, dropTargetRefs, onDragStart, onDragEnd,
-    swappedLetterState, boardDiv,
+    swappedLetterState, boardDiv, numTimesRolled
 }: LetterBlockProps) {
     const eventTargetRef = useRef<HTMLDivElement>(null);
     const prevCell = useRef(sourceCell);
 
     const [{ isDragging }, drag, dragPreview] = useDrag(() => {
-        const draggedLetter: DraggedLetter = { id: id, letters: letters, currCell: sourceCell };
+        const draggedLetter: DraggedLetter = { id: id, letters: letters, currCell: sourceCell, numTimesRolled: numTimesRolled };
         return {
             type: 'letter',
             item: draggedLetter,
@@ -57,8 +59,11 @@ export function LetterBlock({
         if(isDragging) onDragStart();
     }, [isDragging, onDragStart])
 
-    const animation = useTransformAnimation(isDragging, sourceCell, prevCell.current, temporaryCell, eventTargetRef.current,
+    const transformAnim = useTransformAnimation(isDragging, sourceCell, prevCell.current, temporaryCell, eventTargetRef.current,
         dropTargetRefs, swappedLetterState, boardDiv);
+
+    const colorAnim = useColorAnim(numTimesRolled, sourceCell, isSelected);
+
 
     const handlePointerUp = (e: PointerEvent) => {
         onPointerUp(e, id);
@@ -89,7 +94,8 @@ export function LetterBlock({
         fontFamily: `Poppins, sans-serif`,
         fontWeight: 400,
         fontSize: `x-large`,
-        ...animation
+        ...transformAnim,
+        ...colorAnim,
     }
 
     return (
@@ -99,8 +105,7 @@ export function LetterBlock({
                 className={
                     `absolute border ${isDragging ? 'z-10' : ''}
                     border-gray-400 letter-block select-none
-                    ${isDragging ? 'hidden' : ''}
-                    ${isSelected ? `bg-blue-200` : ''}`
+                    ${isDragging ? 'hidden' : ''}`
                 }
                 style={style}
             >
