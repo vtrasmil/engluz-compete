@@ -33,6 +33,8 @@ export default function useTransformAnimation(
     dropTargetDivMap: Map<number, HTMLDivElement> | null,
     swappedLetterState: SwappedLetterState | undefined,
     boardDiv: HTMLDivElement | null,
+    isPointerOver: boolean,
+    isSelected: boolean
 )
 {
     const getTransformVector = () => {
@@ -50,13 +52,23 @@ export default function useTransformAnimation(
 
     const currVector = getTransformVector();
 
-    const springs = useSpring({
-        to: { x: currVector?.x, y: currVector?.y },
+    const posSpring = useSpring({
+        x: currVector?.x,
+        y: currVector?.y,
         immediate: temporaryCell == undefined && swappedLetterState == undefined,
         config: {
             tension: 300,
             friction: 26,
             mass: 1
+        },
+    });
+
+    const scaleSpring = useSpring({
+        scale: (isPointerOver || isSelected) ? 1.15 : 1,
+        config: {
+            tension: 500,
+            friction: 30,
+            clamp: true,
         }
     });
 
@@ -64,7 +76,7 @@ export default function useTransformAnimation(
      *  Since blocks are rendered initially at top-left of board, we use board div
      * as our anchor point.
      */
-    return springs;
+    return { ...posSpring, ...scaleSpring };
 
 }
 

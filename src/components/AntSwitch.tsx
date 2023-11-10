@@ -3,6 +3,7 @@ import FormGroup from '@mui/material/FormGroup';
 import Switch from '@mui/material/Switch';
 import Stack from '@mui/material/Stack';
 import { Typography } from '@mui/material';
+import { CELL_CHANGE_COLOR, SELECTED_COLOR } from './Constants';
 
 
 export const AntSwitch = styled(Switch)(({ theme }) => ({
@@ -25,7 +26,7 @@ export const AntSwitch = styled(Switch)(({ theme }) => ({
         color: '#fff',
         '& + .MuiSwitch-track': {
             opacity: 1,
-            backgroundColor: theme.palette.mode === 'dark' ? '#177ddc' : '#1890ff',
+            backgroundColor: theme.palette.mode === 'dark' ? '#177ddc' : CELL_CHANGE_COLOR,
         },
         },
     },
@@ -42,7 +43,7 @@ export const AntSwitch = styled(Switch)(({ theme }) => ({
         borderRadius: 16 / 2,
         opacity: 1,
         backgroundColor:
-        theme.palette.mode === 'dark' ? 'rgba(255,255,255,.35)' : 'rgba(0,0,0,.25)',
+        theme.palette.mode === 'dark' ? 'rgba(255,255,255,.35)' : SELECTED_COLOR,
         boxSizing: 'border-box',
     },
 }));

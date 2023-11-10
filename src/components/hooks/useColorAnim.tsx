@@ -1,5 +1,6 @@
 import { config, useSpring } from "@react-spring/web";
 import { useEffect, useState } from "react";
+import { CELL_CHANGE_COLOR, ROLL_CHANGE_COLOR, SELECTED_COLOR } from "../Constants";
 
 export default function useChangeAnim(numTimesRolled: number, sourceCell: number, isSelected: boolean) {
 
@@ -10,12 +11,12 @@ export default function useChangeAnim(numTimesRolled: number, sourceCell: number
 
     let color = 'white';
     if (isSelected) {
-        color = 'lightskyblue';
+        color = SELECTED_COLOR;
     }
     if (rollChange) {
-        color = 'lightgreen';
+        color = ROLL_CHANGE_COLOR;
     } else if (cellChange) {
-        color = 'gold';
+        color = CELL_CHANGE_COLOR;
     }
 
     const spring = useSpring({

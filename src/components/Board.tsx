@@ -252,7 +252,6 @@ export default function Board({initBoardConfig, roomCode, gameId}: BoardProps) {
                                 onPointerEnter={handleLetterBlockEnter}
 
                                 isSelected={selectedLetterIds.includes(letterBlock.id)}
-                                isPointerOver={pointerOver === sourceCellId}
                                 blocksSelected={selectedLetterIds}
 
                                 sourceCell={sourceCellId}
