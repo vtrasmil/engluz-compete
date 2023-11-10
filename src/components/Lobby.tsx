@@ -92,7 +92,7 @@ export default function Lobby({userId}: LobbyProps) {
                     <p className="my-10">－ OR －</p>
                     <form className="flex flex-col w-44" onSubmit={handleJoinGame}>
                         <TextField className="flex-1" onChange={handleRoomCodeInputChange} placeholder="enter room code"
-                            autoFocus={true} inputProps={roomCodeInputProps} value={roomCode} helperText={joinGame.error?.message} />
+                            inputProps={roomCodeInputProps} value={roomCode} helperText={joinGame.error?.message} />
                         <LoadingButton loading={joinGame.isLoading} variant="contained" type="submit"
                             className="flex-1" disabled={roomCode.length !== 4 || hostGame.isLoading}>
                             Join a Game
