@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import useSelectionDrag from "./useSelectionDrag.tsx";
 import { useDrag } from "react-dnd";
 import { LetterDieSchema } from "~/server/diceManager.tsx";
@@ -18,7 +18,6 @@ export interface LetterBlockProps {
     onPointerUp: (e: PointerEvent, i: number) => void;
     onPointerEnter: (e: PointerEvent, i: number) => void;
     isPointerDown?: boolean;
-    isPointerOver: boolean;
     blocksSelected: number[];
     dragMode: DragMode;
     onDragStart: () => void;
@@ -36,11 +35,12 @@ export interface DraggedLetter extends LetterDieSchema {
 
 export function LetterBlock({
     id, sourceCell, temporaryCell, letters, isSelected, onPointerDown, onPointerUp, onPointerEnter,
-    isPointerOver, isPointerDown, blocksSelected, dragMode, dropTargetRefs, onDragStart, onDragEnd,
+    isPointerDown, blocksSelected, dragMode, dropTargetRefs, onDragStart, onDragEnd,
     swappedLetterState, boardDiv, numTimesRolled
 }: LetterBlockProps) {
     const eventTargetRef = useRef<HTMLDivElement>(null);
     const prevCell = useRef(sourceCell);
+    const [isPointerOver, setIsPointerOver] = useState(false);
 
     const [{ isDragging }, drag, dragPreview] = useDrag(() => {
         const draggedLetter: DraggedLetter = { id: id, letters: letters, currCell: sourceCell, numTimesRolled: numTimesRolled };
@@ -60,7 +60,7 @@ export function LetterBlock({
     }, [isDragging, onDragStart])
 
     const transformAnim = useTransformAnimation(isDragging, sourceCell, prevCell.current, temporaryCell, eventTargetRef.current,
-        dropTargetRefs, swappedLetterState, boardDiv);
+        dropTargetRefs, swappedLetterState, boardDiv, isPointerOver, isSelected);
 
     const colorAnim = useColorAnim(numTimesRolled, sourceCell, isSelected);
 
@@ -81,6 +81,8 @@ export function LetterBlock({
         eventTargetRef.current?.setPointerCapture(e.pointerId);
     };
 
+
+
     useSelectionDrag(eventTargetRef, [isPointerDown && isPointerOver], {
         onPointerDown: handlePointerDown,
         onPointerUp: handlePointerUp,
@@ -94,6 +96,7 @@ export function LetterBlock({
         fontFamily: `Poppins, sans-serif`,
         fontWeight: 400,
         fontSize: `x-large`,
+        boxShadow: isPointerOver ? '2px 2px 5px rgba(0,0,0,0.10)' : '2px 2px 0 rgba(0,0,0,0.10)',
         ...transformAnim,
         ...colorAnim,
     }
@@ -106,10 +109,14 @@ export function LetterBlock({
                     `absolute border ${isDragging ? 'z-10' : ''}
                     border-gray-400 letter-block select-none
                     ${isDragging ? 'hidden' : ''}`
+                    // ${isPointerOver ? 'drop-shadow-[2px_2px_5px_rgba(0,0,0,0.10)]' : 'drop-shadow-[2px_2px_0_rgba(0,0,0,0.15)]'}`
                 }
                 style={style}
+                onPointerEnter={() => { setIsPointerOver(true);  console.log('enter')}}
+                onPointerLeave={() => { setIsPointerOver(false); console.log('out') }}
+
             >
-                <div ref={eventTargetRef} className={`w-full h-full flex justify-center items-center `}>
+                <div ref={eventTargetRef} className={`w-full h-full flex justify-center items-center`}>
                     {letters.at(0)?.toUpperCase().replace('Q', 'Qu')}
                 </div>
             </animated.div>
