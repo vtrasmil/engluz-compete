@@ -6,8 +6,9 @@ Eventually: Boggle but competitive.
 
 Try it out at https://word-scramble-react.vercel.app/
 
-<a href="https://word-scramble-react.vercel.app/">![Screen Recording 2023-10-24 at 12 25 10 AM](https://github.com/mikey555/word-scramble-react/assets/983004/8f4be654-54db-45d2-a899-50cb0866de73)</a>
-<p><i>(what's happening here: (1) player swaps letter A with C and (2) selects the word "BRAVE". (3) The selected dice "re-roll", revealing new letters.)</i></p>
+<video src="https://github.com/mikey555/word-scramble-react/assets/983004/9cbbbcd6-aa4e-4b44-85ba-b8b199a603ec"></video>
+
+<p><i>(what's happening here: (1) player swaps letter I with B and (2) selects the word "RAIN". (3) The selected letters "re-roll", revealing new letters.)</i></p>
 
 ## Key Features
 - **Selecting words**: I implemented a custom hook `useSelectionDrag()` using PointerEvents.
