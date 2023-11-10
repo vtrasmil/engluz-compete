@@ -22,6 +22,8 @@ Try it out at https://word-scramble-react.vercel.app/
 - Redis DB for storing game state, rooms
 - Tanstack / React Query
 - T3: Next.js, tRPC, Tailwind CSS
-- Some Material UI components
+- Ably pub-sub messaging
+- Material UI
+- react-spring (animation)
 
 Although I've implemented the foundations, the game is a work-in-progress. I'm now working on game design - coming up with engaging multiplayer experience.
