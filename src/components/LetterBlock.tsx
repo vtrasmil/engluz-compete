@@ -107,14 +107,11 @@ export function LetterBlock({
                 ref={drag}
                 className={
                     `absolute border ${isDragging ? 'z-10' : ''}
-                    border-gray-400 letter-block select-none
+                    border-gray-400 letter-block select-none cursor-pointer
                     ${isDragging ? 'hidden' : ''}`
                     // ${isPointerOver ? 'drop-shadow-[2px_2px_5px_rgba(0,0,0,0.10)]' : 'drop-shadow-[2px_2px_0_rgba(0,0,0,0.15)]'}`
                 }
                 style={style}
-                onPointerEnter={() => { setIsPointerOver(true);  console.log('enter')}}
-                onPointerLeave={() => { setIsPointerOver(false); console.log('out') }}
-
             >
                 <div ref={eventTargetRef} className={`w-full h-full flex justify-center items-center`}>
                     {letters.at(0)?.toUpperCase().replace('Q', 'Qu')}

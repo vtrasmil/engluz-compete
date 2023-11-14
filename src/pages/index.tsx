@@ -2,6 +2,8 @@ import Head from "next/head";
 import { useUserIdContext } from "~/components/hooks/useUserIdContext";
 import dynamic from "next/dynamic";
 import { Analytics } from '@vercel/analytics/react';
+import { cn } from "~/lib/utils";
+import { Inter as FontSans } from "next/font/google";
 
 
 const Lobby = dynamic(() => import('../components/Lobby'), { ssr: false });
@@ -10,7 +12,10 @@ const Lobby = dynamic(() => import('../components/Lobby'), { ssr: false });
 
 // setUseWhatChange(process.env.NODE_ENV === 'development');
 
-
+export const fontSans = FontSans({
+  subsets: ["latin"],
+  variable: "--font-sans",
+})
 export default function Home() {
 
 
@@ -36,10 +41,12 @@ export default function Home() {
         <meta name="viewport" content="initial-scale=1, width=device-width" />
       </Head>
 
-      <main className="flex justify-center h-full touch-none">
-          <div className="flex flex-col w-full md:max-w-2xl mt-10">
-            <Lobby userId={userId} />
-            <Analytics />
+      <main className={cn("bg-gray-100 min-h-screen flex items-center justify-center touch-none", fontSans.variable)}>
+        <div className="max-w-sm rounded-lg shadow-lg bg-white p-6 space-y-6 border border-gray-400 dark:border-gray-700">
+            <div className="space-y-2 text-center">
+              <Lobby userId={userId} />
+              <Analytics />
+            </div>
           </div>
       </main>
 
