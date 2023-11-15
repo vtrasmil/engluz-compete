@@ -93,7 +93,7 @@ export default function Lobby({userId}: LobbyProps) {
         } else {
             return (
                 <div className="flex flex-col items-center m-3 space-y-6">
-                    <h1 className="text-3xl">WORDS WORDS WORDS</h1>
+                    <h1 className="text-2xl">WORDS WORDS WORDS</h1>
                     <div className="space-y-8">
                         <Button className="w-full bg-green-500" onClick={handleHostGame}>Start a Game</Button>
                         <div className="flex items-center space-x-2">
@@ -103,7 +103,7 @@ export default function Lobby({userId}: LobbyProps) {
                         </div>
                         <div>
                             <form className="w-full flex flex-row gap-2" onSubmit={handleJoinGame}>
-                                <Input className="basis-1/2 text-xs" onChange={handleRoomCodeInputChange} placeholder="enter room code" maxLength={4}
+                                <Input className="basis-1/2" onChange={handleRoomCodeInputChange} placeholder="enter room code" maxLength={4}
                                     /* inputProps={roomCodeInputProps} */ value={roomCode} /* helperText={joinGame.error?.message} */ />
                                 <Button className="basis-1/2" type="submit" disabled={roomCode.length !== 4 || hostGame.isLoading} variant="outline">
                                     Join Game

@@ -41,7 +41,7 @@ export default function Home() {
         <meta name="viewport" content="initial-scale=1, width=device-width" />
       </Head>
 
-      <main className={cn("bg-gray-100 min-h-screen flex items-center justify-center touch-none", fontSans.variable)}>
+      <main className={cn("bg-gray-100 min-h-screen flex items-center justify-center touch-none text-base", fontSans.variable)}>
         <div className="max-w-sm rounded-lg shadow-lg bg-white p-6 space-y-6 border border-gray-400 dark:border-gray-700">
             <div className="space-y-2 text-center">
               <Lobby userId={userId} />
