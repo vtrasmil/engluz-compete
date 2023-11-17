@@ -102,10 +102,10 @@ export default function Lobby({userId}: LobbyProps) {
                             <hr className="flex-grow border-zinc-200 dark:border-zinc-700" />
                         </div>
                         <div>
-                            <form className="w-full flex flex-row gap-2" onSubmit={handleJoinGame}>
-                                <Input className="basis-1/2" onChange={handleRoomCodeInputChange} placeholder="enter room code" maxLength={4}
+                            <form className="w-full inline-flex gap-1" onSubmit={handleJoinGame}>
+                                <Input className="w-[42%]" onChange={handleRoomCodeInputChange} placeholder="room code" maxLength={4}
                                     /* inputProps={roomCodeInputProps} */ value={roomCode} /* helperText={joinGame.error?.message} */ />
-                                <Button className="basis-1/2" type="submit" disabled={roomCode.length !== 4 || hostGame.isLoading} variant="outline">
+                                <Button className="w-[58%]" type="submit" disabled={roomCode.length !== 4 || hostGame.isLoading} variant="secondary">
                                     Join Game
                                 </Button>
                             </form>
