@@ -43,7 +43,7 @@ export default function useChangeAnim(numTimesRolled: number, sourceCell: number
             setTimeout(() => setCellChange(false), 700);
         }
 
-    }, [latestMsg]);
+    }, [latestMsg, sourceCell, userId]);
 
     return spring;
 }
