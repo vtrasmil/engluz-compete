@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import useSelectionDrag from "./useSelectionDrag.tsx";
 import { useUserIdContext } from "./hooks/useUserIdContext";
 import { useChannel } from "@ably-labs/react-hooks";
-import { DiceSwappedMessageData, WordSubmittedMessageData } from "~/server/api/routers/gameplayRouter";
+import { DiceSwappedMessageData, MessageData, WordSubmittedMessageData } from "~/server/api/routers/gameplayRouter";
 import { ablyChannelName } from "~/server/ably/ablyHelpers";
 import { api } from "~/utils/api";
 import LetterDropTarget from "./LetterDropTarget";
@@ -42,6 +42,11 @@ export type BoardLetterDie = {
 }
 export type BoardConfiguration = BoardLetterDie[];
 
+export type LatestMessage = {
+    messageType: AblyMessageType,
+
+}
+
 
 export default function Board({initBoardConfig, roomCode, gameId}: BoardProps) {
     const [boardConfig, setBoardConfig] = useState<BoardConfiguration>(initBoardConfig);
@@ -56,6 +61,7 @@ export default function Board({initBoardConfig, roomCode, gameId}: BoardProps) {
     const boardRef = useRef<HTMLDivElement | null>(null);
     const [_, setHasFirstRenderHappened] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
+    const [latestMsg, setLatestMsg] = useState<MessageData>();
     const userId = useUserIdContext();
 
     function getDropTargetsMap() {
@@ -75,14 +81,18 @@ export default function Board({initBoardConfig, roomCode, gameId}: BoardProps) {
 
     });
 
+
+
     useChannel(ablyChannelName(roomCode), AblyMessageType.WordSubmitted, (message) => {
         const msgData = message.data as WordSubmittedMessageData;
+        setLatestMsg(msgData);
         // sent to all clients
         setBoardConfig(msgData.newBoard);
     });
 
     useChannel(ablyChannelName(roomCode), AblyMessageType.DiceSwapped, (message) => {
         const msgData = message.data as DiceSwappedMessageData;
+        setLatestMsg(msgData);
         if (msgData.userId == userId) return;
         setBoardConfig(msgData.newBoard);
     });
@@ -263,6 +273,7 @@ export default function Board({initBoardConfig, roomCode, gameId}: BoardProps) {
                                 swappedLetterState={swappedLetterState}
                                 boardDiv={boardRef.current}
                                 numTimesRolled={letterBlock.numTimesRolled}
+                                latestMsg={latestMsg}
                             />)
                     })
                     }

@@ -1,11 +1,15 @@
 import { config, useSpring } from "@react-spring/web";
 import { useEffect, useState } from "react";
 import { CELL_CHANGE_COLOR, ROLL_CHANGE_COLOR, SELECTED_COLOR } from "../Constants";
+import { MessageData } from "~/server/api/routers/gameplayRouter";
+import { AblyMessageType } from "../Board";
+import { useUserIdContext } from "./useUserIdContext";
 
-export default function useChangeAnim(numTimesRolled: number, sourceCell: number, isSelected: boolean) {
+export default function useChangeAnim(numTimesRolled: number, sourceCell: number, isSelected: boolean, latestMsg: MessageData | undefined) {
 
     const [rollChange, setRollChange] = useState(false);
     const [cellChange, setCellChange] = useState(false);
+    const userId = useUserIdContext();
 
     const changeConfig = { tension: 100, friction: 10 };
 
@@ -27,16 +31,19 @@ export default function useChangeAnim(numTimesRolled: number, sourceCell: number
     });
 
     useEffect(() => {
-        setRollChange(true);
-        setTimeout(() => setRollChange(false), 700);
-    }, [numTimesRolled]);
+        if (latestMsg?.messageType === AblyMessageType.WordSubmitted &&
+            latestMsg.sourceCellIds.includes(sourceCell)) {
+            setRollChange(true);
+            setTimeout(() => setRollChange(false), 700);
+        } else if (latestMsg?.messageType === AblyMessageType.DiceSwapped &&
+            latestMsg.sourceCellIds.includes(sourceCell) &&
+            latestMsg.userId !== userId)
+        {
+            setCellChange(true);
+            setTimeout(() => setCellChange(false), 700);
+        }
 
-    useEffect(() => {
-        setCellChange(true);
-        setTimeout(() => setCellChange(false), 700);
-    }, [sourceCell]);
-
-    // ${isSelected ? `bg-blue-200` : ''}
+    }, [latestMsg]);
 
     return spring;
 }

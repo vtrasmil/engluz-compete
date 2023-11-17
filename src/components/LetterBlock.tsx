@@ -6,6 +6,7 @@ import useTransformAnimation from "./hooks/useTransformAnimation.tsx";
 import { DragMode, SwappedLetterState } from "./Board.tsx";
 import { animated } from '@react-spring/web';
 import useColorAnim from "./hooks/useColorAnim.tsx";
+import { MessageData } from "~/server/api/routers/gameplayRouter.ts";
 
 
 export interface LetterBlockProps {
@@ -26,6 +27,7 @@ export interface LetterBlockProps {
     swappedLetterState: SwappedLetterState | undefined;
     boardDiv: HTMLDivElement | null;
     numTimesRolled: number;
+    latestMsg: MessageData | undefined;
 }
 
 export interface DraggedLetter extends LetterDieSchema {
@@ -36,7 +38,7 @@ export interface DraggedLetter extends LetterDieSchema {
 export function LetterBlock({
     id, sourceCell, temporaryCell, letters, isSelected, onPointerDown, onPointerUp, onPointerEnter,
     isPointerDown, blocksSelected, dragMode, dropTargetRefs, onDragStart, onDragEnd,
-    swappedLetterState, boardDiv, numTimesRolled
+    swappedLetterState, boardDiv, numTimesRolled, latestMsg,
 }: LetterBlockProps) {
     const eventTargetRef = useRef<HTMLDivElement>(null);
     const prevCell = useRef(sourceCell);
@@ -62,7 +64,7 @@ export function LetterBlock({
     const transformAnim = useTransformAnimation(isDragging, sourceCell, prevCell.current, temporaryCell, eventTargetRef.current,
         dropTargetRefs, swappedLetterState, boardDiv, isPointerOver, isSelected);
 
-    const colorAnim = useColorAnim(numTimesRolled, sourceCell, isSelected);
+    const colorAnim = useColorAnim(numTimesRolled, sourceCell, isSelected, latestMsg);
 
 
     const handlePointerUp = (e: PointerEvent) => {
@@ -80,8 +82,6 @@ export function LetterBlock({
     const handleDrag = (e: PointerEvent) => {
         eventTargetRef.current?.setPointerCapture(e.pointerId);
     };
-
-
 
     useSelectionDrag(eventTargetRef, [isPointerDown && isPointerOver], {
         onPointerDown: handlePointerDown,
