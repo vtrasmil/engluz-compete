@@ -4,21 +4,26 @@ import { getWordFromBoard, isWordValid } from "~/server/wordListManager";
 import { rollDice } from "~/server/diceManager";
 import { ablyChannelName } from "~/server/ably/ablyHelpers";
 import { swap } from "~/utils/helpers";
-import { BoardConfiguration } from "~/components/Board";
+import { AblyMessageType, BoardConfiguration } from "~/components/Board";
 
 interface DefaultAblyMessageData {
     userId: string,
+    messageType: AblyMessageType,
 }
 
 // NOTE: Ably only allows serialized data in messages
 export type WordSubmittedMessageData = {
     newBoard: BoardConfiguration,
     wordSubmitted: string,
+    sourceCellIds: number[],
 } & DefaultAblyMessageData;
 
 export type DiceSwappedMessageData = {
     newBoard: BoardConfiguration,
+    sourceCellIds: number[],
 } & DefaultAblyMessageData;
+
+export type MessageData = WordSubmittedMessageData | DiceSwappedMessageData;
 
 export const gameplayRouter = createTRPCRouter({
 
@@ -46,7 +51,9 @@ export const gameplayRouter = createTRPCRouter({
                         cellId: i,
                         letterBlock: lb
                     })),
-                    wordSubmitted: word
+                    wordSubmitted: word,
+                    messageType: AblyMessageType.WordSubmitted,
+                    sourceCellIds: opts.input.cellIds
                 }
                 const publish = await channel.publish('wordSubmitted', wordSubmittedMsg);
                 return { isValid: true };
@@ -78,7 +85,9 @@ export const gameplayRouter = createTRPCRouter({
                 newBoard: swappedDice.map((lb, i) => ({
                         cellId: i,
                         letterBlock: lb
-                    })),
+                })),
+                messageType: AblyMessageType.DiceSwapped,
+                sourceCellIds: [indexA, indexB]
             }
             const publish = await channel.publish('diceSwapped', diceSwappedMsg);
             return diceSwappedMsg;
