@@ -10,7 +10,6 @@ import { initTRPC } from "@trpc/server";
 import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 import superjson from "superjson";
 import { ZodError } from "zod";
-import { prisma } from "~/server/db";
 
 import { getRedisClient } from "../redis/redisClient";
 import { RedisBoggleCommands } from "../redis/api";
@@ -40,7 +39,6 @@ const createInnerTRPCContext = (_opts: CreateContextOptions) => {
   const ably = getAblyClient();
   const redis = new RedisBoggleCommands(getRedisClient());
   return {
-    prisma,
     redis,
     ably
   };
