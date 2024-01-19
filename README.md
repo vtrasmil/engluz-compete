@@ -6,7 +6,10 @@ Eventually: Boggle but competitive.
 
 Try it out at https://word-scramble-react.vercel.app/
 
-<video src="https://github.com/mikey555/word-scramble-react/assets/983004/9cbbbcd6-aa4e-4b44-85ba-b8b199a603ec"></video>
+![lobby](https://github.com/mikey555/word-scramble-react/assets/983004/173d9b91-8ec2-40f1-a4aa-17f00ddf4ec8)
+
+![words](https://github.com/mikey555/word-scramble-react/assets/983004/78bfc29b-fa85-45d3-b31a-ff73200a4ec5)
+
 
 <p><i>(what's happening here: (1) player swaps letter I with B and (2) selects the word "RAIN". (3) The selected letters "re-roll", revealing new letters.)</i></p>
 
@@ -23,7 +26,7 @@ Try it out at https://word-scramble-react.vercel.app/
 - Tanstack / React Query
 - T3: Next.js, tRPC, Tailwind CSS
 - Ably pub-sub messaging
-- Material UI
+- shadcn/ui
 - react-spring (animation)
 
 Although I've implemented the foundations, the game is a work-in-progress. I'm now working on game design - coming up with engaging multiplayer experience.
