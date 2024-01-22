@@ -9,7 +9,6 @@ export const env = createEnv({
   server: {
     NODE_ENV: z.enum(["development", "test", "production"]),
     ABLY_API_KEY: z.string().min(1),
-    USE_LOCAL_REDIS: z.coerce.boolean(),
     VERCEL_ENV: z.enum(["development", "preview", "production"])
   },
 
@@ -29,7 +28,6 @@ export const env = createEnv({
   runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
     ABLY_API_KEY: process.env.ABLY_API_KEY,
-    USE_LOCAL_REDIS: process.env.USE_LOCAL_REDIS,
     VERCEL_ENV: process.env.VERCEL_ENV,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },

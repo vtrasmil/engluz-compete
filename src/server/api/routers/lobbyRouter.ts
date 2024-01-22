@@ -55,19 +55,20 @@ export const lobbyRouter = createTRPCRouter({
     }))
     .mutation(async (opts) => {
       let gameId, roomCode, boardArray, isRoomCodeActive;
+      const redis = opts.ctx.redis;
       if (opts.input.newGame) {
         // hosting
-        gameId = await opts.ctx.redis.createGameId();
-        roomCode = await opts.ctx.redis.createRoomCode(gameId);
-        boardArray = await opts.ctx.redis.createDice(gameId);
+        gameId = await redis.createGameId();
+        roomCode = await redis.createRoomCode(gameId);
+        boardArray = await redis.createDice(gameId);
       } else {
         // joining
         roomCode = opts.input.roomCode;
         if (roomCode == undefined) throw new Error(`Please enter a room code`);
-        isRoomCodeActive = await opts.ctx.redis.isRoomCodeActive(roomCode);
+        isRoomCodeActive = await redis.isRoomCodeActive(roomCode);
         if (!isRoomCodeActive) throw new Error(`Room code ${roomCode} is not currently active`);
-        gameId = await opts.ctx.redis.getGameId(roomCode);
-        boardArray = await opts.ctx.redis.getDice(gameId);
+        gameId = await redis.getGameId(roomCode);
+        boardArray = await redis.getDice(gameId);
       }
       const boardConfig = boardArray.map((lb, i) => (
         {

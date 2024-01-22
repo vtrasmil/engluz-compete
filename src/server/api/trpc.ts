@@ -15,6 +15,7 @@ import { getRedisClient } from "../redis/redisClient";
 import { RedisBoggleCommands } from "../redis/api";
 
 import { getAblyClient } from "../ably/ablyClient";
+import { kv } from "@vercel/kv";
 /**
  * 1. CONTEXT
  *
@@ -37,7 +38,7 @@ type CreateContextOptions = Record<string, never>;
  */
 const createInnerTRPCContext = (_opts: CreateContextOptions) => {
   const ably = getAblyClient();
-  const redis = new RedisBoggleCommands(getRedisClient());
+  const redis = new RedisBoggleCommands(kv);
   return {
     redis,
     ably
