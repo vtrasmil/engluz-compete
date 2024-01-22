@@ -13,6 +13,34 @@ Try it out at https://word-scramble-react.vercel.app/
 
 <p><i>(what's happening here: (1) player swaps letter I with B and (2) selects the word "RAIN". (3) The selected letters "re-roll", revealing new letters.)</i></p>
 
+## Development
+```
+// development setup
+git clone https://github.com/mikey555/word-scramble-react.git
+cd word-scramble-react
+
+// install dependencies
+npm install
+npm i -g vercel
+
+```
+Duplicate `.env.example` and rename `.env`.
+Sign up for a [Vercel](https://vercel.com/) Hobby plan with a KV (Redis) storage. Add the four `KV_` env vars to your `.env`.
+Unfortunately there's no documented way to run KV locally with RedisJSON support.
+```
+
+// run tests
+
+// preview
+
+// deploy
+
+```
+
+(rewrite) Since websocket sessions are confined to a tab, you can play multiplayer by opening separate tabs.
+
+##
+
 ## Key Features
 - **Selecting words**: I implemented a custom hook `useSelectionDrag()` using PointerEvents.
 - **Swapping letters**: I used [React DnD](https://react-dnd.github.io/react-dnd/about), a popular drag-and-drop library, to implement letter swapping. I also built a custom hook `useTransformAnimation()` that manages letter position and animation. Swapping works with both touch and mouse interaction.
