@@ -2,7 +2,6 @@ import type { createClient } from "redis";
 import { generateRandomString } from "~/components/helpers";
 import { uniqueId } from "~/utils/helpers";
 import type { VercelKV } from "@vercel/kv";
-import RedisClient from "@redis/client/dist/lib/client";
 import { BoggleDice, LetterDieSchema, rollAndShuffleDice } from "../diceManager";
 
 const RedisObjects = {
@@ -33,20 +32,10 @@ export class RedisBoggleCommands {
     async getDice(gameId: string) {
         // let board: ReturnType<typeof this.redis.json.get>;
         const key = `game:${gameId}:board`;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const board = await this.redis.json.get(key);
+        // TODO: validate with zod instead of asserting
+        const board = await this.redis.json.get(key) as LetterDieSchema[];
         if (board == null) throw new Error(`No board found for gameId: ${gameId}`);
-
-        // typescript can't verify the type we get from redis.
-        // we can only check in runtime whether get is returning what we want.
-        // but we can verify that our data is what we want, and then return it with that type.
-
-        // only return the data if it matches the type
-        // I was playing with the idea of verifying this data, but this is not a good time.
-        // Let the game logic do this.
-        return board as LetterDieSchema[];
-        // throw new Error(`Redis error: ${key} does not match correct type. ${board}`);
-
+        return board;
     }
 
     async setDice(gameId: string, dice: LetterDieSchema[]) {
@@ -57,9 +46,16 @@ export class RedisBoggleCommands {
     }
 
     async getGameId(roomCode: string) {
-        const gameId = await this.redis.get(`roomCode:${roomCode}:gameId`);
-        if (gameId == null) throw new Error(`No gameId found for room code: ${roomCode}`);
-        return gameId;
+        try {
+            // TODO: validate with zod instead of asserting
+            const gameId = await this.redis.get(`roomCode:${roomCode}:gameId`) as string;
+            if (gameId == null) throw new Error(`No gameId found for room code: ${roomCode}`);
+            return gameId;
+        } catch (error) {
+            console.error(error);
+        }
+
+
     }
 
     async createGameId() {

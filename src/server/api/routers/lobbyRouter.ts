@@ -68,6 +68,7 @@ export const lobbyRouter = createTRPCRouter({
         isRoomCodeActive = await redis.isRoomCodeActive(roomCode);
         if (!isRoomCodeActive) throw new Error(`Room code ${roomCode} is not currently active`);
         gameId = await redis.getGameId(roomCode);
+        if (gameId == undefined) throw new Error(`No game is associated with room code ${roomCode}`);
         boardArray = await redis.getDice(gameId);
       }
       const boardConfig = boardArray.map((lb, i) => (
@@ -87,9 +88,9 @@ export const lobbyRouter = createTRPCRouter({
       const ably = opts.ctx.ably;
       const channel = ably.channels.get('quickstart');
       await channel.subscribe('greeting', (message) => {
-          if (typeof message.data === 'string') {
-              console.log('Received a greeting message in realtime: ' + message.data)
-          }
+        if (typeof message.data === 'string') {
+          console.log('Received a greeting message in realtime: ' + message.data)
+        }
       });
       await channel.publish('greeting', 'hello!');
     })
