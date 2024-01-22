@@ -22,22 +22,26 @@ cd word-scramble-react
 // install dependencies
 npm install
 npm i -g vercel
-
 ```
 Duplicate `.env.example` and rename `.env`.
+
 Sign up for a [Vercel](https://vercel.com/) Hobby plan with a KV (Redis) storage. Add the four `KV_` env vars to your `.env`.
+
 Unfortunately there's no documented way to run KV locally with RedisJSON support.
 ```
-
+// TODO
 // run tests
 
-// preview
+// run in development
+vercel dev
 
-// deploy
+// deploy preview
+vercel
 
+// deploy prod
+vercel deploy
 ```
-
-(rewrite) Since websocket sessions are confined to a tab, you can play multiplayer by opening separate tabs.
+Since websocket sessions are confined to a single tab, you can test multiplayer by opening a separate tab or window for each player.
 
 ##
 
