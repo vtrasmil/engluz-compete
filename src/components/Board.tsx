@@ -3,7 +3,6 @@ import { BoggleDice, LetterDieSchema } from "~/server/diceManager";
 import { useEffect, useRef, useState } from "react";
 import useSelectionDrag from "./useSelectionDrag.tsx";
 import { useUserIdContext } from "./hooks/useUserIdContext";
-import { useChannel } from "@ably-labs/react-hooks";
 import { DiceSwappedMessageData, MessageData, WordSubmittedMessageData } from "~/server/api/routers/gameplayRouter";
 import { ablyChannelName } from "~/server/ably/ablyHelpers";
 import { api } from "~/utils/api";
@@ -12,6 +11,7 @@ import { getCellIdFromLetterId, getLetterAtCell, swapCells } from "~/utils/helpe
 import { FormGroup, Stack, Typography } from "@mui/material";
 import { AntSwitch } from "./AntSwitch";
 import { MIN_WORD_LENGTH } from "./Constants.tsx";
+import { useChannel } from "ably/react";
 
 
 interface BoardProps {

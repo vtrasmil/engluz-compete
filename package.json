@@ -9,7 +9,6 @@
     "start": "next start"
   },
   "dependencies": {
-    "@ably-labs/react-hooks": "^2.1.1",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
     "@fontsource/roboto": "^5.0.8",
@@ -30,7 +29,7 @@
     "@uidotdev/usehooks": "^2.1.1",
     "@vercel/analytics": "^1.0.2",
     "@vercel/kv": "^0.2.2",
-    "ably": "^1.2.42",
+    "ably": "^1.2.48",
     "class-variance-authority": "^0.7.0",
     "classnames": "^2.3.2",
     "clsx": "^2.0.0",

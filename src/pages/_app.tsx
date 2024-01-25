@@ -6,6 +6,8 @@ import { getUserIdFromSessionStorage } from "~/utils/helpers";
 import { CssBaseline } from "@mui/material";
 import { DndProvider, usePreview } from 'react-dnd-multi-backend';
 import { HTML5toTouch } from 'rdndmb-html5-to-touch'; // or any other pipeline
+import { AblyProvider } from "ably/react";
+import * as Ably from "ably";
 
 
 
@@ -14,7 +16,6 @@ import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
 import { useIsClient } from "~/components/hooks/useIsClient";
-import { configureAbly } from "@ably-labs/react-hooks";
 import { DraggedLetter } from "~/components/LetterBlock";
 import { CSSProperties } from "react";
 
@@ -24,7 +25,7 @@ const MyDragPreview = () => {
     return null;
   }
   const { itemType, item, style } = preview;
-  const newStyle: CSSProperties = {...style, width: '50px', height: '50px'}
+  const newStyle: CSSProperties = { ...style, width: '50px', height: '50px' }
   return (
     <div className="item-list__item border border-gray-400" style={newStyle}>
       <div className={'w-full h-full flex justify-center items-center'}>{item.letters[0]}</div>
@@ -35,26 +36,29 @@ const MyDragPreview = () => {
 const MyApp: AppType = ({ Component, pageProps }) => {
   const isClient = useIsClient(); // to avoid sessionStorage-related hydration errors
   if (!isClient) {
-      return null;
+    return null;
   }
-  const userId = getUserIdFromSessionStorage();
+  const userId = getUserIdFromSessionStorage() ?? '';
 
-  configureAbly({
+  const client = new Ably.Realtime.Promise({
     authUrl: `${getBaseUrl()}/api/createTokenRequest`,
-        useTokenAuth: true,
+    authHeaders: {
+      'userId': userId
+    }
   });
 
   if (userId !== undefined)
     return (
-
-      <DndProvider options={HTML5toTouch}>
-        <UserIdProvider userId={userId}>
-          <CssBaseline>
-            {<MyDragPreview />}
-            <Component {...pageProps} />
-          </CssBaseline>
-        </UserIdProvider>
-      </DndProvider>
+      <AblyProvider client={client}>
+        <DndProvider options={HTML5toTouch}>
+          <UserIdProvider userId={userId}>
+            <CssBaseline>
+              {<MyDragPreview />}
+              <Component {...pageProps} />
+            </CssBaseline>
+          </UserIdProvider>
+        </DndProvider>
+      </AblyProvider>
     )
 };
 
