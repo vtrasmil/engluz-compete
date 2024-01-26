@@ -28,6 +28,7 @@ export enum DragMode {
 export enum AblyMessageType {
     WordSubmitted = 'wordSubmitted',
     DiceSwapped = 'diceSwapped',
+    GameStarted = 'gameStarted',
 }
 
 export interface SwappedLetterState {
@@ -64,6 +65,8 @@ export default function Board({initBoardConfig, roomCode, gameId}: BoardProps) {
     const [latestMsg, setLatestMsg] = useState<MessageData>();
     const userId = useUserIdContext();
 
+    const channelName = ablyChannelName(roomCode);
+
     function getDropTargetsMap() {
         if (!dropTargetsRef.current) {
             dropTargetsRef.current = new Map();
@@ -83,14 +86,14 @@ export default function Board({initBoardConfig, roomCode, gameId}: BoardProps) {
 
 
 
-    useChannel(ablyChannelName(roomCode), AblyMessageType.WordSubmitted, (message) => {
+    useChannel(channelName, AblyMessageType.WordSubmitted, (message) => {
         const msgData = message.data as WordSubmittedMessageData;
         setLatestMsg(msgData);
         // sent to all clients
         setBoardConfig(msgData.newBoard);
     });
 
-    useChannel(ablyChannelName(roomCode), AblyMessageType.DiceSwapped, (message) => {
+    useChannel(channelName, AblyMessageType.DiceSwapped, (message) => {
         const msgData = message.data as DiceSwappedMessageData;
         setLatestMsg(msgData);
         if (msgData.userId == userId) return;

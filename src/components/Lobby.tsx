@@ -9,7 +9,7 @@ import { useSessionStorage } from '@react-hooks-library/core';
 
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
-import LobbyJoined from "./LobbyJoined";
+import WaitingRoom from "./WaitingRoom";
 
 
 interface LobbyProps {
@@ -22,11 +22,13 @@ export default function Lobby({ userId }: LobbyProps) {
     const [storedRoomCode, setStoredRoomCode] = useSessionStorage('roomCode', '');
     const [playerName, setPlayerName] = useState('');
     const [gameId, setGameId] = useState<string>();
+    const [isHost, setIsHost] = useState<boolean>(false);
 
     const hostGame = api.lobby.hostGame.useMutation({
         onSuccess: (data) => {
             setStoredRoomCode(data.roomCode);
             setGameId(data.gameId);
+            setIsHost(true);
         }
     });
 
@@ -87,9 +89,14 @@ export default function Lobby({ userId }: LobbyProps) {
                 <div className="space-y-8">
                     {gameId == undefined ?
                         lobbyStart() :
-                        <LobbyJoined
+                        <WaitingRoom
                             gameId={gameId}
                             roomCode={storedRoomCode}
+                            playerInfo={{
+                                userId: userId,
+                                playerName: playerName,
+                                isHost: isHost
+                            }}
                             onLeaveRoom={handleLeaveRoom}
                         />}
                 </div>
@@ -102,16 +109,6 @@ export default function Lobby({ userId }: LobbyProps) {
         return (
             <>
                 <Input className="w-full" onChange={handleNameChange} placeholder="Enter your name" maxLength={12} />
-                <Button className="w-full bg-green-500"
-                    disabled={playerName.length < 1}
-                    onClick={handleHostGame}>
-                    Host a Game
-                </Button>
-                <div className="flex items-center space-x-2">
-                    <hr className="flex-grow border-zinc-200" />
-                    <span className="text-zinc-400 text-sm">OR</span>
-                    <hr className="flex-grow border-zinc-200 dark:border-zinc-700" />
-                </div>
                 <div>
                     <form className="w-full inline-flex gap-1" onSubmit={handleJoinGame}>
                         <Input className="w-[42%]" onChange={handleRoomCodeInputChange} placeholder="room code" maxLength={4}
@@ -125,6 +122,17 @@ export default function Lobby({ userId }: LobbyProps) {
                     {joinGame.isError &&
                         <div className="text-sm text-red-500">{joinGame.error.message}</div>}
                 </div>
+                <div className="flex items-center space-x-2">
+                    <hr className="flex-grow border-zinc-200" />
+                    <span className="text-zinc-400 text-sm">OR</span>
+                    <hr className="flex-grow border-zinc-200 dark:border-zinc-700" />
+                </div>
+                <Button className="w-full bg-green-500"
+                    disabled={playerName.length < 1}
+                    onClick={handleHostGame}>
+                    Host a Game
+                </Button>
+
             </>
         );
     }

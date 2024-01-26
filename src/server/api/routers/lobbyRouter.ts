@@ -1,5 +1,8 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import { GameStartedMessageData } from "./gameplayRouter";
+import { ablyChannelName } from "~/server/ably/ablyHelpers";
+import { AblyMessageType } from "~/components/Board";
 
 const totalPlayers = 4;
 
@@ -74,7 +77,9 @@ export const lobbyRouter = createTRPCRouter({
 
   startGame: publicProcedure
     .input(z.object({
+      userId: z.string(),
       gameId: z.string(),
+      roomCode: z.string(),
     }))
     .mutation(async (opts) => {
       const redis = opts.ctx.redis;
@@ -84,6 +89,14 @@ export const lobbyRouter = createTRPCRouter({
           cellId: i,
           letterBlock: lb
         }));
+      const ably = opts.ctx.ably;
+      const gameStartedMsg: GameStartedMessageData = {
+        userId: opts.input.userId,
+        initBoard: boardConfig,
+        messageType: AblyMessageType.GameStarted
+      }
+      const channel = ably.channels.get(ablyChannelName(opts.input.roomCode));
+      await channel.publish(AblyMessageType.GameStarted, gameStartedMsg);
       return {
         board: boardConfig,
         gameId: opts.input.gameId,
