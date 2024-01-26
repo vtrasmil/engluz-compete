@@ -65,8 +65,9 @@ export default function WaitingRoom({ gameId, roomCode, playerInfo, onLeaveRoom 
     if (roomCode !== '' && initBoard && gameId) {
         return (
             <>
-                <Button onClick={onLeaveRoom} variant="secondary">Leave Room: {roomCode}</Button>
-                <GameManager gameId={gameId} initBoard={initBoard} roomCode={roomCode} />
+                <GameManager gameId={gameId} initBoard={initBoard} roomCode={roomCode}
+                    onLeaveRoom={onLeaveRoom}
+                />
             </>
         )
     } else {
@@ -90,6 +91,11 @@ export default function WaitingRoom({ gameId, roomCode, playerInfo, onLeaveRoom 
                         Start Game
                     </Button>
                 }
+                <Button className="w-full" variant="secondary"
+                    onClick={onLeaveRoom}>
+                    Leave Room
+                </Button>
+
             </>
         )
     }

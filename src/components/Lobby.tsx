@@ -62,6 +62,10 @@ export default function Lobby({ userId }: LobbyProps) {
 
     function handleLeaveRoom() {
         setStoredRoomCode('');
+        setGameId(undefined);
+        setStoredRoomCode('');
+        setPlayerName('');
+        setIsHost(false);
     }
 
     const isJoinGameDisabled = () => {
