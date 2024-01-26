@@ -20,6 +20,7 @@ export default function Lobby({ userId }: LobbyProps) {
 
     const [roomCode, setRoomCode] = useState('');
     const [storedRoomCode, setStoredRoomCode] = useSessionStorage('roomCode', '');
+    const [playerName, setPlayerName] = useState('');
     const [gameId, setGameId] = useState<string>();
 
     const hostGame = api.lobby.hostGame.useMutation({
@@ -43,13 +44,18 @@ export default function Lobby({ userId }: LobbyProps) {
         // TODO: joinGame mutation gets called twice this way
         joinGame.mutate({
             roomCode: roomCode.toUpperCase(),
+            userId: userId,
+            playerName: playerName,
         });
 
     }
 
     function handleHostGame(e: FormEvent) {
         e.preventDefault();
-        hostGame.mutate();
+        hostGame.mutate({
+            userId: userId,
+            playerName: playerName,
+        });
     }
 
     function handleLeaveRoom() {
@@ -62,6 +68,10 @@ export default function Lobby({ userId }: LobbyProps) {
 
     function handleRoomCodeInputChange(e: ChangeEvent<HTMLInputElement>) {
         setRoomCode(e.target.value.toUpperCase());
+    }
+
+    function handleNameChange(e: ChangeEvent<HTMLInputElement>) {
+        setPlayerName(e.target.value);
     }
 
     const roomCodeInputProps = {
@@ -91,7 +101,12 @@ export default function Lobby({ userId }: LobbyProps) {
     function lobbyStart() {
         return (
             <>
-                <Button className="w-full bg-green-500" onClick={handleHostGame}>Host a Game</Button>
+                <Input className="w-full" onChange={handleNameChange} placeholder="Enter your name" maxLength={12} />
+                <Button className="w-full bg-green-500"
+                    disabled={playerName.length < 1}
+                    onClick={handleHostGame}>
+                    Host a Game
+                </Button>
                 <div className="flex items-center space-x-2">
                     <hr className="flex-grow border-zinc-200" />
                     <span className="text-zinc-400 text-sm">OR</span>
@@ -101,7 +116,9 @@ export default function Lobby({ userId }: LobbyProps) {
                     <form className="w-full inline-flex gap-1" onSubmit={handleJoinGame}>
                         <Input className="w-[42%]" onChange={handleRoomCodeInputChange} placeholder="room code" maxLength={4}
                                     /* inputProps={roomCodeInputProps} */ value={roomCode} /* helperText={joinGame.error?.message} */ />
-                        <Button className="w-[58%]" type="submit" disabled={roomCode.length !== 4 || hostGame.isLoading} variant="secondary">
+                        <Button className="w-[58%]" type="submit"
+                            disabled={roomCode.length !== 4 || hostGame.isLoading || playerName.length < 1}
+                            variant="secondary">
                             Join Game
                         </Button>
                     </form>

@@ -37,7 +37,9 @@ export default function LobbyJoined({ gameId, roomCode, onLeaveRoom }: LobbyJoin
     } else {
         return (
             <>
-                Waiting for players. {roomCode}
+                <div>Waiting for players. {roomCode} {gameId}</div>
+
+
                 {peers}
             </>
         )

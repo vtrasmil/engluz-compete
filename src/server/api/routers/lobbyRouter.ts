@@ -22,17 +22,19 @@ export const lobbyRouter = createTRPCRouter({
 
 
   hostGame: publicProcedure
-    .meta({
-      openapi: {
-        enabled: false,
-        method: 'GET',
-        path: '/host-game'
-      }
-    })
+    .input(z.object({
+      userId: z.string(),
+      playerName: z.string(),
+    }))
     .mutation(async (opts) => {
       const redis = opts.ctx.redis;
       const gameId = await redis.createGameId();
       const roomCode = await redis.createRoomCode(gameId);
+      const player = await redis.createPlayer({
+        userId: opts.input.userId,
+        playerName: opts.input.playerName,
+        isHost: true,
+      }, gameId);
 
       return {
         roomCode: roomCode,
@@ -45,6 +47,8 @@ export const lobbyRouter = createTRPCRouter({
     // TODO: map room codes to gameIds in redis hash
     .input(z.object({
       roomCode: z.string().optional(),
+      userId: z.string(),
+      playerName: z.string(),
     }))
     .mutation(async (opts) => {
 
@@ -55,6 +59,12 @@ export const lobbyRouter = createTRPCRouter({
       if (!isRoomCodeActive) throw new Error(`Room code ${roomCode} is not currently active`);
       const gameId = await redis.getGameId(roomCode);
       if (gameId == undefined) throw new Error(`No game is associated with room code ${roomCode}`);
+
+      const player = await redis.createPlayer({
+        userId: opts.input.userId,
+        playerName: opts.input.playerName,
+        isHost: false,
+      }, gameId);
 
       return {
         roomCode: roomCode,

@@ -1,15 +1,16 @@
 import { BoardConfiguration } from "~/components/Board";
+import { ulid } from 'ulid';
 
-export const uniqueId = function () {
-    return "id-" + Math.random().toString(36).substring(2, 16);
-    // TODO: include totalPlayers
+export const uniqueId = function (prefix?: string) {
+    if (prefix != undefined) return `${prefix}-${ulid()}`;
+    return `id-${ulid()}`;
 };
 
 export function getUserIdFromSessionStorage() {
     let userId: string;
     if (typeof window !== 'undefined') {
         const sessionUserId = sessionStorage.getItem('userId');
-        userId = sessionUserId ?? uniqueId();
+        userId = sessionUserId ?? uniqueId('user');
         if (sessionUserId !== userId)
             sessionStorage.setItem('userId', userId);
         return userId;
@@ -61,7 +62,7 @@ export function isOverlapping(element1: HTMLElement, element2: HTMLElement, thre
 }
 
 export function safeStringToInt(str: string): number | typeof NaN {
-  // Trim the string to remove leading and trailing whitespace.
+    // Trim the string to remove leading and trailing whitespace.
     str = str.trim();
 
     // If the string is empty, return NaN.
@@ -82,7 +83,7 @@ export function safeStringToInt(str: string): number | typeof NaN {
 function cloneMap<K, V>(map: Map<K, V>): Map<K, V> {
     const newMap = new Map<K, V>();
     for (const [key, value] of map.entries()) {
-    newMap.set(key, value);
+        newMap.set(key, value);
     }
     return newMap;
 }
