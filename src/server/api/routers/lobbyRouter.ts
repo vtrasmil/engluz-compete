@@ -33,11 +33,11 @@ export const lobbyRouter = createTRPCRouter({
       const redis = opts.ctx.redis;
       const gameId = await redis.createGameId();
       const roomCode = await redis.createRoomCode(gameId);
-      const player = await redis.createPlayer({
+      /* const player = await redis.createPlayer({
         userId: opts.input.userId,
         playerName: opts.input.playerName,
         isHost: true,
-      }, gameId);
+      }, gameId); */
 
       return {
         roomCode: roomCode,
@@ -63,11 +63,11 @@ export const lobbyRouter = createTRPCRouter({
       const gameId = await redis.getGameId(roomCode);
       if (gameId == undefined) throw new Error(`No game is associated with room code ${roomCode}`);
 
-      const player = await redis.createPlayer({
+      /* const player = await redis.createPlayer({
         userId: opts.input.userId,
         playerName: opts.input.playerName,
         isHost: false,
-      }, gameId);
+      }, gameId); */
 
       return {
         roomCode: roomCode,

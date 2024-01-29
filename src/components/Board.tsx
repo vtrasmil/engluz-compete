@@ -29,6 +29,7 @@ export enum AblyMessageType {
     WordSubmitted = 'wordSubmitted',
     DiceSwapped = 'diceSwapped',
     GameStarted = 'gameStarted',
+    ScoreUpdated = 'scoreUpdated',
 }
 
 export interface SwappedLetterState {
@@ -49,7 +50,7 @@ export type LatestMessage = {
 }
 
 
-export default function Board({initBoardConfig, roomCode, gameId}: BoardProps) {
+export default function Board({ initBoardConfig, roomCode, gameId }: BoardProps) {
     const [boardConfig, setBoardConfig] = useState<BoardConfiguration>(initBoardConfig);
     const [selectedLetterIds, setSelectedLetterIds] = useState<number[]>([]);
     const [isPointerDown, setIsPointerDown] = useState<boolean>(false);
@@ -115,8 +116,7 @@ export default function Board({initBoardConfig, roomCode, gameId}: BoardProps) {
 
     const handleLetterBlockEnter = (e: PointerEvent, letterBlockId: number) => {
         if (!isPointerDown || letterBlockId == undefined || selectedLetterIds.includes(letterBlockId) || submitWord.isLoading) return;
-        if (dragMode === DragMode.DragToSelect)
-        {
+        if (dragMode === DragMode.DragToSelect) {
             const lastBlockSelected = selectedLetterIds.slice(-1)[0];
             if (lastBlockSelected == undefined) return;
             const lastCellSelected = getCellIdFromLetterId(boardConfig, lastBlockSelected);
@@ -226,29 +226,29 @@ export default function Board({initBoardConfig, roomCode, gameId}: BoardProps) {
         <>
             <div className="board flex flex-col" ref={boardRef}>
                 <>
-                {rows.map((row) =>
-                    <div key={row} className="board-row flex justify-center">
-                        {rows.map(col => {
-                            const i = boardWidth * row + col;
-                            return (
-                                <LetterDropTarget key={i} cellId={i}
-                                    onHover={handleHoverSwapLetter} onDrop={handleDropLetter}
-                                    swappedLetterState={swappedLetterState} isDragging={isDragging}
-                                    ref={(node) => {
-                                        const map = getDropTargetsMap();
-                                        if (node) {
-                                            map.set(i, node);
-                                        } else {
-                                            map.delete(i);
-                                        }
-                                    }}
-                                />
-                            )
-                        })}
-                    </div>
+                    {rows.map((row) =>
+                        <div key={row} className="board-row flex justify-center">
+                            {rows.map(col => {
+                                const i = boardWidth * row + col;
+                                return (
+                                    <LetterDropTarget key={i} cellId={i}
+                                        onHover={handleHoverSwapLetter} onDrop={handleDropLetter}
+                                        swappedLetterState={swappedLetterState} isDragging={isDragging}
+                                        ref={(node) => {
+                                            const map = getDropTargetsMap();
+                                            if (node) {
+                                                map.set(i, node);
+                                            } else {
+                                                map.delete(i);
+                                            }
+                                        }}
+                                    />
+                                )
+                            })}
+                        </div>
                     )}
                     {/* LetterBlocks must be rendered in order of letterBlockId -- divs should be static */}
-                    {boardConfig.sort((a,b) => a.letterBlock.id - b.letterBlock.id).map(boardLetter => {
+                    {boardConfig.sort((a, b) => a.letterBlock.id - b.letterBlock.id).map(boardLetter => {
                         const sourceCellId = boardLetter.cellId;
                         const tempCellId = () => {
                             if (swappedLetterState?.dropTargetCell === sourceCellId) {
@@ -284,8 +284,8 @@ export default function Board({initBoardConfig, roomCode, gameId}: BoardProps) {
             </div>
             {<FormGroup className="flex items-center">
                 <Stack direction="row" spacing={1} alignItems="center">
-                    <Typography  sx={dragMode === DragMode.DragNDrop ? smallText : {}}>Select Words</Typography>
-                        <AntSwitch checked={dragMode === DragMode.DragNDrop} onChange={handleDragModeChange} inputProps={{ 'aria-label': 'ant design' }} />
+                    <Typography sx={dragMode === DragMode.DragNDrop ? smallText : {}}>Select Words</Typography>
+                    <AntSwitch checked={dragMode === DragMode.DragNDrop} onChange={handleDragModeChange} inputProps={{ 'aria-label': 'ant design' }} />
                     <Typography sx={dragMode === DragMode.DragToSelect ? smallText : {}}>Swap Letters</Typography>
                 </Stack>
             </FormGroup>}
@@ -294,9 +294,9 @@ export default function Board({initBoardConfig, roomCode, gameId}: BoardProps) {
 }
 
 const boardWidth = Math.sqrt(BoggleDice.length);
-    if (![4, 5, 6].includes(boardWidth)) {
-        throw new Error('Board must be square');
-    }
+if (![4, 5, 6].includes(boardWidth)) {
+    throw new Error('Board must be square');
+}
 const rows = [...Array(boardWidth).keys()]
 
 

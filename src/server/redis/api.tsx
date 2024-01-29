@@ -85,7 +85,7 @@ export class RedisBoggleCommands {
         return roomCode;
     }
 
-    async createPlayer(playerInfo: PlayerInfo, gameId: string) {
+    /* async createPlayer(playerInfo: PlayerInfo, gameId: string) {
         const key = `game:${gameId}:players`;
         const obj: PlayerInfo = {
             userId: playerInfo.userId,
@@ -93,12 +93,12 @@ export class RedisBoggleCommands {
             isHost: playerInfo.isHost,
         };
         const errorStr = `Player ${playerInfo.userId} (${playerInfo.playerName}) not added to gameId: ${gameId}`;
-        /*
-        JSON.SET array $ []
-        JSON.ARRAPPEND array $ '{"player1": "michael"}'
-        JSON.ARRAPPEND array $ '{"player2": "santos"}'
-        JSON.GET array $
-        */
+
+        // JSON.SET array $ []
+        // JSON.ARRAPPEND array $ '{"player1": "michael"}'
+        // JSON.ARRAPPEND array $ '{"player2": "santos"}'
+        // JSON.GET array $
+
         if (playerInfo.isHost) {
             const initPlayerInfo = await this.redis.json.set(key, '$', '[]');
             if (initPlayerInfo == null) throw new Error(errorStr);
@@ -113,16 +113,11 @@ export class RedisBoggleCommands {
         const playerInfos = await this.redis.json.get(key, '$') as PlayerInfo[];
         if (playerInfos == null) throw new Error(`No player infos found for gameId: ${gameId}`);
         return playerInfos;
-    }
+    } */
 
     async isRoomCodeActive(roomCode: string) {
         return await this.redis.sismember(RedisObjects.ActiveRoomsSet, roomCode);
     }
 }
 
-export interface PlayerInfo {
-    userId: string,
-    playerName: string,
-    isHost: boolean
-}
 

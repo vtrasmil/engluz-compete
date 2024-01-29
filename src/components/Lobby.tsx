@@ -94,13 +94,13 @@ export default function Lobby({ userId }: LobbyProps) {
                     {gameId == undefined ?
                         lobbyStart() :
                         <WaitingRoom
-                            gameId={gameId}
-                            roomCode={storedRoomCode}
-                            playerInfo={{
+                            basePlayer={{
                                 userId: userId,
                                 playerName: playerName,
-                                isHost: isHost
+                                isHost: isHost,
                             }}
+                            gameId={gameId}
+                            roomCode={storedRoomCode}
                             onLeaveRoom={handleLeaveRoom}
                         />}
                 </div>
