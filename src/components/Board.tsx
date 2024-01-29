@@ -3,7 +3,7 @@ import { BoggleDice, LetterDieSchema } from "~/server/diceManager";
 import { useEffect, useRef, useState } from "react";
 import useSelectionDrag from "./useSelectionDrag.tsx";
 import { useUserIdContext } from "./hooks/useUserIdContext";
-import { DiceSwappedMessageData, MessageData, WordSubmittedMessageData } from "~/server/api/routers/gameplayRouter";
+import { MessageData } from "~/server/api/routers/gameplayRouter";
 import { ablyChannelName } from "~/server/ably/ablyHelpers";
 import { api } from "~/utils/api";
 import LetterDropTarget from "./LetterDropTarget";
@@ -11,13 +11,14 @@ import { getCellIdFromLetterId, getLetterAtCell, swapCells } from "~/utils/helpe
 import { FormGroup, Stack, Typography } from "@mui/material";
 import { AntSwitch } from "./AntSwitch";
 import { MIN_WORD_LENGTH } from "./Constants.tsx";
-import { useChannel } from "ably/react";
 
 
 interface BoardProps {
-    initBoardConfig: BoardConfiguration,
+    boardConfig: BoardConfiguration,
     roomCode: string,
     gameId: string,
+    latestMsg: MessageData | undefined,
+    onBoardChange: (arg0: BoardConfiguration) => void,
 }
 
 export enum DragMode {
@@ -50,8 +51,8 @@ export type LatestMessage = {
 }
 
 
-export default function Board({ initBoardConfig, roomCode, gameId }: BoardProps) {
-    const [boardConfig, setBoardConfig] = useState<BoardConfiguration>(initBoardConfig);
+export default function Board({ boardConfig, roomCode, gameId, latestMsg, onBoardChange }: BoardProps) {
+
     const [selectedLetterIds, setSelectedLetterIds] = useState<number[]>([]);
     const [isPointerDown, setIsPointerDown] = useState<boolean>(false);
     const [pointerOver, setPointerOver] = useState<number>(); // pointerover
@@ -63,7 +64,6 @@ export default function Board({ initBoardConfig, roomCode, gameId }: BoardProps)
     const boardRef = useRef<HTMLDivElement | null>(null);
     const [_, setHasFirstRenderHappened] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
-    const [latestMsg, setLatestMsg] = useState<MessageData>();
     const userId = useUserIdContext();
 
     const channelName = ablyChannelName(roomCode);
@@ -81,25 +81,7 @@ export default function Board({ initBoardConfig, roomCode, gameId }: BoardProps)
         }
     });
 
-    const swapDice = api.gameplay.swapDice.useMutation({
-
-    });
-
-
-
-    useChannel(channelName, AblyMessageType.WordSubmitted, (message) => {
-        const msgData = message.data as WordSubmittedMessageData;
-        setLatestMsg(msgData);
-        // sent to all clients
-        setBoardConfig(msgData.newBoard);
-    });
-
-    useChannel(channelName, AblyMessageType.DiceSwapped, (message) => {
-        const msgData = message.data as DiceSwappedMessageData;
-        setLatestMsg(msgData);
-        if (msgData.userId == userId) return;
-        setBoardConfig(msgData.newBoard);
-    });
+    const swapDice = api.gameplay.swapDice.useMutation({});
 
     const handleLetterBlockDown = (e: PointerEvent, letterBlockId: number) => {
         if (submitWord.isLoading) return;
@@ -176,7 +158,7 @@ export default function Board({ initBoardConfig, roomCode, gameId }: BoardProps)
             gameId: gameId,
             roomCode: roomCode,
         })
-        setBoardConfig(updated);
+        onBoardChange(updated);
     };
 
     const handleContextMenu = (e: MouseEvent) => {
@@ -263,10 +245,8 @@ export default function Board({ initBoardConfig, roomCode, gameId }: BoardProps)
                             <LetterBlock key={letterBlock.id} id={letterBlock.id} letters={letterBlock.letters}
                                 onPointerDown={handleLetterBlockDown} onPointerUp={handlePointerUp}
                                 onPointerEnter={handleLetterBlockEnter}
-
                                 isSelected={selectedLetterIds.includes(letterBlock.id)}
                                 blocksSelected={selectedLetterIds}
-
                                 sourceCell={sourceCellId}
                                 temporaryCell={tempCellId()}
                                 dragMode={dragMode}

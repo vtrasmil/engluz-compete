@@ -25,10 +25,14 @@ export default function WaitingRoom({ basePlayer, gameId, roomCode, onLeaveRoom 
     const [hasGameStarted, setHasGameStarted] = useState<boolean>(false);
 
     function handleStartGame() {
+        if (presencePlayers == undefined) {
+            throw new Error('Player presence not found.')
+        }
         startGame.mutate({
             gameId: gameId,
             userId: basePlayer.userId,
             roomCode: roomCode,
+            playerIds: presencePlayers.map(p => p.userId),
         });
         // save players
         const startingPresencePlayers: GamePlayerInfo[] = presencePlayers.map(p => {

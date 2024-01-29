@@ -3,6 +3,7 @@ import { generateRandomString } from "~/components/helpers";
 import { uniqueId } from "~/utils/helpers";
 import type { VercelKV } from "@vercel/kv";
 import { BoggleDice, LetterDieSchema, rollAndShuffleDice } from "../diceManager";
+import { Score } from "~/components/Types";
 
 const RedisObjects = {
     ActiveRoomsSet: 'ActiveRoomsSet',
@@ -30,7 +31,6 @@ export class RedisBoggleCommands {
     }
 
     async getDice(gameId: string) {
-        // let board: ReturnType<typeof this.redis.json.get>;
         const key = `game:${gameId}:board`;
         // TODO: validate with zod instead of asserting
         const board = await this.redis.json.get(key) as LetterDieSchema[];
@@ -85,6 +85,38 @@ export class RedisBoggleCommands {
         return roomCode;
     }
 
+    async initGameScore(gameId: string, playerIds: string[]) {
+        const key = `game:${gameId}:scores`;
+        console.log(key)
+        const initScores: Score[] = playerIds.map(id => {
+            return { userId: id, score: 0 };
+        })
+        const set = await this.redis.json.set(key, '$', JSON.stringify(initScores));
+        if (set == null) throw new Error(`Initial scores for gameId ${gameId} failed to set`);
+        return;
+    }
+
+    async getGameScore(gameId: string) {
+        const key = `game:${gameId}:scores`;
+        return JSON.parse(await this.redis.json.get(key) as string) as Score[];
+    }
+
+    async updateGameScore(gameId: string, userId: string, amount: number) {
+        const key = `game:${gameId}:scores`;
+        // const set = await this.redis.json.set(key, `$.*[?(@.userId==${userId})]`, scores);
+        const scores = await this.redis.json.get(key) as Score[]; // TODO: this badly needs validation
+        if (scores == null) throw new Error(`No scores found for gameId ${gameId}`);
+        const score = scores.find(x => x.userId === userId);
+        if (score != undefined) {
+            score.score += amount;
+            const set = await this.redis.json.set(key, '$', scores);
+            if (set == null) throw new Error(`Score of ${amount} for userId ${userId} in gameId ${gameId} failed to set`);
+            return scores;
+        } else {
+            throw new Error(`Can't find score for userId ${userId} in gameId ${gameId}`)
+        }
+    }
+
     /* async createPlayer(playerInfo: PlayerInfo, gameId: string) {
         const key = `game:${gameId}:players`;
         const obj: PlayerInfo = {
@@ -110,7 +142,7 @@ export class RedisBoggleCommands {
 
     async getPlayers(gameId: string) {
         const key = `game:${gameId}:players`;
-        const playerInfos = await this.redis.json.get(key, '$') as PlayerInfo[];
+        const playerInfos = await this.redis.json.get(key) as PlayerInfo[];
         if (playerInfos == null) throw new Error(`No player infos found for gameId: ${gameId}`);
         return playerInfos;
     } */

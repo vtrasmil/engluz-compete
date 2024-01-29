@@ -2,10 +2,10 @@ import { useState } from "react";
 import Board, { AblyMessageType, BoardConfiguration } from "./Board.tsx";
 import Scoreboard from "./Scoreboard.tsx";
 import { useUserIdContext } from "./hooks/useUserIdContext";
-import { GamePlayerInfo, RoomPlayerInfo } from "./Types.tsx";
+import { RoomPlayerInfo } from "./Types.tsx";
 import { useChannel } from "ably/react";
 import { ablyChannelName } from "~/server/ably/ablyHelpers.ts";
-import { ScoreUpdatedMessageData } from "~/server/api/routers/gameplayRouter.ts";
+import { DiceSwappedMessageData, MessageData, WordSubmittedMessageData } from "~/server/api/routers/gameplayRouter.ts";
 import { Score } from "./Types.tsx";
 
 interface GameManagerProps {
@@ -19,24 +19,40 @@ interface GameManagerProps {
 export default function GameManager({ gameId, initBoard, roomCode, roomPlayerInfos }: GameManagerProps) {
     const userId = useUserIdContext();
     const duration = 10;
-    const [scores, setScores] = useState<Score[]>();
-    const [gamePlayerInfo, setGamePlayerInfo] = useState<GamePlayerInfo[]>(
-        roomPlayerInfos.map(rpi => { return { ...rpi, score: 0 } })
+    const [boardConfig, setBoardConfig] = useState<BoardConfiguration>(initBoard);
+    const [scores, setScores] = useState<Score[]>(
+        roomPlayerInfos.map(p => ({ userId: p.userId, score: 0 }))
     );
     const channelName = ablyChannelName(roomCode);
+    const [latestMsg, setLatestMsg] = useState<MessageData>();
 
-    useChannel(channelName, AblyMessageType.ScoreUpdated, (message) => {
-        const msgData = message.data as ScoreUpdatedMessageData;
-        setScores(msgData.scores)
+    useChannel(channelName, AblyMessageType.WordSubmitted, (message) => {
+        const msgData = message.data as WordSubmittedMessageData;
+        setLatestMsg(msgData);
+        // sent to all clients
+        setBoardConfig(msgData.newBoard);
+        setScores(msgData.newScores);
     });
+
+    useChannel(channelName, AblyMessageType.DiceSwapped, (message) => {
+        const msgData = message.data as DiceSwappedMessageData;
+        setLatestMsg(msgData);
+        if (msgData.userId == userId) return;
+        setBoardConfig(msgData.newBoard);
+    });
+
+    function handleBoardChange(boardConfig: BoardConfiguration) {
+        setBoardConfig(boardConfig);
+    }
 
     return (
         <>
             {initBoard &&
                 (
                     <>
-                        <Board initBoardConfig={initBoard} roomCode={roomCode} gameId={gameId} />
-                        <Scoreboard playerInfos={gamePlayerInfo} />
+                        <Board boardConfig={boardConfig} roomCode={roomCode}
+                            gameId={gameId} latestMsg={latestMsg} onBoardChange={handleBoardChange} />
+                        <Scoreboard playerInfos={roomPlayerInfos} scores={scores} />
                     </>
                 )
             }

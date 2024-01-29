@@ -17,6 +17,7 @@ export type WordSubmittedMessageData = {
     newBoard: BoardConfiguration,
     wordSubmitted: string,
     sourceCellIds: number[],
+    newScores: Score[],
 } & DefaultAblyMessageData;
 
 export type DiceSwappedMessageData = {
@@ -46,16 +47,18 @@ export const gameplayRouter = createTRPCRouter({
             roomCode: z.string().min(1),
         }))
         .mutation(async (opts) => {
-            const { userId, gameId } = opts.input;
-            const dice = await opts.ctx.redis.getDice(gameId);
-            const word = getWordFromBoard(opts.input.cellIds, dice).replace('Q', 'QU');
-            const isValid = await isWordValid(word, opts.ctx.redis);
-            // const isValid = true;
+            const { userId, gameId, roomCode, cellIds } = opts.input;
+            const { redis, ably } = opts.ctx;
+
+            const channelName = ablyChannelName(roomCode)
+            const dice = await redis.getDice(gameId);
+            const word = getWordFromBoard(cellIds, dice).replace('Q', 'QU');
+            const isValid = await isWordValid(word, redis);
             if (isValid) {
-                const reroll = rollDice(dice, opts.input.cellIds);
-                await opts.ctx.redis.setDice(opts.input.gameId, reroll);
-                const ably = opts.ctx.ably;
-                const channel = ably.channels.get(ablyChannelName(opts.input.roomCode));
+                const reroll = rollDice(dice, cellIds);
+                await redis.setDice(gameId, reroll);
+                const newScores = await redis.updateGameScore(gameId, userId, 1);
+                const channel = ably.channels.get(channelName);
                 const wordSubmittedMsg: WordSubmittedMessageData = {
                     userId: userId,
                     newBoard: reroll.map((lb, i) => ({
@@ -64,7 +67,8 @@ export const gameplayRouter = createTRPCRouter({
                     })),
                     wordSubmitted: word,
                     messageType: AblyMessageType.WordSubmitted,
-                    sourceCellIds: opts.input.cellIds
+                    sourceCellIds: cellIds,
+                    newScores: newScores,
                 }
                 await channel.publish(AblyMessageType.WordSubmitted, wordSubmittedMsg);
                 return { isValid: true };
