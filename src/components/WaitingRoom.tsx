@@ -89,9 +89,9 @@ export default function WaitingRoom({ basePlayer, gameId, roomCode, onLeaveRoom 
         } else {
             return (
                 <>
-                    <div>Waiting for players... </div>
-                    <div className="flex items-center space-x-2">
-                        <Checkbox id="ready-checkbox" onCheckedChange={handleReadyToggle} />
+                    <div className="flex items-center space-x-2 justify-center">
+                        <Checkbox className="w-10 h-10"
+                            id="ready-checkbox" onCheckedChange={handleReadyToggle} />
                         <label
                             htmlFor="terms"
                             className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -107,13 +107,19 @@ export default function WaitingRoom({ basePlayer, gameId, roomCode, onLeaveRoom 
                             Start Game
                         </Button>
                     }
-                    <div>
-                        {!hasGameStarted && presencePlayers.map(p => (
-                            <div key={p.userId}>
-                                {p.playerName}: {p.readyStatus}
-                            </div>
-                        ))}
-                    </div>
+
+                    {!hasGameStarted &&
+                        <>
+                            {allPlayersReady ?
+                                <div>Waiting for host to start... </div> :
+                                <div>Waiting for players... </div>}
+                            {presencePlayers.map(p => (
+                                <div key={p.userId}>
+                                    {p.playerName}: {p.readyStatus}
+                                </div>
+                            ))}
+                        </>
+                    }
                 </>
             )
         }

@@ -90,7 +90,7 @@ export default function Lobby({ userId }: LobbyProps) {
         return (
             <div className="flex flex-col items-center m-3 space-y-6">
                 <h1 className="text-2xl">WORDS WORDS WORDS</h1>
-                <div className="space-y-8">
+                <div className="space-y-8 w-full">
                     {gameId == undefined ?
                         lobbyStart() :
                         <WaitingRoom
