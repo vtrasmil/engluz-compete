@@ -5,6 +5,7 @@ import { rollDice } from "~/server/diceManager";
 import { ablyChannelName } from "~/server/ably/ablyHelpers";
 import { swap } from "~/utils/helpers";
 import { AblyMessageType, BoardConfiguration } from "~/components/Board";
+import { Score } from "~/components/Types";
 
 interface DefaultAblyMessageData {
     userId: string,
@@ -22,6 +23,16 @@ export type DiceSwappedMessageData = {
     newBoard: BoardConfiguration,
     sourceCellIds: number[],
 } & DefaultAblyMessageData;
+
+export type GameStartedMessageData = {
+    initBoard: BoardConfiguration,
+} & DefaultAblyMessageData;
+
+export type ScoreUpdatedMessageData = {
+    scores: Score[],
+} & DefaultAblyMessageData;
+
+
 
 export type MessageData = WordSubmittedMessageData | DiceSwappedMessageData;
 
@@ -45,7 +56,7 @@ export const gameplayRouter = createTRPCRouter({
                 await opts.ctx.redis.setDice(opts.input.gameId, reroll);
                 const ably = opts.ctx.ably;
                 const channel = ably.channels.get(ablyChannelName(opts.input.roomCode));
-                const wordSubmittedMsg : WordSubmittedMessageData = {
+                const wordSubmittedMsg: WordSubmittedMessageData = {
                     userId: userId,
                     newBoard: reroll.map((lb, i) => ({
                         cellId: i,
@@ -55,7 +66,7 @@ export const gameplayRouter = createTRPCRouter({
                     messageType: AblyMessageType.WordSubmitted,
                     sourceCellIds: opts.input.cellIds
                 }
-                const publish = await channel.publish('wordSubmitted', wordSubmittedMsg);
+                await channel.publish(AblyMessageType.WordSubmitted, wordSubmittedMsg);
                 return { isValid: true };
             } else {
                 return { isValid: false, wordSubmitted: word };
@@ -80,16 +91,16 @@ export const gameplayRouter = createTRPCRouter({
             await opts.ctx.redis.setDice(opts.input.gameId, swappedDice);
             const ably = opts.ctx.ably;
             const channel = ably.channels.get(ablyChannelName(opts.input.roomCode));
-            const diceSwappedMsg : DiceSwappedMessageData = {
+            const diceSwappedMsg: DiceSwappedMessageData = {
                 userId: userId,
                 newBoard: swappedDice.map((lb, i) => ({
-                        cellId: i,
-                        letterBlock: lb
+                    cellId: i,
+                    letterBlock: lb
                 })),
                 messageType: AblyMessageType.DiceSwapped,
                 sourceCellIds: [indexA, indexB]
             }
-            const publish = await channel.publish('diceSwapped', diceSwappedMsg);
+            const publish = await channel.publish(AblyMessageType.DiceSwapped, diceSwappedMsg);
             return diceSwappedMsg;
 
         }),
