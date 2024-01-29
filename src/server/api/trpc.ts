@@ -11,7 +11,6 @@ import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
-import { getRedisClient } from "../redis/redisClient";
 import { RedisBoggleCommands } from "../redis/api";
 
 import { getAblyClient } from "../ably/ablyClient";
