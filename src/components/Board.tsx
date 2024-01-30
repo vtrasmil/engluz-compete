@@ -207,68 +207,66 @@ export default function Board({ boardConfig, roomCode, gameId, latestMsg, onBoar
     return (
         <>
             <div className="board flex flex-col" ref={boardRef}>
-                <>
-                    {rows.map((row) =>
-                        <div key={row} className="board-row flex justify-center">
-                            {rows.map(col => {
-                                const i = boardWidth * row + col;
-                                return (
-                                    <LetterDropTarget key={i} cellId={i}
-                                        onHover={handleHoverSwapLetter} onDrop={handleDropLetter}
-                                        swappedLetterState={swappedLetterState} isDragging={isDragging}
-                                        ref={(node) => {
-                                            const map = getDropTargetsMap();
-                                            if (node) {
-                                                map.set(i, node);
-                                            } else {
-                                                map.delete(i);
-                                            }
-                                        }}
-                                    />
-                                )
-                            })}
-                        </div>
-                    )}
-                    {/* LetterBlocks must be rendered in order of letterBlockId -- divs should be static */}
-                    {boardConfig.sort((a, b) => a.letterBlock.id - b.letterBlock.id).map(boardLetter => {
-                        const sourceCellId = boardLetter.cellId;
-                        const tempCellId = () => {
-                            if (swappedLetterState?.dropTargetCell === sourceCellId) {
-                                return swappedLetterState.dragSourceCell;
-                            } else if (swappedLetterState?.dragSourceCell === sourceCellId) {
-                                return swappedLetterState.dropTargetCell;
-                            }
-                            return undefined;
+                {rows.map((row) =>
+                    <div key={row} className="board-row flex justify-center">
+                        {rows.map(col => {
+                            const i = boardWidth * row + col;
+                            return (
+                                <LetterDropTarget key={i} cellId={i}
+                                    onHover={handleHoverSwapLetter} onDrop={handleDropLetter}
+                                    swappedLetterState={swappedLetterState} isDragging={isDragging}
+                                    ref={(node) => {
+                                        const map = getDropTargetsMap();
+                                        if (node) {
+                                            map.set(i, node);
+                                        } else {
+                                            map.delete(i);
+                                        }
+                                    }}
+                                />
+                            )
+                        })}
+                    </div>
+                )}
+                {/* LetterBlocks must be rendered in order of letterBlockId -- divs should be static */}
+                {boardConfig.sort((a, b) => a.letterBlock.id - b.letterBlock.id).map(boardLetter => {
+                    const sourceCellId = boardLetter.cellId;
+                    const tempCellId = () => {
+                        if (swappedLetterState?.dropTargetCell === sourceCellId) {
+                            return swappedLetterState.dragSourceCell;
+                        } else if (swappedLetterState?.dragSourceCell === sourceCellId) {
+                            return swappedLetterState.dropTargetCell;
                         }
-                        const letterBlock = boardLetter.letterBlock;
-                        return (
-                            <LetterBlock key={letterBlock.id} id={letterBlock.id} letters={letterBlock.letters}
-                                onPointerDown={handleLetterBlockDown} onPointerUp={handlePointerUp}
-                                onPointerEnter={handleLetterBlockEnter}
-                                isSelected={selectedLetterIds.includes(letterBlock.id)}
-                                blocksSelected={selectedLetterIds}
-                                sourceCell={sourceCellId}
-                                temporaryCell={tempCellId()}
-                                dragMode={dragMode}
-                                onDragStart={handleOnDragStart}
-                                onDragEnd={handleOnDragEnd}
-                                dropTargetRefs={dropTargetsRef.current}
-                                swappedLetterState={swappedLetterState}
-                                boardDiv={boardRef.current}
-                                numTimesRolled={letterBlock.numTimesRolled}
-                                latestMsg={latestMsg}
-                            />)
-                    })
+                        return undefined;
                     }
-                </>
+                    const letterBlock = boardLetter.letterBlock;
+                    return (
+                        <LetterBlock key={letterBlock.id} id={letterBlock.id} letters={letterBlock.letters}
+                            onPointerDown={handleLetterBlockDown} onPointerUp={handlePointerUp}
+                            onPointerEnter={handleLetterBlockEnter}
+                            isSelected={selectedLetterIds.includes(letterBlock.id)}
+                            blocksSelected={selectedLetterIds}
+                            sourceCell={sourceCellId}
+                            temporaryCell={tempCellId()}
+                            dragMode={dragMode}
+                            onDragStart={handleOnDragStart}
+                            onDragEnd={handleOnDragEnd}
+                            dropTargetRefs={dropTargetsRef.current}
+                            swappedLetterState={swappedLetterState}
+                            boardDiv={boardRef.current}
+                            numTimesRolled={letterBlock.numTimesRolled}
+                            latestMsg={latestMsg}
+                        />)
+                })
+                }
             </div>
-            {<FormGroup className="flex items-center">
+            <FormGroup className="flex items-center">
                 <Stack direction="row" spacing={1} alignItems="center">
                     <Typography sx={dragMode === DragMode.DragNDrop ? smallText : {}}>Select Words</Typography>
                     <AntSwitch checked={dragMode === DragMode.DragNDrop} onChange={handleDragModeChange} inputProps={{ 'aria-label': 'ant design' }} />
                     <Typography sx={dragMode === DragMode.DragToSelect ? smallText : {}}>Swap Letters</Typography>
                 </Stack>
-            </FormGroup>}
+            </FormGroup>
         </>
     );
 }
