@@ -85,11 +85,11 @@ export class RedisBoggleCommands {
         return roomCode;
     }
 
-    async initGameScore(gameId: string, playerIds: string[]) {
+    async initGameScore(gameId: string, playersOrdered: {userId: string, playerName: string}[]) {
         const key = `game:${gameId}:scores`;
         console.log(key)
-        const initScores: Score[] = playerIds.map(id => {
-            return { userId: id, score: 0 };
+        const initScores: Score[] = playersOrdered.map(p => {
+            return { userId: p.userId, score: 0 };
         })
         const set = await this.redis.json.set(key, '$', JSON.stringify(initScores));
         if (set == null) throw new Error(`Initial scores for gameId ${gameId} failed to set`);

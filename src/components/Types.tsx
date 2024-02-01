@@ -1,4 +1,14 @@
+import { z } from "zod";
 import { ReadyOptions } from "./WaitingRoom";
+import { DragMode } from "./Board";
+
+
+
+export const basicPlayerInfoSchema = z.object({
+    userId: z.string(),
+    playerName: z.string(),
+})
+export type BasicPlayerInfo = z.infer<typeof basicPlayerInfoSchema>;
 
 export interface BasePlayerInfo {
     userId: string,
@@ -11,12 +21,12 @@ export interface RoomPlayerInfo extends BasePlayerInfo {
     readyStatus: ReadyOptions,
 }
 
-export interface GamePlayerInfo extends RoomPlayerInfo {
-    score: number,
-
-}
-
 export type Score = {
     userId: string,
     score: number
+}
+
+export interface GameSettings {
+    turnPhases: DragMode[],
+    numRounds: number
 }

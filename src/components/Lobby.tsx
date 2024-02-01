@@ -90,7 +90,7 @@ export default function Lobby({ userId }: LobbyProps) {
         return (
             <div className="flex flex-col items-center m-3 space-y-6">
                 <h1 className="text-2xl">WORDS WORDS WORDS</h1>
-                <div className="space-y-8 w-full">
+                <div className="">
                     {gameId == undefined ?
                         lobbyStart() :
                         <WaitingRoom
@@ -111,7 +111,7 @@ export default function Lobby({ userId }: LobbyProps) {
 
     function lobbyStart() {
         return (
-            <>
+            <div className="space-y-6">
                 <Input className="w-full" onChange={handleNameChange} placeholder="Enter your name" maxLength={12} />
                 <div>
                     <form className="w-full inline-flex gap-1" onSubmit={handleJoinGame}>
@@ -137,7 +137,7 @@ export default function Lobby({ userId }: LobbyProps) {
                     Host a Game
                 </Button>
 
-            </>
+            </div>
         );
     }
 

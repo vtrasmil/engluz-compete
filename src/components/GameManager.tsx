@@ -1,8 +1,8 @@
 import { useState } from "react";
-import Board, { AblyMessageType, BoardConfiguration } from "./Board.tsx";
+import Board, { AblyMessageType, BoardConfiguration, DragMode } from "./Board.tsx";
 import Scoreboard from "./Scoreboard.tsx";
 import { useUserIdContext } from "./hooks/useUserIdContext";
-import { RoomPlayerInfo } from "./Types.tsx";
+import { BasicPlayerInfo, GameSettings } from "./Types.tsx";
 import { useChannel } from "ably/react";
 import { ablyChannelName } from "~/server/ably/ablyHelpers.ts";
 import { DiceSwappedMessageData, MessageData, WordSubmittedMessageData } from "~/server/api/routers/gameplayRouter.ts";
@@ -12,19 +12,28 @@ interface GameManagerProps {
     gameId: string,
     initBoard: BoardConfiguration,
     roomCode: string,
-    roomPlayerInfos: RoomPlayerInfo[],
+    playersOrdered: BasicPlayerInfo[],
 
 }
 
-export default function GameManager({ gameId, initBoard, roomCode, roomPlayerInfos }: GameManagerProps) {
+const settings: GameSettings = {
+    turnPhases: [DragMode.DragNDrop, DragMode.DragToSelect],
+    numRounds: 5,
+}
+
+export default function GameManager({ gameId, initBoard, roomCode, playersOrdered }: GameManagerProps) {
     const userId = useUserIdContext();
     const duration = 10;
     const [boardConfig, setBoardConfig] = useState<BoardConfiguration>(initBoard);
     const [scores, setScores] = useState<Score[]>(
-        roomPlayerInfos.map(p => ({ userId: p.userId, score: 0 }))
+        playersOrdered.map(p => ({ userId: p.userId, score: 0 }))
     );
     const channelName = ablyChannelName(roomCode);
     const [latestMsg, setLatestMsg] = useState<MessageData>();
+    const [round, setRound] = useState(0);
+    const [turn, setTurn] = useState(0);
+    const [phase, setPhase] = useState(0);
+    const [gameFinished, setGameFinished] = useState<boolean>(false);
 
     useChannel(channelName, AblyMessageType.WordSubmitted, (message) => {
         const msgData = message.data as WordSubmittedMessageData;
@@ -32,30 +41,55 @@ export default function GameManager({ gameId, initBoard, roomCode, roomPlayerInf
         // sent to all clients
         setBoardConfig(msgData.newBoard);
         setScores(msgData.newScores);
+        advanceGameState();
     });
 
     useChannel(channelName, AblyMessageType.DiceSwapped, (message) => {
         const msgData = message.data as DiceSwappedMessageData;
         setLatestMsg(msgData);
-        if (msgData.userId == userId) return;
+        // if (msgData.userId == userId) return;
         setBoardConfig(msgData.newBoard);
+        advanceGameState();
     });
 
     function handleBoardChange(boardConfig: BoardConfiguration) {
         setBoardConfig(boardConfig);
     }
 
+    const currTurnPhase = settings.turnPhases[phase];
+    if (currTurnPhase == undefined) throw new Error('Turn phase is undefined');
+    const gameState = {
+        round: round, turn: turn, phase: phase,
+        phaseType: currTurnPhase, gameFinished: gameFinished
+    };
+    function advanceGameState() {
+        if (phase + 1 < settings.turnPhases.length) {
+            setPhase(phase + 1);
+        } else {
+            setPhase(0);
+            if (turn + 1 < playersOrdered.length) {
+                setTurn(turn + 1);
+            } else {
+                setTurn(0)
+                if (round + 1 < settings.numRounds) {
+                    setRound(round + 1);
+                } else {
+                    setGameFinished(true);
+                }
+            }
+        }
+    }
+
+    const clientTurn = playersOrdered.findIndex(p => p.userId === userId);
+    const isClientsTurn = turn === clientTurn && !gameFinished;
+
     return (
         <>
-            {initBoard &&
-                (
-                    <>
-                        <Board boardConfig={boardConfig} roomCode={roomCode}
-                            gameId={gameId} latestMsg={latestMsg} onBoardChange={handleBoardChange} />
-                        <Scoreboard playerInfos={roomPlayerInfos} scores={scores} />
-                    </>
-                )
-            }
+            <Board boardConfig={boardConfig} roomCode={roomCode}
+                gameId={gameId} latestMsg={latestMsg} onBoardChange={handleBoardChange}
+                isClientsTurn={isClientsTurn} dragMode={currTurnPhase} />
+            <Scoreboard playerInfos={playersOrdered} scores={scores}
+                round={round} turn={turn} isClientsTurn={isClientsTurn} gameState={gameState} />
         </>
     )
 

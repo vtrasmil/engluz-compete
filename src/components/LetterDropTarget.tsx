@@ -44,7 +44,7 @@ const LetterDropTarget = forwardRef<HTMLDivElement, LetterDropTargetType>(
         }
 
         function drop(item: DraggedLetter) {
-            const letter = { letters: item.letters, id: item.id } as LetterDieSchema;
+            const letter = { letters: item.letters, id: item.id } as LetterDieSchema; // TODO: why is this asserted?
             onDrop(cellId, letter);
         }
 

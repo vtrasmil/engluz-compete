@@ -3,6 +3,9 @@ import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { GameStartedMessageData } from "./gameplayRouter";
 import { ablyChannelName } from "~/server/ably/ablyHelpers";
 import { AblyMessageType } from "~/components/Board";
+import shuffleArrayCopy from "~/components/helpers";
+import { isHTTPMethod } from "next/dist/server/web/http";
+import { basicPlayerInfoSchema } from "~/components/Types";
 
 const totalPlayers = 4;
 
@@ -68,30 +71,33 @@ export const lobbyRouter = createTRPCRouter({
       userId: z.string(),
       gameId: z.string(),
       roomCode: z.string(),
-      playerIds: z.string().array()
+      players: basicPlayerInfoSchema.array(),
     }))
     .mutation(async (opts) => {
       const { redis, ably } = opts.ctx;
+      const { players, roomCode } = opts.input;
       const boardArray = await redis.createDice(opts.input.gameId);
       const boardConfig = boardArray.map((lb, i) => (
         {
           cellId: i,
           letterBlock: lb
         }));
+
+      const playersOrdered = shuffleArrayCopy(players);
       const gameStartedMsg: GameStartedMessageData = {
         userId: opts.input.userId,
+        messageType: AblyMessageType.GameStarted,
+
         initBoard: boardConfig,
-        messageType: AblyMessageType.GameStarted
+        players: playersOrdered
       }
 
-      await redis.initGameScore(opts.input.gameId, opts.input.playerIds);
-      const channel = ably.channels.get(ablyChannelName(opts.input.roomCode));
+      const playerIds = players.map(p => p.userId);
+      await redis.initGameScore(opts.input.gameId, playersOrdered);
 
+      const channelName = ablyChannelName(roomCode);
+      const channel = ably.channels.get(channelName);
       await channel.publish(AblyMessageType.GameStarted, gameStartedMsg);
-      return {
-        board: boardConfig,
-        gameId: opts.input.gameId,
-      }
     }),
 });
 

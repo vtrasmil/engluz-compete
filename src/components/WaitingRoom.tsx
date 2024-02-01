@@ -8,7 +8,7 @@ import { useChannel, usePresence } from "ably/react";
 import { Checkbox } from "~/components/ui/checkbox";
 import { CheckedState } from "@radix-ui/react-checkbox";
 import { GameStartedMessageData } from "~/server/api/routers/gameplayRouter";
-import { BasePlayerInfo, GamePlayerInfo, RoomPlayerInfo } from "./Types";
+import { BasePlayerInfo, BasicPlayerInfo, RoomPlayerInfo } from "./Types";
 
 
 interface WaitingRoomProps {
@@ -21,7 +21,7 @@ export default function WaitingRoom({ basePlayer, gameId, roomCode, onLeaveRoom 
     const channelName = ablyChannelName(roomCode);
     const [initBoard, setInitBoard] = useState<BoardConfiguration | undefined>();
     const startGame = api.lobby.startGame.useMutation({});
-    const [startingPlayers, setStartingPlayers] = useState<GamePlayerInfo[]>();
+    const [playersOrdered, setPlayersOrdered] = useState<BasicPlayerInfo[]>();
     const [hasGameStarted, setHasGameStarted] = useState<boolean>(false);
 
     function handleStartGame() {
@@ -32,20 +32,16 @@ export default function WaitingRoom({ basePlayer, gameId, roomCode, onLeaveRoom 
             gameId: gameId,
             userId: basePlayer.userId,
             roomCode: roomCode,
-            playerIds: presencePlayers.map(p => p.userId),
+            players: presencePlayers.map(p => {
+                return {
+                    userId: p.userId,
+                    playerName: p.playerName,
+                }
+            }),
         });
-        // save players
-        const startingPresencePlayers: GamePlayerInfo[] = presencePlayers.map(p => {
-            return {
-                userId: p.userId,
-                playerName: p.playerName,
-                isHost: p.isHost,
-                readyStatus: p.readyStatus,
-                score: 0,
-            }
-        });
-        setStartingPlayers(startingPresencePlayers);
-        setHasGameStarted(true);
+
+
+
 
     }
 
@@ -53,6 +49,8 @@ export default function WaitingRoom({ basePlayer, gameId, roomCode, onLeaveRoom 
         const msgData = message.data as GameStartedMessageData;
         // if (msgData.userId == playerInfo.userId) return;
         setInitBoard(msgData.initBoard);
+        setHasGameStarted(true);
+        setPlayersOrdered(msgData.players);
     });
 
     function handleReadyToggle(checked: CheckedState) {
@@ -75,6 +73,7 @@ export default function WaitingRoom({ basePlayer, gameId, roomCode, onLeaveRoom 
     }
     const { presenceData, updateStatus } = usePresence(channelName, createPresenceObj(ReadyOptions.NotReady));
     const presencePlayers = presenceData.map((msg) => msg.data);
+    const clientPlayer = playersOrdered?.find(p => p.userId === basePlayer.userId);
     const allPlayersReady = (() => {
         const notReady = presenceData.find(p => p.data.readyStatus === ReadyOptions.NotReady);
         if (notReady == undefined) return true;
@@ -82,17 +81,17 @@ export default function WaitingRoom({ basePlayer, gameId, roomCode, onLeaveRoom 
     })();
 
     function waitingOrGame() {
-        if (roomCode !== '' && initBoard && gameId) {
+        if (roomCode !== '' && initBoard && gameId && playersOrdered) {
             return (
                 <>
                     <GameManager gameId={gameId} initBoard={initBoard} roomCode={roomCode}
-                        roomPlayerInfos={presencePlayers}
+                        playersOrdered={playersOrdered}
                     />
                 </>
             )
         } else {
             return (
-                <>
+                <div className="space-y-6">
                     <div className="flex items-center space-x-2 justify-center">
                         <Checkbox className="w-10 h-10"
                             id="ready-checkbox" onCheckedChange={handleReadyToggle} />
@@ -124,14 +123,14 @@ export default function WaitingRoom({ basePlayer, gameId, roomCode, onLeaveRoom 
                             ))}
                         </>
                     }
-                </>
+                </div>
             )
         }
     }
 
     return (
         <>
-            <Button onClick={onLeaveRoom} variant="secondary">Leave Room: {roomCode}</Button>
+            <Button className="mb-6" onClick={onLeaveRoom} variant="secondary">Leave Room: {roomCode}</Button>
             {waitingOrGame()}
         </>
     )

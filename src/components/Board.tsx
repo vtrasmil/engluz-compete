@@ -8,8 +8,6 @@ import { ablyChannelName } from "~/server/ably/ablyHelpers";
 import { api } from "~/utils/api";
 import LetterDropTarget from "./LetterDropTarget";
 import { getCellIdFromLetterId, getLetterAtCell, swapCells } from "~/utils/helpers";
-import { FormGroup, Stack, Typography } from "@mui/material";
-import { AntSwitch } from "./AntSwitch";
 import { MIN_WORD_LENGTH } from "./Constants.tsx";
 
 
@@ -19,11 +17,14 @@ interface BoardProps {
     gameId: string,
     latestMsg: MessageData | undefined,
     onBoardChange: (arg0: BoardConfiguration) => void,
+    dragMode: DragMode,
+    isClientsTurn: boolean,
 }
 
 export enum DragMode {
     DragToSelect = 'dragToSelect',
-    DragNDrop = 'dragNDrop'
+    DragNDrop = 'dragNDrop',
+    Disabled = 'disabled'
 }
 
 export enum AblyMessageType {
@@ -51,14 +52,15 @@ export type LatestMessage = {
 }
 
 
-export default function Board({ boardConfig, roomCode, gameId, latestMsg, onBoardChange }: BoardProps) {
+export default function Board({ boardConfig, roomCode, gameId, latestMsg,
+    onBoardChange, dragMode, isClientsTurn }: BoardProps) {
 
     const [selectedLetterIds, setSelectedLetterIds] = useState<number[]>([]);
     const [isPointerDown, setIsPointerDown] = useState<boolean>(false);
     const [pointerOver, setPointerOver] = useState<number>(); // pointerover
     const [lastSubmittedLetters, setLastSubmittedLetters] = useState<number[]>();
 
-    const [dragMode, setDragMode] = useState<DragMode>(DragMode.DragNDrop);
+    // const [dragMode, setDragMode] = useState<DragMode>(DragMode.DragNDrop);
     const [swappedLetterState, setSwappedLetterState] = useState<SwappedLetterState | undefined>();
     const dropTargetsRef = useRef<Map<number, HTMLDivElement> | null>(null);
     const boardRef = useRef<HTMLDivElement | null>(null);
@@ -113,15 +115,13 @@ export default function Board({ boardConfig, roomCode, gameId, latestMsg, onBoar
     }
 
     const handlePointerUp = (e: PointerEvent) => {
-
         if (submitWord.isLoading) return;
         setIsPointerDown(false);
         handleSubmitLetters(selectedLetterIds);
     }
 
-
-
     const handleOnDragStart = () => {
+        if (!isClientsTurn) return;
         setIsDragging(true);
     }
 
@@ -157,13 +157,9 @@ export default function Board({ boardConfig, roomCode, gameId, latestMsg, onBoar
             userId: userId,
             gameId: gameId,
             roomCode: roomCode,
-        })
+        });
         onBoardChange(updated);
     };
-
-    const handleContextMenu = (e: MouseEvent) => {
-        e.preventDefault();
-    }
 
     function handleSubmitLetters(letterIds: number[]) {
         if (letterIds.length < MIN_WORD_LENGTH) {
@@ -179,11 +175,11 @@ export default function Board({ boardConfig, roomCode, gameId, latestMsg, onBoar
         })
     }
 
-    function handleDragModeChange() {
+    /* function handleDragModeChange() {
         dragMode === DragMode.DragNDrop ?
             setDragMode(DragMode.DragToSelect) :
             setDragMode(DragMode.DragNDrop);
-    }
+    } */
 
     // when pointerup happens outside a letter
     const windowRef = useRef<EventTarget>(window);
@@ -197,6 +193,9 @@ export default function Board({ boardConfig, roomCode, gameId, latestMsg, onBoar
     }
 
     // prevent tap-and-hold browser context menu from appearing
+    const handleContextMenu = (e: MouseEvent) => {
+        e.preventDefault();
+    }
     useEffect(() => {
         window.addEventListener('contextmenu', handleContextMenu, true);
         return () => {
@@ -206,7 +205,7 @@ export default function Board({ boardConfig, roomCode, gameId, latestMsg, onBoar
 
     return (
         <>
-            <div className="board flex flex-col" ref={boardRef}>
+            <div className="board flex flex-col mb-6" ref={boardRef}>
                 {rows.map((row) =>
                     <div key={row} className="board-row flex justify-center">
                         {rows.map(col => {
@@ -256,17 +255,19 @@ export default function Board({ boardConfig, roomCode, gameId, latestMsg, onBoar
                             boardDiv={boardRef.current}
                             numTimesRolled={letterBlock.numTimesRolled}
                             latestMsg={latestMsg}
+                            isClientsTurn={isClientsTurn}
+
                         />)
                 })
                 }
             </div>
-            <FormGroup className="flex items-center">
+            {/* <FormGroup className="flex items-center">
                 <Stack direction="row" spacing={1} alignItems="center">
                     <Typography sx={dragMode === DragMode.DragNDrop ? smallText : {}}>Select Words</Typography>
                     <AntSwitch checked={dragMode === DragMode.DragNDrop} onChange={handleDragModeChange} inputProps={{ 'aria-label': 'ant design' }} />
                     <Typography sx={dragMode === DragMode.DragToSelect ? smallText : {}}>Swap Letters</Typography>
                 </Stack>
-            </FormGroup>
+            </FormGroup> */}
         </>
     );
 }

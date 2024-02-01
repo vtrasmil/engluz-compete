@@ -15,19 +15,21 @@ export interface LetterBlockProps {
     temporaryCell: number | undefined,
     letters: string;
     isSelected: boolean;
-    onPointerDown: (e: PointerEvent, i: number) => void;
-    onPointerUp: (e: PointerEvent, i: number) => void;
-    onPointerEnter: (e: PointerEvent, i: number) => void;
     isPointerDown?: boolean;
     blocksSelected: number[];
     dragMode: DragMode;
-    onDragStart: () => void;
-    onDragEnd: () => void;
     dropTargetRefs: Map<number, HTMLDivElement> | null;
     swappedLetterState: SwappedLetterState | undefined;
     boardDiv: HTMLDivElement | null;
     numTimesRolled: number;
     latestMsg: MessageData | undefined;
+    isClientsTurn: boolean;
+
+    onPointerDown: (e: PointerEvent, i: number) => void;
+    onPointerUp: (e: PointerEvent, i: number) => void;
+    onPointerEnter: (e: PointerEvent, i: number) => void;
+    onDragStart: () => void;
+    onDragEnd: () => void;
 }
 
 export interface DraggedLetter extends LetterDieSchema {
@@ -38,7 +40,7 @@ export interface DraggedLetter extends LetterDieSchema {
 export function LetterBlock({
     id, sourceCell, temporaryCell, letters, isSelected, onPointerDown, onPointerUp, onPointerEnter,
     isPointerDown, blocksSelected, dragMode, dropTargetRefs, onDragStart, onDragEnd,
-    swappedLetterState, boardDiv, numTimesRolled, latestMsg,
+    swappedLetterState, boardDiv, numTimesRolled, latestMsg, isClientsTurn
 }: LetterBlockProps) {
     const eventTargetRef = useRef<HTMLDivElement>(null);
     const prevCell = useRef(sourceCell);
@@ -49,7 +51,7 @@ export function LetterBlock({
         return {
             type: 'letter',
             item: draggedLetter,
-            canDrag: () => dragMode === DragMode.DragNDrop,
+            canDrag: () => dragMode === DragMode.DragNDrop && isClientsTurn,
             collect: (monitor) => ({
                 isDragging: !!monitor.isDragging(),
             }),
@@ -58,7 +60,7 @@ export function LetterBlock({
     }, [sourceCell, dragMode]);
 
     useEffect(() => {
-        if(isDragging) onDragStart();
+        if (isDragging) onDragStart();
     }, [isDragging, onDragStart])
 
     const transformAnim = useTransformAnimation(isDragging, sourceCell, prevCell.current, temporaryCell, eventTargetRef.current,
@@ -106,8 +108,8 @@ export function LetterBlock({
             <animated.div id={`letter-block-${id}`} data-current-cell={sourceCell} data-letter={letters[0]}
                 ref={drag}
                 className={
-                    `absolute border ${isDragging ? 'z-10' : ''}
-                    border-gray-400 letter-block select-none cursor-pointer
+                    `absolute border ${isDragging ? 'z-10' : ''} ${isClientsTurn ? 'cursor-pointer' : ''}
+                    border-gray-400 letter-block select-none
                     ${isDragging ? 'hidden' : ''}`
                     // ${isPointerOver ? 'drop-shadow-[2px_2px_5px_rgba(0,0,0,0.10)]' : 'drop-shadow-[2px_2px_0_rgba(0,0,0,0.15)]'}`
                 }

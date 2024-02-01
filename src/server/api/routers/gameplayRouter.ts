@@ -5,7 +5,7 @@ import { rollDice } from "~/server/diceManager";
 import { ablyChannelName } from "~/server/ably/ablyHelpers";
 import { swap } from "~/utils/helpers";
 import { AblyMessageType, BoardConfiguration } from "~/components/Board";
-import { Score } from "~/components/Types";
+import { BasicPlayerInfo, Score } from "~/components/Types";
 
 interface DefaultAblyMessageData {
     userId: string,
@@ -27,6 +27,7 @@ export type DiceSwappedMessageData = {
 
 export type GameStartedMessageData = {
     initBoard: BoardConfiguration,
+    players: BasicPlayerInfo[],
 } & DefaultAblyMessageData;
 
 export type ScoreUpdatedMessageData = {
