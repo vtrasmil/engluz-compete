@@ -44,5 +44,26 @@ async function loadDictIntoMem() {
 }
 
 export function getWordFromBoard(blocks: number[], board: LetterDieSchema[]) {
-    return blocks.map((n) => board[n]?.letters.substring(0,1)).join('');
+    const word = blocks.map((n) => board[n]?.letters.substring(0, 1)).join('').replace('Q', 'QU');
+    if (word.length < 3) throw new Error('Word submitted with length < 3')
+    const score = getWordScore(word);
+
+    return {
+        word: word,
+        length: word.length,
+        score: score
+    };
+}
+
+export function getWordScore(word: string) {
+    const length = word.length;
+    let score;
+
+    if (length === 3 || length === 4) { score = 1 } else
+        if (length === 5) { score = 2 } else
+            if (length === 6) { score = 3 } else
+                if (length === 7) { score = 5 } else
+                    if (length >= 8) { score = 11 } else
+                        score = 0;
+    return score;
 }

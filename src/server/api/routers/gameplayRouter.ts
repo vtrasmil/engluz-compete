@@ -53,12 +53,13 @@ export const gameplayRouter = createTRPCRouter({
 
             const channelName = ablyChannelName(roomCode)
             const dice = await redis.getDice(gameId);
-            const word = getWordFromBoard(cellIds, dice).replace('Q', 'QU');
+            const { word, length, score } = getWordFromBoard(cellIds, dice);
             const isValid = await isWordValid(word, redis);
             if (isValid) {
                 const reroll = rollDice(dice, cellIds);
                 await redis.setDice(gameId, reroll);
-                const newScores = await redis.updateGameScore(gameId, userId, 1);
+
+                const newScores = await redis.updateGameScore(gameId, userId, score);
                 const channel = ably.channels.get(channelName);
                 const wordSubmittedMsg: WordSubmittedMessageData = {
                     userId: userId,
