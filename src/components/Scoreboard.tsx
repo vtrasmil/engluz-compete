@@ -41,7 +41,7 @@ export default function Scoreboard({ playerInfos, scores, round, turn,
                     return (
                         <div key={p.userId} className="">
                             {turn === i && !gameState.gameFinished && <span className="absolute left-[70px]">►</span>}
-                            {p.playerName} {gameState.gameFinished && <span>: {score?.score}</span>}
+                            {p.playerName}{gameState.gameFinished && <span>: {score?.score} point{score && score?.score > 1 && 's'}</span>}
                             {/* {p.playerName} {<span>: {score?.score}</span>} */}
                         </div>
                     )
