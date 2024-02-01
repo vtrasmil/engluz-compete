@@ -45,3 +45,6 @@ venv/
 
 # redis
 dump.rdb
+
+# Sentry Config File
+.sentryclirc
