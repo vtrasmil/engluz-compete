@@ -30,3 +30,10 @@ export interface GameSettings {
     turnPhases: DragMode[],
     numRounds: number
 }
+
+export type SubmittedWordInfo = {
+    userId: string,
+    cellIds: number[],
+    word: string,
+    isValid: boolean,
+}

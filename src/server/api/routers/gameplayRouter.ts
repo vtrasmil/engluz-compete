@@ -13,11 +13,20 @@ interface DefaultAblyMessageData {
 }
 
 // NOTE: Ably only allows serialized data in messages
-export type WordSubmittedMessageData = {
+export type WordSubmittedMessageData = (ValidWordSubmittedMessageData | InvalidWordSubmittedMessageData);
+
+export type ValidWordSubmittedMessageData = {
     newBoard: BoardConfiguration,
     wordSubmitted: string,
     sourceCellIds: number[],
     newScores: Score[],
+    isWordValid: true,
+} & DefaultAblyMessageData;
+
+export type InvalidWordSubmittedMessageData = {
+    wordSubmitted: string,
+    sourceCellIds: number[],
+    isWordValid: false,
 } & DefaultAblyMessageData;
 
 export type DiceSwappedMessageData = {
@@ -51,30 +60,38 @@ export const gameplayRouter = createTRPCRouter({
             const { userId, gameId, roomCode, cellIds } = opts.input;
             const { redis, ably } = opts.ctx;
 
-            const channelName = ablyChannelName(roomCode)
+            const channelName = ablyChannelName(roomCode);
+            const channel = ably.channels.get(channelName);
             const dice = await redis.getDice(gameId);
             const { word, length, score } = getWordFromBoard(cellIds, dice);
             const isValid = await isWordValid(word, redis);
             if (isValid) {
                 const reroll = rollDice(dice, cellIds);
                 await redis.setDice(gameId, reroll);
-
                 const newScores = await redis.updateGameScore(gameId, userId, score);
-                const channel = ably.channels.get(channelName);
                 const wordSubmittedMsg: WordSubmittedMessageData = {
                     userId: userId,
+                    messageType: AblyMessageType.WordSubmitted,
                     newBoard: reroll.map((lb, i) => ({
                         cellId: i,
                         letterBlock: lb
                     })),
                     wordSubmitted: word,
-                    messageType: AblyMessageType.WordSubmitted,
                     sourceCellIds: cellIds,
                     newScores: newScores,
+                    isWordValid: true,
                 }
                 await channel.publish(AblyMessageType.WordSubmitted, wordSubmittedMsg);
-                return { isValid: true };
+                return { isValid: true, wordSubmitted: word };
             } else {
+                const wordSubmittedMsg: WordSubmittedMessageData = {
+                    userId: userId,
+                    messageType: AblyMessageType.WordSubmitted,
+                    wordSubmitted: word,
+                    sourceCellIds: cellIds,
+                    isWordValid: false,
+                }
+                await channel.publish(AblyMessageType.WordSubmitted, wordSubmittedMsg);
                 return { isValid: false, wordSubmitted: word };
             }
         }),

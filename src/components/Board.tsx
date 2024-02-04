@@ -53,7 +53,7 @@ export type LatestMessage = {
 
 
 export default function Board({ boardConfig, roomCode, gameId, latestMsg,
-    onBoardChange, dragMode, isClientsTurn }: BoardProps) {
+    onBoardChange, dragMode, isClientsTurn}: BoardProps) {
 
     const [selectedLetterIds, setSelectedLetterIds] = useState<number[]>([]);
     const [isPointerDown, setIsPointerDown] = useState<boolean>(false);

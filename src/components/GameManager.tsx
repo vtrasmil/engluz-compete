@@ -2,7 +2,7 @@ import { useState } from "react";
 import Board, { AblyMessageType, BoardConfiguration, DragMode } from "./Board.tsx";
 import Scoreboard from "./Scoreboard.tsx";
 import { useUserIdContext } from "./hooks/useUserIdContext";
-import { BasicPlayerInfo, GameSettings } from "./Types.tsx";
+import { BasicPlayerInfo, GameSettings, SubmittedWordInfo } from "./Types.tsx";
 import { useChannel } from "ably/react";
 import { ablyChannelName } from "~/server/ably/ablyHelpers.ts";
 import { DiceSwappedMessageData, MessageData, WordSubmittedMessageData } from "~/server/api/routers/gameplayRouter.ts";
@@ -13,7 +13,6 @@ interface GameManagerProps {
     initBoard: BoardConfiguration,
     roomCode: string,
     playersOrdered: BasicPlayerInfo[],
-
 }
 
 const settings: GameSettings = {
@@ -34,14 +33,26 @@ export default function GameManager({ gameId, initBoard, roomCode, playersOrdere
     const [turn, setTurn] = useState(0);
     const [phase, setPhase] = useState(0);
     const [gameFinished, setGameFinished] = useState<boolean>(false);
+    const [lastSubmittedWordInfo, setLastSubmittedWordInfo] = useState<SubmittedWordInfo>();
 
     useChannel(channelName, AblyMessageType.WordSubmitted, (message) => {
         const msgData = message.data as WordSubmittedMessageData;
         setLatestMsg(msgData);
-        // sent to all clients
-        setBoardConfig(msgData.newBoard);
-        setScores(msgData.newScores);
-        advanceGameState();
+        setLastSubmittedWordInfo({
+            userId: msgData.userId,
+            cellIds: msgData.sourceCellIds,
+            word: msgData.wordSubmitted,
+            isValid: msgData.isWordValid
+        });
+        if (msgData.isWordValid) {
+            setBoardConfig(msgData.newBoard);
+            setScores(msgData.newScores);
+            advanceGameState();
+        }
+        else {
+
+        }
+
     });
 
     useChannel(channelName, AblyMessageType.DiceSwapped, (message) => {
@@ -64,15 +75,15 @@ export default function GameManager({ gameId, initBoard, roomCode, playersOrdere
     };
     function advanceGameState() {
         if (phase + 1 < settings.turnPhases.length) {
-            setPhase(phase + 1);
+            setPhase(prev => prev + 1);
         } else {
             setPhase(0);
             if (turn + 1 < playersOrdered.length) {
-                setTurn(turn + 1);
+                setTurn(prev => prev + 1);
             } else {
                 setTurn(0)
                 if (round + 1 < settings.numRounds) {
-                    setRound(round + 1);
+                    setRound(prev => prev + 1);
                 } else {
                     setGameFinished(true);
                 }
@@ -85,11 +96,16 @@ export default function GameManager({ gameId, initBoard, roomCode, playersOrdere
 
     return (
         <>
+            {gameFinished ?
+                <h2>Game Over!</h2> :
+                <h2>Round {(round + 1).toString()}/{settings.numRounds.toString()}</h2>
+            }
             <Board boardConfig={boardConfig} roomCode={roomCode}
                 gameId={gameId} latestMsg={latestMsg} onBoardChange={handleBoardChange}
                 isClientsTurn={isClientsTurn} dragMode={currTurnPhase} />
-            <Scoreboard playerInfos={playersOrdered} scores={scores}
-                round={round} turn={turn} isClientsTurn={isClientsTurn} gameState={gameState} />
+            <Scoreboard playersOrdered={playersOrdered} scores={scores}
+                round={round} turn={turn} isClientsTurn={isClientsTurn}
+                gameState={gameState} lastSubmittedWordInfo={lastSubmittedWordInfo} />
         </>
     )
 
