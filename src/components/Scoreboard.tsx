@@ -1,10 +1,9 @@
 
-import { useState } from "react";
-import { DragMode } from "./Types";
-import { BasicPlayerInfo, Score } from "./Types";
 import { isEqual } from 'lodash';
+import { useState } from "react";
+import type { BasicPlayerInfo, Score, WordSubmittedMessageData } from "./Types";
+import { DragMode } from "./Types";
 import { useUserIdContext } from "./hooks/useUserIdContext";
-import { WordSubmittedMessageData } from "./Types";
 
 
 interface ScoreboardProps {
@@ -67,13 +66,21 @@ export default function Scoreboard({ playersOrdered, scores,
     function turnOrder() {
         return playersOrdered.map((p, i) => {
             const score = scores.find(s => s.userId === p.userId);
-            return (
-                <div key={p.userId} className="">
-                    {gameState.turn === i && !gameState.gameFinished && <span className="absolute left-[70px]">►</span>}
-                    {p.playerName}{gameState.gameFinished && <span>: {score?.score} point{score && score?.score > 1 && 's'}</span>}
-                    {/* {p.playerName} {<span>: {score?.score}</span>} */}
-                </div>
-            )
+            if (gameState.gameFinished) {
+                return (
+                    <div key={p.userId} className="totalScores">
+                        <span>{p.playerName}: {score?.score} point{score && score?.score > 1 && 's'}</span>
+                    </div>
+                )
+            } else {
+                return (
+                    <div key={p.userId} className="turnOrder">
+                        {gameState.turn === i && <span className="absolute left-[70px]">►</span>}
+                        {p.playerName}{gameState.gameFinished && <span>: {score?.score} point{score && score?.score > 1 && 's'}</span>}
+                        {/* {p.playerName} {<span>: {score?.score}</span>} */}
+                    </div>
+                )
+            }
         })
     }
 
@@ -84,6 +91,7 @@ export default function Scoreboard({ playersOrdered, scores,
                 {message()}
             </div>
             <div id="scoreboard" className="relative">
+                {gameState.gameFinished && <h2>Final Score:</h2>}
                 {turnOrder()}
             </div>
         </>
