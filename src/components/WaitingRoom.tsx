@@ -3,7 +3,7 @@ import { useChannel, usePresence } from "ably/react";
 import { useState } from "react";
 import { Checkbox } from "~/components/ui/checkbox";
 import { ablyChannelName } from "~/server/ably/ablyHelpers";
-import { GameStartedMessageData } from "~/server/api/routers/gameplayRouter";
+import { GameStartedMessageData } from "./Types";
 import { api } from "~/utils/api";
 import GameManager from "./GameManager";
 import { AblyMessageType, BasePlayerInfo, BasicPlayerInfo, BoardConfiguration, RoomPlayerInfo } from "./Types";

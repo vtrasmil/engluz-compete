@@ -1,9 +1,10 @@
 
 import { useState } from "react";
 import { DragMode } from "./Types";
-import { BasicPlayerInfo, Score, SubmittedWordInfo } from "./Types";
+import { BasicPlayerInfo, Score } from "./Types";
 import { isEqual } from 'lodash';
 import { useUserIdContext } from "./hooks/useUserIdContext";
+import { WordSubmittedMessageData } from "./Types";
 
 
 interface ScoreboardProps {
@@ -13,14 +14,14 @@ interface ScoreboardProps {
     turn: number,
     isClientsTurn: boolean,
     gameState: GameState,
-    lastSubmittedWordInfo: SubmittedWordInfo | undefined,
+    lastSubmittedWordMsg: WordSubmittedMessageData | undefined,
 }
 export default function Scoreboard({ playersOrdered, scores,
-    isClientsTurn, gameState, lastSubmittedWordInfo }: ScoreboardProps) {
+    isClientsTurn, gameState, lastSubmittedWordMsg }: ScoreboardProps) {
     const [prevGameState, setPrevGameState] = useState<GameState>(gameState);
     // const currPlayer = playersOrdered[gameState.turn];
     const userId = useUserIdContext();
-    const lastSubmittedWordPlayerName = playersOrdered.find(p => p.userId === lastSubmittedWordInfo?.userId)?.playerName;
+    const lastSubmittedWordPlayerName = playersOrdered.find(p => p.userId === lastSubmittedWordMsg?.userId)?.playerName;
 
     if (!isEqual(prevGameState, gameState)) {
         setPrevGameState(gameState);
@@ -42,13 +43,18 @@ export default function Scoreboard({ playersOrdered, scores,
     }
 
     function lastSubmittedWordMessage() {
-        const name = lastSubmittedWordInfo?.userId === userId ? 'You' : lastSubmittedWordPlayerName;
-        const word = lastSubmittedWordInfo?.word;
-        const isValid = lastSubmittedWordInfo?.isValid;
+        const name = lastSubmittedWordMsg?.userId === userId ? 'You' : lastSubmittedWordPlayerName;
+        const word = lastSubmittedWordMsg?.word;
+        const isValid = lastSubmittedWordMsg?.isValid;
+        let wordScore;
+        if (isValid) {
+            wordScore = lastSubmittedWordMsg?.score;
+        }
         if (name && word && isValid != undefined) {
             const msg = `${name} played ${word}`;
             const emoji = isValid ? '✅' : '❌';
-            return `${emoji} ${msg}`;
+            const score = wordScore != undefined ? `(+${wordScore})` : '';
+            return `${emoji} ${msg} ${score}`;
         }
     }
 

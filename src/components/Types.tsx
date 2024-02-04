@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { LetterDieSchema } from "~/server/diceManager";
-import { ReadyOptions } from "./WaitingRoom";
+import type { LetterDieSchema } from "~/server/diceManager";
+import type { ReadyOptions } from "./WaitingRoom";
 
 
 
@@ -31,12 +31,6 @@ export interface GameSettings {
     numRounds: number
 }
 
-export type SubmittedWordInfo = {
-    userId: string,
-    cellIds: number[],
-    word: string,
-    isValid: boolean,
-}
 export type BoardConfiguration = BoardLetterDie[];
 export interface SwappedLetterState {
     swappedLetter: LetterDieSchema | undefined;
@@ -53,10 +47,52 @@ export type BoardLetterDie = {
     Disabled = 'disabled'
 }
 
+/* =========================== ABLY TYPES =========================== */
+
 export enum AblyMessageType {
     WordSubmitted = 'wordSubmitted',
     DiceSwapped = 'diceSwapped',
     GameStarted = 'gameStarted',
     ScoreUpdated = 'scoreUpdated'
 }
+interface DefaultAblyMessageData {
+    userId: string;
+    messageType: AblyMessageType;
+}
+// NOTE: Ably only allows serialized data in messages
+
+export type WordSubmittedMessageData = (ValidWordSubmittedMessageData | InvalidWordSubmittedMessageData)
+    & { messageType: AblyMessageType.WordSubmitted };
+
+export type ValidWordSubmittedMessageData = {
+    newBoard: BoardConfiguration;
+    word: string;
+    sourceCellIds: number[];
+    newScores: Score[];
+    isValid: true;
+    score: number;
+} & DefaultAblyMessageData;
+
+export type InvalidWordSubmittedMessageData = {
+    word: string;
+    sourceCellIds: number[];
+    isValid: false;
+} & DefaultAblyMessageData;
+
+export type DiceSwappedMessageData = {
+    newBoard: BoardConfiguration;
+    sourceCellIds: number[];
+    messageType: AblyMessageType.DiceSwapped;
+} & DefaultAblyMessageData;
+
+export type GameStartedMessageData = {
+    initBoard: BoardConfiguration;
+    players: BasicPlayerInfo[];
+} & DefaultAblyMessageData;
+
+/* export type ScoreUpdatedMessageData = {
+    scores: Score[];
+} & DefaultAblyMessageData; */
+
+export type GameplayMessageData = WordSubmittedMessageData | DiceSwappedMessageData;
 

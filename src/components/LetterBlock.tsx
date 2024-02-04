@@ -1,7 +1,7 @@
 import { animated } from '@react-spring/web';
 import { useEffect, useRef, useState } from "react";
 import { useDrag } from "react-dnd";
-import { MessageData } from "~/server/api/routers/gameplayRouter.ts";
+import { GameplayMessageData } from "./Types.tsx";
 import { LetterDieSchema } from "~/server/diceManager.tsx";
 import { DragMode, SwappedLetterState } from "./Types.tsx";
 import useColorAnim from "./hooks/useColorAnim.tsx";
@@ -22,7 +22,7 @@ export interface LetterBlockProps {
     swappedLetterState: SwappedLetterState | undefined;
     boardDiv: HTMLDivElement | null;
     numTimesRolled: number;
-    latestMsg: MessageData | undefined;
+    latestMsg: GameplayMessageData | undefined;
     isClientsTurn: boolean;
 
     onPointerDown: (e: PointerEvent, i: number) => void;

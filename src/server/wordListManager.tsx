@@ -1,20 +1,17 @@
-import { BoggleRedisType, RedisBoggleCommands } from "./redis/api";
-import RedisClient from "@redis/client/dist/lib/client";
 import { promises as fs } from 'fs';
-import { LetterDieSchema } from "./diceManager";
+import type { LetterDieSchema } from "./diceManager";
 
-const dictionaryKey = 'dictionary';
 const dictionaryFilePath = `/public/CSW2019.txt`;
 export let dictionary: Set<string>;
 
-export async function isWordValid(str: string, redis?: RedisBoggleCommands) {
+export async function isWordValid(str: string) {
     if (dictionary == undefined) {
         await loadDictIntoMem();
     }
     return dictionary.has(str);
 }
 
-async function isDictionaryInRedis(redis: BoggleRedisType) {
+/* async function isDictionaryInRedis(redis: BoggleRedisType) {
     return await redis.exists(dictionaryKey);
 }
 
@@ -31,7 +28,7 @@ async function loadDictIntoRedis(redis: BoggleRedisType) {
     } catch (err) {
         console.error(err);
     }
-}
+} */
 
 async function loadDictIntoMem() {
     try {
@@ -50,7 +47,6 @@ export function getWordFromBoard(blocks: number[], board: LetterDieSchema[]) {
 
     return {
         word: word,
-        length: word.length,
         score: score
     };
 }

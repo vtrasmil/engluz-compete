@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
-import { GameStartedMessageData } from "./gameplayRouter";
+import { GameStartedMessageData } from "~/components/Types";
 import { ablyChannelName } from "~/server/ably/ablyHelpers";
 import { AblyMessageType } from "~/components/Types";
 import shuffleArrayCopy from "~/components/helpers";

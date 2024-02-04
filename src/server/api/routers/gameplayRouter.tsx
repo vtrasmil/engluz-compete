@@ -1,50 +1,11 @@
 import { z } from "zod";
-import { AblyMessageType, BasicPlayerInfo, BoardConfiguration, Score } from "~/components/Types";
+import type { DiceSwappedMessageData, WordSubmittedMessageData } from "~/components/Types";
+import { AblyMessageType } from "~/components/Types";
 import { ablyChannelName } from "~/server/ably/ablyHelpers";
 import { rollDice } from "~/server/diceManager";
 import { getWordFromBoard, isWordValid } from "~/server/wordListManager";
 import { swap } from "~/utils/helpers";
 import { createTRPCRouter, publicProcedure } from "../trpc";
-
-interface DefaultAblyMessageData {
-    userId: string,
-    messageType: AblyMessageType,
-}
-
-// NOTE: Ably only allows serialized data in messages
-export type WordSubmittedMessageData = (ValidWordSubmittedMessageData | InvalidWordSubmittedMessageData);
-
-export type ValidWordSubmittedMessageData = {
-    newBoard: BoardConfiguration,
-    wordSubmitted: string,
-    sourceCellIds: number[],
-    newScores: Score[],
-    isWordValid: true,
-} & DefaultAblyMessageData;
-
-export type InvalidWordSubmittedMessageData = {
-    wordSubmitted: string,
-    sourceCellIds: number[],
-    isWordValid: false,
-} & DefaultAblyMessageData;
-
-export type DiceSwappedMessageData = {
-    newBoard: BoardConfiguration,
-    sourceCellIds: number[],
-} & DefaultAblyMessageData;
-
-export type GameStartedMessageData = {
-    initBoard: BoardConfiguration,
-    players: BasicPlayerInfo[],
-} & DefaultAblyMessageData;
-
-export type ScoreUpdatedMessageData = {
-    scores: Score[],
-} & DefaultAblyMessageData;
-
-
-
-export type MessageData = WordSubmittedMessageData | DiceSwappedMessageData;
 
 export const gameplayRouter = createTRPCRouter({
 
@@ -62,8 +23,8 @@ export const gameplayRouter = createTRPCRouter({
             const channelName = ablyChannelName(roomCode);
             const channel = ably.channels.get(channelName);
             const dice = await redis.getDice(gameId);
-            const { word, length, score } = getWordFromBoard(cellIds, dice);
-            const isValid = await isWordValid(word, redis);
+            const { word, score } = getWordFromBoard(cellIds, dice);
+            const isValid = await isWordValid(word);
             if (isValid) {
                 const reroll = rollDice(dice, cellIds);
                 await redis.setDice(gameId, reroll);
@@ -75,10 +36,11 @@ export const gameplayRouter = createTRPCRouter({
                         cellId: i,
                         letterBlock: lb
                     })),
-                    wordSubmitted: word,
+                    word: word,
                     sourceCellIds: cellIds,
                     newScores: newScores,
-                    isWordValid: true,
+                    isValid: true,
+                    score: score,
                 }
                 await channel.publish(AblyMessageType.WordSubmitted, wordSubmittedMsg);
                 return { isValid: true, wordSubmitted: word };
@@ -86,9 +48,9 @@ export const gameplayRouter = createTRPCRouter({
                 const wordSubmittedMsg: WordSubmittedMessageData = {
                     userId: userId,
                     messageType: AblyMessageType.WordSubmitted,
-                    wordSubmitted: word,
+                    word: word,
                     sourceCellIds: cellIds,
-                    isWordValid: false,
+                    isValid: false,
                 }
                 await channel.publish(AblyMessageType.WordSubmitted, wordSubmittedMsg);
                 return { isValid: false, wordSubmitted: word };
@@ -122,7 +84,7 @@ export const gameplayRouter = createTRPCRouter({
                 messageType: AblyMessageType.DiceSwapped,
                 sourceCellIds: [indexA, indexB]
             }
-            const publish = await channel.publish(AblyMessageType.DiceSwapped, diceSwappedMsg);
+            await channel.publish(AblyMessageType.DiceSwapped, diceSwappedMsg);
             return diceSwappedMsg;
 
         }),

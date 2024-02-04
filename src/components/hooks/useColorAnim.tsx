@@ -1,11 +1,11 @@
 import { config, useSpring } from "@react-spring/web";
 import { useEffect, useState } from "react";
 import { CELL_CHANGE_COLOR, ROLL_CHANGE_COLOR, SELECTED_COLOR } from "../Constants";
-import { MessageData } from "~/server/api/routers/gameplayRouter";
+import { GameplayMessageData } from "../Types";
 import { AblyMessageType } from "../Types";
 import { useUserIdContext } from "./useUserIdContext";
 
-export default function useChangeAnim(numTimesRolled: number, sourceCell: number, isSelected: boolean, latestMsg: MessageData | undefined) {
+export default function useChangeAnim(numTimesRolled: number, sourceCell: number, isSelected: boolean, latestMsg: GameplayMessageData | undefined) {
 
     const [rollChange, setRollChange] = useState(false);
     const [cellChange, setCellChange] = useState(false);

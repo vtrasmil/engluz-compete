@@ -1,10 +1,13 @@
 import { useChannel } from "ably/react";
 import { useState } from "react";
 import { ablyChannelName } from "~/server/ably/ablyHelpers.ts";
-import { DiceSwappedMessageData, MessageData, WordSubmittedMessageData } from "~/server/api/routers/gameplayRouter.ts";
 import Board from "./Board.tsx";
 import Scoreboard from "./Scoreboard.tsx";
-import { AblyMessageType, BasicPlayerInfo, BoardConfiguration, DragMode, GameSettings, Score, SubmittedWordInfo } from "./Types.tsx";
+import type {
+    BasicPlayerInfo, BoardConfiguration, DiceSwappedMessageData, GameSettings,
+    GameplayMessageData, Score, WordSubmittedMessageData
+} from "./Types.tsx";
+import { AblyMessageType, DragMode } from "./Types.tsx";
 import { useUserIdContext } from "./hooks/useUserIdContext";
 
 interface GameManagerProps {
@@ -21,43 +24,30 @@ const settings: GameSettings = {
 
 export default function GameManager({ gameId, initBoard, roomCode, playersOrdered }: GameManagerProps) {
     const userId = useUserIdContext();
-    const duration = 10;
     const [boardConfig, setBoardConfig] = useState<BoardConfiguration>(initBoard);
     const [scores, setScores] = useState<Score[]>(
         playersOrdered.map(p => ({ userId: p.userId, score: 0 }))
     );
     const channelName = ablyChannelName(roomCode);
-    const [latestMsg, setLatestMsg] = useState<MessageData>();
+    const [latestMsg, setLatestMsg] = useState<GameplayMessageData>();
     const [round, setRound] = useState(0);
     const [turn, setTurn] = useState(0);
     const [phase, setPhase] = useState(0);
     const [gameFinished, setGameFinished] = useState<boolean>(false);
-    const [lastSubmittedWordInfo, setLastSubmittedWordInfo] = useState<SubmittedWordInfo>();
 
     useChannel(channelName, AblyMessageType.WordSubmitted, (message) => {
         const msgData = message.data as WordSubmittedMessageData;
         setLatestMsg(msgData);
-        setLastSubmittedWordInfo({
-            userId: msgData.userId,
-            cellIds: msgData.sourceCellIds,
-            word: msgData.wordSubmitted,
-            isValid: msgData.isWordValid
-        });
-        if (msgData.isWordValid) {
+        if (msgData.isValid) {
             setBoardConfig(msgData.newBoard);
             setScores(msgData.newScores);
             advanceGameState();
         }
-        else {
-
-        }
-
     });
 
     useChannel(channelName, AblyMessageType.DiceSwapped, (message) => {
         const msgData = message.data as DiceSwappedMessageData;
         setLatestMsg(msgData);
-        // if (msgData.userId == userId) return;
         setBoardConfig(msgData.newBoard);
         advanceGameState();
     });
@@ -92,6 +82,7 @@ export default function GameManager({ gameId, initBoard, roomCode, playersOrdere
 
     const clientTurn = playersOrdered.findIndex(p => p.userId === userId);
     const isClientsTurn = turn === clientTurn && !gameFinished;
+    const lastSubmittedWordMsg = latestMsg?.messageType === AblyMessageType.WordSubmitted ? latestMsg : undefined;
 
     return (
         <>
@@ -104,7 +95,7 @@ export default function GameManager({ gameId, initBoard, roomCode, playersOrdere
                 isClientsTurn={isClientsTurn} dragMode={currTurnPhase} />
             <Scoreboard playersOrdered={playersOrdered} scores={scores}
                 round={round} turn={turn} isClientsTurn={isClientsTurn}
-                gameState={gameState} lastSubmittedWordInfo={lastSubmittedWordInfo} />
+                gameState={gameState} lastSubmittedWordMsg={lastSubmittedWordMsg} />
         </>
     )
 

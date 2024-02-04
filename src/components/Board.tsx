@@ -3,7 +3,7 @@ import { BoggleDice, LetterDieSchema } from "~/server/diceManager";
 import { useEffect, useRef, useState } from "react";
 import useSelectionDrag from "./useSelectionDrag.tsx";
 import { useUserIdContext } from "./hooks/useUserIdContext";
-import { MessageData } from "~/server/api/routers/gameplayRouter";
+import { GameplayMessageData } from "./Types.tsx";
 import { ablyChannelName } from "~/server/ably/ablyHelpers";
 import { api } from "~/utils/api";
 import LetterDropTarget from "./LetterDropTarget";
@@ -18,7 +18,7 @@ interface BoardProps {
     boardConfig: BoardConfiguration,
     roomCode: string,
     gameId: string,
-    latestMsg: MessageData | undefined,
+    latestMsg: GameplayMessageData | undefined,
     onBoardChange: (arg0: BoardConfiguration) => void,
     dragMode: DragMode,
     isClientsTurn: boolean,
