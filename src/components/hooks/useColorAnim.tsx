@@ -2,7 +2,7 @@ import { config, useSpring } from "@react-spring/web";
 import { useEffect, useState } from "react";
 import { CELL_CHANGE_COLOR, ROLL_CHANGE_COLOR, SELECTED_COLOR } from "../Constants";
 import { MessageData } from "~/server/api/routers/gameplayRouter";
-import { AblyMessageType } from "../Board";
+import { AblyMessageType } from "../Types";
 import { useUserIdContext } from "./useUserIdContext";
 
 export default function useChangeAnim(numTimesRolled: number, sourceCell: number, isSelected: boolean, latestMsg: MessageData | undefined) {
@@ -37,8 +37,7 @@ export default function useChangeAnim(numTimesRolled: number, sourceCell: number
             setTimeout(() => setRollChange(false), 700);
         } else if (latestMsg?.messageType === AblyMessageType.DiceSwapped &&
             latestMsg.sourceCellIds.includes(sourceCell) &&
-            latestMsg.userId !== userId)
-        {
+            latestMsg.userId !== userId) {
             setCellChange(true);
             setTimeout(() => setCellChange(false), 700);
         }

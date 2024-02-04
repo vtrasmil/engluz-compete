@@ -1,14 +1,13 @@
-import { useState } from "react";
-import { api } from "~/utils/api";
-import { AblyMessageType, BoardConfiguration } from "./Board";
-import { ablyChannelName } from "~/server/ably/ablyHelpers";
-import GameManager from "./GameManager";
-import { Button } from "./ui/button";
-import { useChannel, usePresence } from "ably/react";
-import { Checkbox } from "~/components/ui/checkbox";
 import { CheckedState } from "@radix-ui/react-checkbox";
+import { useChannel, usePresence } from "ably/react";
+import { useState } from "react";
+import { Checkbox } from "~/components/ui/checkbox";
+import { ablyChannelName } from "~/server/ably/ablyHelpers";
 import { GameStartedMessageData } from "~/server/api/routers/gameplayRouter";
-import { BasePlayerInfo, BasicPlayerInfo, RoomPlayerInfo } from "./Types";
+import { api } from "~/utils/api";
+import GameManager from "./GameManager";
+import { AblyMessageType, BasePlayerInfo, BasicPlayerInfo, BoardConfiguration, RoomPlayerInfo } from "./Types";
+import { Button } from "./ui/button";
 
 
 interface WaitingRoomProps {

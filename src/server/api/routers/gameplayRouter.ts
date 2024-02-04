@@ -1,11 +1,10 @@
-import { createTRPCRouter, publicProcedure } from "../trpc";
 import { z } from "zod";
-import { getWordFromBoard, isWordValid } from "~/server/wordListManager";
-import { rollDice } from "~/server/diceManager";
+import { AblyMessageType, BasicPlayerInfo, BoardConfiguration, Score } from "~/components/Types";
 import { ablyChannelName } from "~/server/ably/ablyHelpers";
+import { rollDice } from "~/server/diceManager";
+import { getWordFromBoard, isWordValid } from "~/server/wordListManager";
 import { swap } from "~/utils/helpers";
-import { AblyMessageType, BoardConfiguration } from "~/components/Board";
-import { BasicPlayerInfo, Score } from "~/components/Types";
+import { createTRPCRouter, publicProcedure } from "../trpc";
 
 interface DefaultAblyMessageData {
     userId: string,

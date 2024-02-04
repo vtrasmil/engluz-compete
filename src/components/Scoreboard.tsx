@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { DragMode } from "./Board";
+import { DragMode } from "./Types";
 import { BasicPlayerInfo, Score, SubmittedWordInfo } from "./Types";
 import { isEqual } from 'lodash';
 import { useUserIdContext } from "./hooks/useUserIdContext";

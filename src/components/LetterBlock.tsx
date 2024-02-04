@@ -1,12 +1,12 @@
-import { useEffect, useRef, useState } from "react";
-import useSelectionDrag from "./useSelectionDrag.tsx";
-import { useDrag } from "react-dnd";
-import { LetterDieSchema } from "~/server/diceManager.tsx";
-import useTransformAnimation from "./hooks/useTransformAnimation.tsx";
-import { DragMode, SwappedLetterState } from "./Board.tsx";
 import { animated } from '@react-spring/web';
-import useColorAnim from "./hooks/useColorAnim.tsx";
+import { useEffect, useRef, useState } from "react";
+import { useDrag } from "react-dnd";
 import { MessageData } from "~/server/api/routers/gameplayRouter.ts";
+import { LetterDieSchema } from "~/server/diceManager.tsx";
+import { DragMode, SwappedLetterState } from "./Types.tsx";
+import useColorAnim from "./hooks/useColorAnim.tsx";
+import useTransformAnimation from "./hooks/useTransformAnimation.tsx";
+import useSelectionDrag from "./useSelectionDrag.tsx";
 
 
 export interface LetterBlockProps {

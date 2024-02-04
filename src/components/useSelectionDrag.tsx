@@ -1,6 +1,6 @@
 import { useState, useEffect, RefObject } from 'react';
 import { isPointerEvent } from '~/utils/helpers';
-import { DragMode } from './Board';
+import { DragMode } from "./Types";
 
 
 interface DragOptions {

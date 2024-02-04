@@ -1,6 +1,6 @@
 import { z } from "zod";
+import { LetterDieSchema } from "~/server/diceManager";
 import { ReadyOptions } from "./WaitingRoom";
-import { DragMode } from "./Board";
 
 
 
@@ -37,3 +37,26 @@ export type SubmittedWordInfo = {
     word: string,
     isValid: boolean,
 }
+export type BoardConfiguration = BoardLetterDie[];
+export interface SwappedLetterState {
+    swappedLetter: LetterDieSchema | undefined;
+    dragSourceCell: number;
+    dropTargetCell: number;
+}
+
+export type BoardLetterDie = {
+    cellId: number;
+    letterBlock: LetterDieSchema;
+}; export enum DragMode {
+    DragToSelect = 'dragToSelect',
+    DragNDrop = 'dragNDrop',
+    Disabled = 'disabled'
+}
+
+export enum AblyMessageType {
+    WordSubmitted = 'wordSubmitted',
+    DiceSwapped = 'diceSwapped',
+    GameStarted = 'gameStarted',
+    ScoreUpdated = 'scoreUpdated'
+}
+

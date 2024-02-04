@@ -1,4 +1,4 @@
-import { SwappedLetterState } from "../Board";
+import { SwappedLetterState } from "../Types";
 import { useWindowSize } from "@react-hooks-library/core";
 import { useSpring } from "@react-spring/web";
 
@@ -35,8 +35,7 @@ export default function useTransformAnimation(
     boardDiv: HTMLDivElement | null,
     isPointerOver: boolean,
     isSelected: boolean
-)
-{
+) {
     const getTransformVector = () => {
         if (!dropTargetDivMap || !boardDiv) return;
         const cellId = temporaryCell != undefined ? temporaryCell : sourceCell;

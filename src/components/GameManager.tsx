@@ -1,12 +1,11 @@
-import { useState } from "react";
-import Board, { AblyMessageType, BoardConfiguration, DragMode } from "./Board.tsx";
-import Scoreboard from "./Scoreboard.tsx";
-import { useUserIdContext } from "./hooks/useUserIdContext";
-import { BasicPlayerInfo, GameSettings, SubmittedWordInfo } from "./Types.tsx";
 import { useChannel } from "ably/react";
+import { useState } from "react";
 import { ablyChannelName } from "~/server/ably/ablyHelpers.ts";
 import { DiceSwappedMessageData, MessageData, WordSubmittedMessageData } from "~/server/api/routers/gameplayRouter.ts";
-import { Score } from "./Types.tsx";
+import Board from "./Board.tsx";
+import Scoreboard from "./Scoreboard.tsx";
+import { AblyMessageType, BasicPlayerInfo, BoardConfiguration, DragMode, GameSettings, Score, SubmittedWordInfo } from "./Types.tsx";
+import { useUserIdContext } from "./hooks/useUserIdContext";
 
 interface GameManagerProps {
     gameId: string,

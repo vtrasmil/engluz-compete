@@ -2,9 +2,8 @@ import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { GameStartedMessageData } from "./gameplayRouter";
 import { ablyChannelName } from "~/server/ably/ablyHelpers";
-import { AblyMessageType } from "~/components/Board";
+import { AblyMessageType } from "~/components/Types";
 import shuffleArrayCopy from "~/components/helpers";
-import { isHTTPMethod } from "next/dist/server/web/http";
 import { basicPlayerInfoSchema } from "~/components/Types";
 
 const totalPlayers = 4;
@@ -16,7 +15,7 @@ export const lobbyRouter = createTRPCRouter({
       z.object({
         text: z.string().nullish(),
       })
-      .nullish(),
+        .nullish(),
     )
     .query((opts) => {
       return {

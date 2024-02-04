@@ -1,4 +1,4 @@
-import { BoardConfiguration } from "~/components/Board";
+import { BoardConfiguration } from "~/components/Types";
 import { ulid } from 'ulid';
 
 export const uniqueId = function (prefix?: string) {

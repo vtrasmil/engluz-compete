@@ -2,7 +2,7 @@ import { forwardRef, useEffect, useRef } from "react";
 import { DropTargetMonitor, useDrop } from "react-dnd";
 import { LetterDieSchema } from "~/server/diceManager";
 import { DraggedLetter } from "./LetterBlock";
-import { SwappedLetterState } from "./Board.tsx";
+import { SwappedLetterState } from "./Types.tsx";
 
 interface LetterDropTargetType {
     cellId: number,
@@ -13,8 +13,7 @@ interface LetterDropTargetType {
 }
 
 const LetterDropTarget = forwardRef<HTMLDivElement, LetterDropTargetType>(
-    ({ cellId, onHover, onDrop, swappedLetterState, isDragging }, ref) =>
-    {
+    ({ cellId, onHover, onDrop, swappedLetterState, isDragging }, ref) => {
         // const outerRef = useForwardedRef(ref);
         const divRef = useRef(null);
 
@@ -49,16 +48,16 @@ const LetterDropTarget = forwardRef<HTMLDivElement, LetterDropTargetType>(
         }
 
         return (
-                <div ref={dropRef} id={`letter-drop-target-${cellId.toString()}`}
-                    style={{
-                        width: '50px', height: '50px'
-                    }}
+            <div ref={dropRef} id={`letter-drop-target-${cellId.toString()}`}
+                style={{
+                    width: '50px', height: '50px'
+                }}
                 className={
                     `m-2 ${isDragging ? 'z-10' : ''}
                     letter-drop-target
                     ${collectedProps.isOver ? `bg-slate-500 && opacity-25` : ''}`}>
-                    <div ref={divRef} className={`h-full`} />
-                </div>
+                <div ref={divRef} className={`h-full`} />
+            </div>
         );
     }
 );

@@ -9,6 +9,9 @@ import { api } from "~/utils/api";
 import LetterDropTarget from "./LetterDropTarget";
 import { getCellIdFromLetterId, getLetterAtCell, swapCells } from "~/utils/helpers";
 import { MIN_WORD_LENGTH } from "./Constants.tsx";
+import { BoardConfiguration } from "./Types.tsx";
+import { SwappedLetterState } from "./Types.tsx";
+import { DragMode } from "./Types.tsx";
 
 
 interface BoardProps {
@@ -21,39 +24,8 @@ interface BoardProps {
     isClientsTurn: boolean,
 }
 
-export enum DragMode {
-    DragToSelect = 'dragToSelect',
-    DragNDrop = 'dragNDrop',
-    Disabled = 'disabled'
-}
-
-export enum AblyMessageType {
-    WordSubmitted = 'wordSubmitted',
-    DiceSwapped = 'diceSwapped',
-    GameStarted = 'gameStarted',
-    ScoreUpdated = 'scoreUpdated',
-}
-
-export interface SwappedLetterState {
-    swappedLetter: LetterDieSchema | undefined,
-    dragSourceCell: number,
-    dropTargetCell: number,
-}
-
-export type BoardLetterDie = {
-    cellId: number,
-    letterBlock: LetterDieSchema
-}
-export type BoardConfiguration = BoardLetterDie[];
-
-export type LatestMessage = {
-    messageType: AblyMessageType,
-
-}
-
-
 export default function Board({ boardConfig, roomCode, gameId, latestMsg,
-    onBoardChange, dragMode, isClientsTurn}: BoardProps) {
+    onBoardChange, dragMode, isClientsTurn }: BoardProps) {
 
     const [selectedLetterIds, setSelectedLetterIds] = useState<number[]>([]);
     const [isPointerDown, setIsPointerDown] = useState<boolean>(false);
