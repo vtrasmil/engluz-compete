@@ -1,9 +1,10 @@
+import type { VercelKV } from "@vercel/kv";
 import type { createClient } from "redis";
+import type { Score } from "~/components/Types";
 import { generateRandomString } from "~/components/helpers";
 import { uniqueId } from "~/utils/helpers";
-import type { VercelKV } from "@vercel/kv";
-import { BoggleDice, LetterDieSchema, rollAndShuffleDice } from "../diceManager";
-import { Score } from "~/components/Types";
+import type { LetterDieSchema } from "../diceManager";
+import { BoggleDice, rollAndShuffleDice } from "../diceManager";
 
 const RedisObjects = {
     ActiveRoomsSet: 'ActiveRoomsSet',
@@ -85,7 +86,7 @@ export class RedisBoggleCommands {
         return roomCode;
     }
 
-    async initGameScore(gameId: string, playersOrdered: {userId: string, playerName: string}[]) {
+    async initGameScore(gameId: string, playersOrdered: { userId: string, playerName: string }[]) {
         const key = `game:${gameId}:scores`;
         console.log(key)
         const initScores: Score[] = playersOrdered.map(p => {

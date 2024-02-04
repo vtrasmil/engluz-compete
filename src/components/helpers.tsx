@@ -1,6 +1,7 @@
+import { BAD_FOUR_LETTER_WORDS } from "./Constants";
 
 // https://dev.to/codebubb/how-to-shuffle-an-array-in-javascript-2ikj
-export default function shuffleArrayCopy<T>(array: T[]) : T[] {
+export default function shuffleArrayCopy<T>(array: T[]): T[] {
     const newArray = array.slice();
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -26,7 +27,7 @@ export function shuffleString(str: string) {
     return shuffleArrayJS<string>([...str])
         .reduce((acc, curr) => acc + curr, '');
 
-    
+
 }
 
 export function generateRandomString(length = 4): string {
@@ -34,6 +35,9 @@ export function generateRandomString(length = 4): string {
     let result = "";
     for (let i = 0; i < length; i++) {
         result += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    if (BAD_FOUR_LETTER_WORDS.find(w => w === result)) {
+        return generateRandomString(length);
     }
     return result;
 }
