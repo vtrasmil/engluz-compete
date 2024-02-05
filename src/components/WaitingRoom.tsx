@@ -8,6 +8,7 @@ import { api } from "~/utils/api";
 import GameManager from "./GameManager";
 import { AblyMessageType, BasePlayerInfo, BasicPlayerInfo, BoardConfiguration, RoomPlayerInfo } from "./Types";
 import { Button } from "./ui/button";
+import { Icons } from "./ui/icons";
 
 
 interface WaitingRoomProps {
@@ -19,7 +20,7 @@ interface WaitingRoomProps {
 export default function WaitingRoom({ basePlayer, gameId, roomCode, onLeaveRoom }: WaitingRoomProps) {
     const channelName = ablyChannelName(roomCode);
     const [initBoard, setInitBoard] = useState<BoardConfiguration | undefined>();
-    const startGame = api.lobby.startGame.useMutation({});
+    const startGameMutation = api.lobby.startGame.useMutation({});
     const [playersOrdered, setPlayersOrdered] = useState<BasicPlayerInfo[]>();
     const [hasGameStarted, setHasGameStarted] = useState<boolean>(false);
 
@@ -27,7 +28,7 @@ export default function WaitingRoom({ basePlayer, gameId, roomCode, onLeaveRoom 
         if (presencePlayers == undefined) {
             throw new Error('Player presence not found.')
         }
-        startGame.mutate({
+        startGameMutation.mutate({
             gameId: gameId,
             userId: basePlayer.userId,
             roomCode: roomCode,
@@ -72,7 +73,6 @@ export default function WaitingRoom({ basePlayer, gameId, roomCode, onLeaveRoom 
     }
     const { presenceData, updateStatus } = usePresence(channelName, createPresenceObj(ReadyOptions.NotReady));
     const presencePlayers = presenceData.map((msg) => msg.data);
-    const clientPlayer = playersOrdered?.find(p => p.userId === basePlayer.userId);
     const allPlayersReady = (() => {
         const notReady = presenceData.find(p => p.data.readyStatus === ReadyOptions.NotReady);
         if (notReady == undefined) return true;
@@ -82,11 +82,9 @@ export default function WaitingRoom({ basePlayer, gameId, roomCode, onLeaveRoom 
     function waitingOrGame() {
         if (roomCode !== '' && initBoard && gameId && playersOrdered) {
             return (
-                <>
-                    <GameManager gameId={gameId} initBoard={initBoard} roomCode={roomCode}
-                        playersOrdered={playersOrdered}
-                    />
-                </>
+                <GameManager gameId={gameId} initBoard={initBoard} roomCode={roomCode}
+                    playersOrdered={playersOrdered}
+                />
             )
         } else {
             return (
@@ -107,6 +105,7 @@ export default function WaitingRoom({ basePlayer, gameId, roomCode, onLeaveRoom 
                             disabled={!allPlayersReady}
                             onClick={handleStartGame}>
                             Start Game
+                            {startGameMutation.isLoading && <Icons.spinner className="h-4 w-4 animate-spin ml-1" />}
                         </Button>
                     }
 

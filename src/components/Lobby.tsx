@@ -10,6 +10,7 @@ import { useSessionStorage } from '@react-hooks-library/core';
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import WaitingRoom from "./WaitingRoom";
+import { Icons } from "./ui/icons";
 
 
 interface LobbyProps {
@@ -24,7 +25,7 @@ export default function Lobby({ userId }: LobbyProps) {
     const [gameId, setGameId] = useState<string>();
     const [isHost, setIsHost] = useState<boolean>(false);
 
-    const hostGame = api.lobby.hostGame.useMutation({
+    const hostGameMutation = api.lobby.hostGame.useMutation({
         onSuccess: (data) => {
             setStoredRoomCode(data.roomCode);
             setGameId(data.gameId);
@@ -32,19 +33,18 @@ export default function Lobby({ userId }: LobbyProps) {
         }
     });
 
-
-    const joinGame = api.lobby.joinGame.useMutation({
+    const joinGameMutation = api.lobby.joinGame.useMutation({
         onSuccess: (data) => {
             setStoredRoomCode(data.roomCode);
             setGameId(data.gameId);
-            hostGame.reset(); // TODO: is this useful anymore?
+            hostGameMutation.reset(); // TODO: is this useful anymore?
         }
     });
 
     function handleJoinGame(e: FormEvent) {
         e.preventDefault();
         // TODO: joinGame mutation gets called twice this way
-        joinGame.mutate({
+        joinGameMutation.mutate({
             roomCode: roomCode.toUpperCase(),
             userId: userId,
             playerName: playerName,
@@ -54,7 +54,7 @@ export default function Lobby({ userId }: LobbyProps) {
 
     function handleHostGame(e: FormEvent) {
         e.preventDefault();
-        hostGame.mutate({
+        hostGameMutation.mutate({
             userId: userId,
             playerName: playerName,
         });
@@ -78,11 +78,6 @@ export default function Lobby({ userId }: LobbyProps) {
 
     function handleNameChange(e: ChangeEvent<HTMLInputElement>) {
         setPlayerName(e.target.value);
-    }
-
-    const roomCodeInputProps = {
-        maxLength: 4,
-        // onchange: handleRoomCodeInputChange,
     }
 
     function lobbyBody() {
@@ -118,13 +113,14 @@ export default function Lobby({ userId }: LobbyProps) {
                         <Input className="w-[42%]" onChange={handleRoomCodeInputChange} placeholder="room code" maxLength={4}
                                     /* inputProps={roomCodeInputProps} */ value={roomCode} /* helperText={joinGame.error?.message} */ />
                         <Button className="w-[58%]" type="submit"
-                            disabled={roomCode.length !== 4 || hostGame.isLoading || playerName.length < 1}
+                            disabled={roomCode.length !== 4 || hostGameMutation.isLoading || playerName.length < 1}
                             variant="secondary">
                             Join Game
+                            {joinGameMutation.isLoading && <Icons.spinner className="h-4 w-4 animate-spin ml-1" />}
                         </Button>
                     </form>
-                    {joinGame.isError &&
-                        <div className="text-sm text-red-500">{joinGame.error.message}</div>}
+                    {joinGameMutation.isError &&
+                        <div className="text-sm text-red-500">{joinGameMutation.error.message}</div>}
                 </div>
                 <div className="flex items-center space-x-2">
                     <hr className="flex-grow border-zinc-200" />
@@ -135,6 +131,7 @@ export default function Lobby({ userId }: LobbyProps) {
                     disabled={playerName.length < 1}
                     onClick={handleHostGame}>
                     Host a Game
+                    {hostGameMutation.isLoading && <Icons.spinner className="h-4 w-4 animate-spin ml-1" />}
                 </Button>
 
             </div>
