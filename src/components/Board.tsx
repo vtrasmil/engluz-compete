@@ -1,17 +1,14 @@
-import { LetterBlock } from "./LetterBlock";
-import { BoggleDice, LetterDieSchema } from "~/server/diceManager";
 import { useEffect, useRef, useState } from "react";
-import useSelectionDrag from "./useSelectionDrag.tsx";
-import { useUserIdContext } from "./hooks/useUserIdContext";
-import { GameplayMessageData } from "./Types.tsx";
 import { ablyChannelName } from "~/server/ably/ablyHelpers";
+import { BoggleDice } from "~/server/diceManager";
 import { api } from "~/utils/api";
-import LetterDropTarget from "./LetterDropTarget";
 import { getCellIdFromLetterId, getLetterAtCell, swapCells } from "~/utils/helpers";
 import { MIN_WORD_LENGTH } from "./Constants.tsx";
-import { BoardConfiguration } from "./Types.tsx";
-import { SwappedLetterState } from "./Types.tsx";
-import { DragMode } from "./Types.tsx";
+import { LetterBlock } from "./LetterBlock";
+import LetterDropTarget from "./LetterDropTarget";
+import { BoardConfiguration, DragMode, GameplayMessageData, SwappedLetterState } from "./Types.tsx";
+import { useUserIdContext } from "./hooks/useUserIdContext";
+import useSelectionDrag from "./useSelectionDrag.tsx";
 
 
 interface BoardProps {
@@ -120,7 +117,8 @@ export default function Board({ boardConfig, roomCode, gameId, latestMsg,
         }
     };
 
-    const handleDropLetter = (dropTargetCell: number, letterBlock: LetterDieSchema) => {
+    const handleDropLetter = (dropTargetCell: number) => {
+        if (swappedLetterState != undefined && dropTargetCell === swappedLetterState.dragSourceCell) return;
         if (swappedLetterState == undefined)
             throw new Error('Cannot drop letter when SwappedLetterState is undefined');
         const updated = swapCells(boardConfig, dropTargetCell, swappedLetterState?.dragSourceCell);
@@ -159,10 +157,6 @@ export default function Board({ boardConfig, roomCode, gameId, latestMsg,
         onPointerUp: handlePointerUp,
         dragMode: currDragMode
     }, 'window');
-
-    const smallText = {
-        color: '#ABB'
-    }
 
     // prevent tap-and-hold browser context menu from appearing
     const handleContextMenu = (e: MouseEvent) => {

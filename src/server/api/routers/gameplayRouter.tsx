@@ -86,7 +86,6 @@ export const gameplayRouter = createTRPCRouter({
             }
             await channel.publish(AblyMessageType.DiceSwapped, diceSwappedMsg);
             return diceSwappedMsg;
-
         }),
 
 })
