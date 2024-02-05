@@ -31,8 +31,6 @@ export default function Board({ boardConfig, roomCode, gameId, latestMsg,
     const [isPointerDown, setIsPointerDown] = useState<boolean>(false);
     const [pointerOver, setPointerOver] = useState<number>(); // pointerover
     const [lastSubmittedLetters, setLastSubmittedLetters] = useState<number[]>();
-
-    // const [dragMode, setDragMode] = useState<DragMode>(DragMode.DragNDrop);
     const [swappedLetterState, setSwappedLetterState] = useState<SwappedLetterState | undefined>();
     const dropTargetsRef = useRef<Map<number, HTMLDivElement> | null>(null);
     const boardRef = useRef<HTMLDivElement | null>(null);
@@ -49,18 +47,26 @@ export default function Board({ boardConfig, roomCode, gameId, latestMsg,
         return dropTargetsRef.current;
     }
 
-    const submitWord = api.gameplay.submitWord.useMutation({
+    const submitWordMutation = api.gameplay.submitWord.useMutation({
         onSettled: () => {
             setSelectedLetterIds([]);
         }
     });
 
-    const swapDice = api.gameplay.swapDice.useMutation({});
+    const swapDiceMutation = api.gameplay.swapDice.useMutation({});
+
+    const currDragMode = (() => {
+        if (swapDiceMutation.isLoading || submitWordMutation.isLoading) {
+            return DragMode.Disabled;
+        } else {
+            return dragMode;
+        }
+    })();
 
     const handleLetterBlockDown = (e: PointerEvent, letterBlockId: number) => {
-        if (submitWord.isLoading) return;
+        if (submitWordMutation.isLoading) return;
         setIsPointerDown(true);
-        if (dragMode == DragMode.DragToSelect) {
+        if (currDragMode == DragMode.DragToSelect) {
             setSelectedLetterIds([letterBlockId]);
         }
     }
@@ -71,8 +77,8 @@ export default function Board({ boardConfig, roomCode, gameId, latestMsg,
     }, [])
 
     const handleLetterBlockEnter = (e: PointerEvent, letterBlockId: number) => {
-        if (!isPointerDown || letterBlockId == undefined || selectedLetterIds.includes(letterBlockId) || submitWord.isLoading) return;
-        if (dragMode === DragMode.DragToSelect) {
+        if (!isPointerDown || letterBlockId == undefined || selectedLetterIds.includes(letterBlockId) || submitWordMutation.isLoading) return;
+        if (currDragMode === DragMode.DragToSelect) {
             const lastBlockSelected = selectedLetterIds.slice(-1)[0];
             if (lastBlockSelected == undefined) return;
             const lastCellSelected = getCellIdFromLetterId(boardConfig, lastBlockSelected);
@@ -87,7 +93,7 @@ export default function Board({ boardConfig, roomCode, gameId, latestMsg,
     }
 
     const handlePointerUp = (e: PointerEvent) => {
-        if (submitWord.isLoading) return;
+        if (submitWordMutation.isLoading) return;
         setIsPointerDown(false);
         handleSubmitLetters(selectedLetterIds);
     }
@@ -123,7 +129,7 @@ export default function Board({ boardConfig, roomCode, gameId, latestMsg,
         const letterBlockIdB = getLetterAtCell(swappedLetterState.dragSourceCell, boardConfig).id;
         if (letterBlockIdA == undefined || letterBlockIdB == undefined) throw new Error('Missing LetterBlock ID(s)');
 
-        swapDice.mutate({
+        swapDiceMutation.mutate({
             letterBlockIdA: letterBlockIdA,
             letterBlockIdB: letterBlockIdB,
             userId: userId,
@@ -138,7 +144,7 @@ export default function Board({ boardConfig, roomCode, gameId, latestMsg,
             setSelectedLetterIds([]);
             return;
         }
-        submitWord.mutate({
+        submitWordMutation.mutate({
             userId: userId,
             gameId: gameId,
             // cellIds: getCellIdsFromLetterIds(boardConfig, letterIds),
@@ -147,17 +153,11 @@ export default function Board({ boardConfig, roomCode, gameId, latestMsg,
         })
     }
 
-    /* function handleDragModeChange() {
-        dragMode === DragMode.DragNDrop ?
-            setDragMode(DragMode.DragToSelect) :
-            setDragMode(DragMode.DragNDrop);
-    } */
-
     // when pointerup happens outside a letter
     const windowRef = useRef<EventTarget>(window);
     useSelectionDrag(windowRef, [isPointerDown, selectedLetterIds], {
         onPointerUp: handlePointerUp,
-        dragMode: dragMode
+        dragMode: currDragMode
     }, 'window');
 
     const smallText = {
@@ -219,7 +219,7 @@ export default function Board({ boardConfig, roomCode, gameId, latestMsg,
                             blocksSelected={selectedLetterIds}
                             sourceCell={sourceCellId}
                             temporaryCell={tempCellId()}
-                            dragMode={dragMode}
+                            dragMode={currDragMode}
                             onDragStart={handleOnDragStart}
                             onDragEnd={handleOnDragEnd}
                             dropTargetRefs={dropTargetsRef.current}
@@ -233,13 +233,6 @@ export default function Board({ boardConfig, roomCode, gameId, latestMsg,
                 })
                 }
             </div>
-            {/* <FormGroup className="flex items-center">
-                <Stack direction="row" spacing={1} alignItems="center">
-                    <Typography sx={dragMode === DragMode.DragNDrop ? smallText : {}}>Select Words</Typography>
-                    <AntSwitch checked={dragMode === DragMode.DragNDrop} onChange={handleDragModeChange} inputProps={{ 'aria-label': 'ant design' }} />
-                    <Typography sx={dragMode === DragMode.DragToSelect ? smallText : {}}>Swap Letters</Typography>
-                </Stack>
-            </FormGroup> */}
         </>
     );
 }
