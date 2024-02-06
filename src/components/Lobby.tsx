@@ -58,6 +58,7 @@ export default function Lobby({ userId }: LobbyProps) {
             userId: userId,
             playerName: playerName,
         });
+        joinGameMutation.reset(); // clear any join game errors
     }
 
     function handleLeaveRoom() {
