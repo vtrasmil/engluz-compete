@@ -58,8 +58,8 @@ export default function Scoreboard({ playersOrdered, scores,
     }
 
     function instructionMessage() {
-        if (gameState.phaseType === DragMode.DragNDrop) return 'Swap a pair of letters...';
-        if (gameState.phaseType === DragMode.DragToSelect) return '...and select a word';
+        if (gameState.phaseType === DragMode.DragNDrop) return 'Swap a pair of letters.';
+        if (gameState.phaseType === DragMode.DragToSelect) return 'Select a word.';
     }
 
 

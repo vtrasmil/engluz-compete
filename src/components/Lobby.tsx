@@ -11,6 +11,7 @@ import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import WaitingRoom from "./WaitingRoom";
 import { Icons } from "./ui/icons";
+import { DialogDemo } from "./RulesDialog";
 
 
 interface LobbyProps {
@@ -80,8 +81,9 @@ export default function Lobby({ userId }: LobbyProps) {
         return (
             <div id="lobby" className="flex flex-col items-center m-3 space-y-6 w-80">
                 <h1 className="text-2xl">WORDS WORDS WORDS</h1>
-                <div>A multiplayer word search game.</div>
-                <div>On your turn, (1) drag to swap a pair of letters, and (2) drag to select a word.</div>
+                <div>A mind-boggling, multiplayer word search.</div>
+
+                <DialogDemo />
                 <>
                     {gameId == undefined ?
                         lobbyStart() :
