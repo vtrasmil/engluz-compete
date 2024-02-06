@@ -37,17 +37,17 @@ export default function Home() {
         />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin={""} />
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap" rel="stylesheet"/>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap" rel="stylesheet" />
         <meta name="viewport" content="initial-scale=1, width=device-width" />
       </Head>
 
       <main className={cn("bg-gray-100 min-h-screen flex items-center justify-center touch-none text-base", fontSans.variable)}>
         <div className="max-w-lg rounded-lg shadow-md bg-white p-6 space-y-6 border-gray-400 dark:border-gray-700">
-            <div className="space-y-2 text-center">
-              <Lobby userId={userId} />
-              <Analytics />
-            </div>
+          <div className="text-center">
+            <Lobby userId={userId} />
+            <Analytics />
           </div>
+        </div>
       </main>
 
     </>

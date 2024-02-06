@@ -43,13 +43,11 @@ export default function Lobby({ userId }: LobbyProps) {
 
     function handleJoinGame(e: FormEvent) {
         e.preventDefault();
-        // TODO: joinGame mutation gets called twice this way
         joinGameMutation.mutate({
             roomCode: roomCode.toUpperCase(),
             userId: userId,
             playerName: playerName,
         });
-
     }
 
     function handleHostGame(e: FormEvent) {
@@ -69,10 +67,6 @@ export default function Lobby({ userId }: LobbyProps) {
         setIsHost(false);
     }
 
-    const isJoinGameDisabled = () => {
-        return roomCode.length !== 4;
-    };
-
     function handleRoomCodeInputChange(e: ChangeEvent<HTMLInputElement>) {
         setRoomCode(e.target.value.toUpperCase());
     }
@@ -84,9 +78,11 @@ export default function Lobby({ userId }: LobbyProps) {
     function lobbyBody() {
 
         return (
-            <div className="flex flex-col items-center m-3 space-y-6">
+            <div id="lobby" className="flex flex-col items-center m-3 space-y-6 w-80">
                 <h1 className="text-2xl">WORDS WORDS WORDS</h1>
-                <div className="">
+                <div>A multiplayer word search game.</div>
+                <div>On your turn, (1) drag to swap a pair of letters, and (2) drag to select a word.</div>
+                <>
                     {gameId == undefined ?
                         lobbyStart() :
                         <WaitingRoom
@@ -99,7 +95,7 @@ export default function Lobby({ userId }: LobbyProps) {
                             roomCode={storedRoomCode}
                             onLeaveRoom={handleLeaveRoom}
                         />}
-                </div>
+                </>
             </div>
         )
 
@@ -107,13 +103,13 @@ export default function Lobby({ userId }: LobbyProps) {
 
     function lobbyStart() {
         return (
-            <div className="space-y-6">
+            <div className="space-y-6 w-95">
                 <Input className="w-full" onChange={handleNameChange} placeholder="Enter your name" maxLength={12} />
                 <div>
                     <form className="w-full inline-flex gap-1" onSubmit={handleJoinGame}>
-                        <Input className="w-[42%]" onChange={handleRoomCodeInputChange} placeholder="room code" maxLength={4}
+                        <Input className="w-5/12" onChange={handleRoomCodeInputChange} placeholder="room code" maxLength={4}
                                     /* inputProps={roomCodeInputProps} */ value={roomCode} /* helperText={joinGame.error?.message} */ />
-                        <Button className="w-[58%]" type="submit"
+                        <Button className="w-7/12" type="submit"
                             disabled={roomCode.length !== 4 || hostGameMutation.isLoading || playerName.length < 1}
                             variant="secondary">
                             Join Game
