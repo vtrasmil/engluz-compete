@@ -3,6 +3,7 @@ import { DropTargetMonitor, useDrop } from "react-dnd";
 import { LetterDieSchema } from "~/server/diceManager";
 import { DraggedLetter } from "./LetterBlock";
 import { SwappedLetterState } from "./Types.tsx";
+import {clsx} from "clsx";
 
 interface LetterDropTargetType {
     cellId: number,
@@ -52,10 +53,12 @@ const LetterDropTarget = forwardRef<HTMLDivElement, LetterDropTargetType>(
                 style={{
                     width: '50px', height: '50px'
                 }}
-                className={
-                    `m-2 ${isDragging ? 'z-10' : ''}
-                    letter-drop-target
-                    ${collectedProps.isOver ? `bg-slate-500 && opacity-25` : ''}`}>
+                className={clsx(
+                    'm-2',
+                    isDragging ? 'z-10' : '',
+                    'letter-drop-target',
+                    collectedProps.isOver ? 'bg-slate-500 && opacity-25' : ''
+                )}>
                 <div ref={divRef} className={`h-full`} />
             </div>
         );

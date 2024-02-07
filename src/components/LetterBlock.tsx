@@ -4,9 +4,9 @@ import { useDrag } from "react-dnd";
 import { GameplayMessageData } from "./Types.tsx";
 import { LetterDieSchema } from "~/server/diceManager.tsx";
 import { DragMode, SwappedLetterState } from "./Types.tsx";
-import useColorAnim from "./hooks/useColorAnim.tsx";
 import useTransformAnimation from "./hooks/useTransformAnimation.tsx";
 import useSelectionDrag from "./useSelectionDrag.tsx";
+import clsx from 'clsx';
 
 
 export interface LetterBlockProps {
@@ -107,11 +107,10 @@ export function LetterBlock({
         <>
             <animated.div id={`letter-block-${id}`} data-current-cell={sourceCell} data-letter={letters[0]}
                 ref={drag}
-                className={
-                    `absolute border ${isDragging ? 'z-10' : ''} ${isClientsTurn ? 'cursor-pointer' : ''}
-                    border-gray-400 letter-block select-none
-                    ${isDragging ? 'hidden' : ''}`
-                    // ${isPointerOver ? 'drop-shadow-[2px_2px_5px_rgba(0,0,0,0.10)]' : 'drop-shadow-[2px_2px_0_rgba(0,0,0,0.15)]'}`
+                className={clsx(
+                    'border', isDragging ? 'z-10' : '', isClientsTurn ? 'cursor-pointer' : '',
+                    'border-gray-400 letter-block select-none',
+                    isDragging ? 'hidden' : '')
                 }
                 style={style}
             >

@@ -24,8 +24,6 @@ export default function useChangeAnim(numTimesRolled: number, sourceCell: number
     }
 
     const spring = useSpring({
-        // backgroundColor: 'green',
-        // backgroundColor: rollChange ? 'green' : 'white',
         backgroundColor: color,
         config: isSelected ? config.stiff : changeConfig,
     });
