@@ -9,6 +9,7 @@ import GameManager from "./GameManager";
 import { AblyMessageType, BasePlayerInfo, BasicPlayerInfo, BoardConfiguration, RoomPlayerInfo } from "./Types";
 import { Button } from "./ui/button";
 import { Icons } from "./ui/icons";
+import { RulesDialog } from "./RulesDialog";
 
 
 interface WaitingRoomProps {
@@ -128,7 +129,10 @@ export default function WaitingRoom({ basePlayer, gameId, roomCode, onLeaveRoom 
 
     return (
         <>
-            <Button className="mb-6" onClick={onLeaveRoom} variant="secondary">Leave Room: {roomCode}</Button>
+            <div className="flex space-x-1">
+                <Button className="" onClick={onLeaveRoom} variant="secondary">Leave Room: {roomCode}</Button>
+                <RulesDialog />
+            </div>
             {waitingOrGame()}
         </>
     )

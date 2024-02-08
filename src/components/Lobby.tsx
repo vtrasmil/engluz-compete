@@ -81,9 +81,14 @@ export default function Lobby({ userId }: LobbyProps) {
         return (
             <div id="lobby" className="flex flex-col items-center m-3 space-y-6 w-80">
                 <h1 className="text-2xl">WORDS WORDS WORDS</h1>
-                <div>A mind-boggling, multiplayer word search.</div>
+                {gameId == undefined &&
+                    <>
+                        <div>A mind-boggling, multiplayer word search.</div>
+                        <RulesDialog />
+                    </>
+                }
 
-                <RulesDialog />
+
                 <>
                     {gameId == undefined ?
                         lobbyStart() :
