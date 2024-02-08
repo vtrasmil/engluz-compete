@@ -6,7 +6,7 @@ import { DragMode, SwappedLetterState } from "./Types.tsx";
 import useTransformAnimation from "./hooks/useTransformAnimation.tsx";
 import useSelectionDrag from "./useSelectionDrag.tsx";
 import clsx from 'clsx';
-import { ResolvedValues, easeInOut, motion, useAnimate } from "framer-motion";
+import { ResolvedValues, easeInOut, motion } from "framer-motion";
 
 
 
@@ -101,8 +101,6 @@ export function LetterBlock({
         fontWeight: 400,
         fontSize: `x-large`,
         boxShadow: isPointerOver ? '2px 2px 5px rgba(0,0,0,0.10)' : '2px 2px 0 rgba(0,0,0,0.10)',
-        // ...transformAnim,
-        // ...colorAnim,
     }
 
     const variants = {
@@ -139,8 +137,7 @@ export function LetterBlock({
                         isDragging ? 'hidden' : '')
                     }
                     variants={variants} animate={animationEndState}
-                    onUpdate={onUpdate} transition={transition}
-                // style={style}
+                    onUpdate={onUpdate} transition={transition} style={style}
                 >
                     <div ref={eventTargetRef} className={`w-full h-full flex justify-center items-center`}>
                         {prevLetters.at(0)?.toUpperCase().replace('Q', 'Qu')}
