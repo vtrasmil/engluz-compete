@@ -1,4 +1,3 @@
-import { animated } from '@react-spring/web';
 import { useEffect, useRef, useState } from "react";
 import { useDrag } from "react-dnd";
 import { GameplayMessageData } from "./Types.tsx";
@@ -7,8 +6,7 @@ import { DragMode, SwappedLetterState } from "./Types.tsx";
 import useTransformAnimation from "./hooks/useTransformAnimation.tsx";
 import useSelectionDrag from "./useSelectionDrag.tsx";
 import clsx from 'clsx';
-import { ResolvedValues, easeInOut, motion } from "framer-motion";
-import useColorAnim from './hooks/useColorAnim.tsx';
+import { ResolvedValues, easeInOut, motion, useAnimate } from "framer-motion";
 
 
 
@@ -70,9 +68,9 @@ export function LetterBlock({
         if (isDragging) onDragStart();
     }, [isDragging, onDragStart])
 
+
     const transformAnim = useTransformAnimation(isDragging, sourceCell, prevCell.current, temporaryCell, eventTargetRef.current,
-        dropTargetRefs, swappedLetterState, boardDiv, isPointerOver, isSelected);
-    const colorAnim = useColorAnim(numTimesRolled, sourceCell, isSelected, latestMsg);
+        dropTargetRefs, swappedLetterState, boardDiv, isPointerOver, isSelected, latestMsg);
 
     const handlePointerUp = (e: PointerEvent) => {
         onPointerUp(e, id);
@@ -99,13 +97,12 @@ export function LetterBlock({
     }, id);
 
     const style = {
-        width: `50px`, height: `50px`,
         fontFamily: `Poppins, sans-serif`,
         fontWeight: 400,
         fontSize: `x-large`,
         boxShadow: isPointerOver ? '2px 2px 5px rgba(0,0,0,0.10)' : '2px 2px 0 rgba(0,0,0,0.10)',
-        ...transformAnim,
-        ...colorAnim,
+        // ...transformAnim,
+        // ...colorAnim,
     }
 
     const variants = {
@@ -126,13 +123,6 @@ export function LetterBlock({
         }
     }
 
-    /* function onAnimationComplete(definition: AnimationDefinition) {
-        if (definition.toString() === "visible") {
-            // re-render
-
-        }
-    } */
-
     const transition = {
         duration: 0.3,
         easeInOut
@@ -140,22 +130,23 @@ export function LetterBlock({
 
     return (
         <>
-            <motion.div className='absolute' variants={variants} animate={animationEndState}
-                onUpdate={onUpdate} transition={transition}>
-                <animated.div id={`letter-block-${id}`} data-current-cell={sourceCell} data-letter={prevLetters[0]}
-                    ref={drag}
+            <div ref={drag} className="absolute">
+                <motion.div id={`letter-block-${id}`} data-current-cell={sourceCell} data-letter={prevLetters[0]}
+                    ref={transformAnim}
                     className={clsx(
                         'absolute border', isDragging ? 'z-10' : '', isClientsTurn ? 'cursor-pointer' : '',
-                        'border-gray-400 letter-block select-none',
+                        'border-gray-400 letter-block select-none', 'w-[50px] h-[50px]',
                         isDragging ? 'hidden' : '')
                     }
-                    style={style}
+                    variants={variants} animate={animationEndState}
+                    onUpdate={onUpdate} transition={transition}
+                // style={style}
                 >
                     <div ref={eventTargetRef} className={`w-full h-full flex justify-center items-center`}>
                         {prevLetters.at(0)?.toUpperCase().replace('Q', 'Qu')}
                     </div>
-                </animated.div>
-            </motion.div>
+                </motion.div>
+            </div>
         </>
     );
 }
