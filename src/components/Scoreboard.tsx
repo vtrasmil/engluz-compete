@@ -75,7 +75,7 @@ export default function Scoreboard({ playersOrdered, scores,
             } else {
                 return (
                     <div key={p.userId} className="turnOrder">
-                        {gameState.turn === i && <span className="absolute left-[70px]">►</span>}
+                        {gameState.turn === i && <span className="absolute left-[-70px]">►</span>}
                         {p.playerName}{gameState.gameFinished && <span>: {score?.score} point{score && score?.score > 1 && 's'}</span>}
                         {/* {p.playerName} {<span>: {score?.score}</span>} */}
                     </div>
