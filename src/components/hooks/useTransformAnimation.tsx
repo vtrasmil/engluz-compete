@@ -43,6 +43,10 @@ export default function useTransformAnimation(
 
     // 1st render: letterBlockDiv and boardDiv are null, 2nd render: sets
     const [scope, animate] = useAnimate();
+    const [rollChange, setRollChange] = useState(false);
+    const [cellChange, setCellChange] = useState(false);
+    const userId = useUserIdContext();
+    // const [animationEndState, setAnimationEndState] = useState("visible");
 
     const getTransformVector = () => {
         if (!dropTargetDivMap || !boardDiv) return;
@@ -86,12 +90,8 @@ export default function useTransformAnimation(
         void animScale();
     }, [isPointerOver, isSelected, scope, animate]);
 
-    // COLOR
-    const [rollChange, setRollChange] = useState(false);
-    const [cellChange, setCellChange] = useState(false);
-    const userId = useUserIdContext();
 
-    const changeConfig = { tension: 100, friction: 10 };
+
 
     let color = 'white';
     if (isSelected) {
