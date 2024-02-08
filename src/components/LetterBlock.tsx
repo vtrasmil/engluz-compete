@@ -7,6 +7,9 @@ import { DragMode, SwappedLetterState } from "./Types.tsx";
 import useTransformAnimation from "./hooks/useTransformAnimation.tsx";
 import useSelectionDrag from "./useSelectionDrag.tsx";
 import clsx from 'clsx';
+import { ResolvedValues, easeInOut, motion } from "framer-motion";
+import useColorAnim from './hooks/useColorAnim.tsx';
+
 
 
 export interface LetterBlockProps {
@@ -45,6 +48,10 @@ export function LetterBlock({
     const eventTargetRef = useRef<HTMLDivElement>(null);
     const prevCell = useRef(sourceCell);
     const [isPointerOver, setIsPointerOver] = useState(false);
+    const [prevNumTimesRolled, setPrevNumTimesRolled] = useState(numTimesRolled);
+    const [prevLetters, setPrevLetters] = useState(letters); // hang onto prev letters for reroll animation
+    const [animationEndState, setAnimationEndState] = useState("visible");
+
 
     const [{ isDragging }, drag, dragPreview] = useDrag(() => {
         const draggedLetter: DraggedLetter = { id: id, letters: letters, currCell: sourceCell, numTimesRolled: numTimesRolled };
@@ -65,9 +72,7 @@ export function LetterBlock({
 
     const transformAnim = useTransformAnimation(isDragging, sourceCell, prevCell.current, temporaryCell, eventTargetRef.current,
         dropTargetRefs, swappedLetterState, boardDiv, isPointerOver, isSelected);
-
     const colorAnim = useColorAnim(numTimesRolled, sourceCell, isSelected, latestMsg);
-
 
     const handlePointerUp = (e: PointerEvent) => {
         onPointerUp(e, id);
@@ -103,21 +108,54 @@ export function LetterBlock({
         ...colorAnim,
     }
 
+    const variants = {
+        hidden: { opacity: 0, scale: 0 },
+        visible: { opacity: 1, scale: 1 }
+    }
+
+    if (prevNumTimesRolled != numTimesRolled) {
+        setPrevNumTimesRolled(numTimesRolled);
+        setAnimationEndState('hidden');
+    }
+
+    function onUpdate(latest: ResolvedValues) {
+        if (latest.opacity === 0) {
+            console.log('opacity is 0!')
+            setAnimationEndState("visible");
+            setPrevLetters(letters);
+        }
+    }
+
+    /* function onAnimationComplete(definition: AnimationDefinition) {
+        if (definition.toString() === "visible") {
+            // re-render
+
+        }
+    } */
+
+    const transition = {
+        duration: 0.3,
+        easeInOut
+    }
+
     return (
         <>
-            <animated.div id={`letter-block-${id}`} data-current-cell={sourceCell} data-letter={letters[0]}
-                ref={drag}
-                className={clsx(
-                    'border', isDragging ? 'z-10' : '', isClientsTurn ? 'cursor-pointer' : '',
-                    'border-gray-400 letter-block select-none',
-                    isDragging ? 'hidden' : '')
-                }
-                style={style}
-            >
-                <div ref={eventTargetRef} className={`w-full h-full flex justify-center items-center`}>
-                    {letters.at(0)?.toUpperCase().replace('Q', 'Qu')}
-                </div>
-            </animated.div>
+            <motion.div className='absolute' variants={variants} animate={animationEndState}
+                onUpdate={onUpdate} transition={transition}>
+                <animated.div id={`letter-block-${id}`} data-current-cell={sourceCell} data-letter={prevLetters[0]}
+                    ref={drag}
+                    className={clsx(
+                        'absolute border', isDragging ? 'z-10' : '', isClientsTurn ? 'cursor-pointer' : '',
+                        'border-gray-400 letter-block select-none',
+                        isDragging ? 'hidden' : '')
+                    }
+                    style={style}
+                >
+                    <div ref={eventTargetRef} className={`w-full h-full flex justify-center items-center`}>
+                        {prevLetters.at(0)?.toUpperCase().replace('Q', 'Qu')}
+                    </div>
+                </animated.div>
+            </motion.div>
         </>
     );
 }
