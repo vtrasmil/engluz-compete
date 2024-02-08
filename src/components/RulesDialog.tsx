@@ -9,7 +9,7 @@ import {
     DialogTrigger,
 } from "src/components/ui/dialog"
 
-export function DialogDemo() {
+export function RulesDialog() {
     return (
         <Dialog>
             <DialogTrigger asChild>

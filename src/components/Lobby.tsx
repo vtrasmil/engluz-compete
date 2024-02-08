@@ -11,7 +11,7 @@ import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import WaitingRoom from "./WaitingRoom";
 import { Icons } from "./ui/icons";
-import { DialogDemo } from "./RulesDialog";
+import { RulesDialog } from "./RulesDialog";
 
 
 interface LobbyProps {
@@ -83,7 +83,7 @@ export default function Lobby({ userId }: LobbyProps) {
                 <h1 className="text-2xl">WORDS WORDS WORDS</h1>
                 <div>A mind-boggling, multiplayer word search.</div>
 
-                <DialogDemo />
+                <RulesDialog />
                 <>
                     {gameId == undefined ?
                         lobbyStart() :
