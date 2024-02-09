@@ -5,6 +5,7 @@ import { ablyChannelName } from "~/server/ably/ablyHelpers";
 import { AblyMessageType } from "~/components/Types";
 import shuffleArrayCopy from "~/components/helpers";
 import { basicPlayerInfoSchema } from "~/components/Types";
+import { MAX_NUM_PLAYERS_PER_ROOM } from "~/components/Constants";
 
 const totalPlayers = 4;
 
@@ -32,8 +33,15 @@ export const lobbyRouter = createTRPCRouter({
     }))
     .mutation(async (opts) => {
       const { redis } = opts.ctx;
+      const { userId, playerName } = opts.input;
       const gameId = await redis.createGameId();
       const roomCode = await redis.createRoomCode(gameId);
+
+      await redis.createPlayer({
+        userId: userId,
+        playerName: playerName,
+        isHost: true
+      }, gameId);
 
       return {
         roomCode: roomCode,
@@ -52,12 +60,19 @@ export const lobbyRouter = createTRPCRouter({
     .mutation(async (opts) => {
 
       const { redis } = opts.ctx;
-      const { roomCode } = opts.input;
+      const { roomCode, userId, playerName } = opts.input;
       if (roomCode == undefined) throw new Error(`Please enter a room code`);
       const isRoomCodeActive = await redis.isRoomCodeActive(roomCode);
       if (!isRoomCodeActive) throw new Error(`Room code ${roomCode} is not currently active`);
       const gameId = await redis.getGameId(roomCode);
       if (gameId == undefined) throw new Error(`No game is associated with room code ${roomCode}`);
+      if (await redis.getNumPlayers(gameId) >= MAX_NUM_PLAYERS_PER_ROOM)
+        throw new Error(`Max. number of players per room is ${MAX_NUM_PLAYERS_PER_ROOM}`);
+      await redis.createPlayer({
+        userId: userId,
+        playerName: playerName,
+        isHost: false
+      }, gameId);
 
       return {
         roomCode: roomCode,

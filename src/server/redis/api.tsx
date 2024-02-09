@@ -1,6 +1,6 @@
 import type { VercelKV } from "@vercel/kv";
 import type { createClient } from "redis";
-import type { Score } from "~/components/Types";
+import type { BasePlayerInfo, Score } from "~/components/Types";
 import { generateRandomString } from "~/components/helpers";
 import { uniqueId } from "~/utils/helpers";
 import type { LetterDieSchema } from "../diceManager";
@@ -118,19 +118,14 @@ export class RedisBoggleCommands {
         }
     }
 
-    /* async createPlayer(playerInfo: PlayerInfo, gameId: string) {
+    async createPlayer(playerInfo: BasePlayerInfo, gameId: string) {
         const key = `game:${gameId}:players`;
-        const obj: PlayerInfo = {
+        const obj: BasePlayerInfo = {
             userId: playerInfo.userId,
             playerName: playerInfo.playerName,
             isHost: playerInfo.isHost,
         };
         const errorStr = `Player ${playerInfo.userId} (${playerInfo.playerName}) not added to gameId: ${gameId}`;
-
-        // JSON.SET array $ []
-        // JSON.ARRAPPEND array $ '{"player1": "michael"}'
-        // JSON.ARRAPPEND array $ '{"player2": "santos"}'
-        // JSON.GET array $
 
         if (playerInfo.isHost) {
             const initPlayerInfo = await this.redis.json.set(key, '$', '[]');
@@ -143,10 +138,14 @@ export class RedisBoggleCommands {
 
     async getPlayers(gameId: string) {
         const key = `game:${gameId}:players`;
-        const playerInfos = await this.redis.json.get(key) as PlayerInfo[];
+        const playerInfos = await this.redis.json.get(key) as BasePlayerInfo[];
         if (playerInfos == null) throw new Error(`No player infos found for gameId: ${gameId}`);
         return playerInfos;
-    } */
+    }
+
+    async getNumPlayers(gameId: string) {
+        return (await this.getPlayers(gameId)).length;
+    }
 
     async isRoomCodeActive(roomCode: string) {
         return await this.redis.sismember(RedisObjects.ActiveRoomsSet, roomCode);
