@@ -41,15 +41,16 @@ export default function GameManager({ gameId, initBoard, roomCode, playersOrdere
         if (msgData.isValid) {
             setBoardConfig(msgData.newBoard);
             setScores(msgData.newScores);
-            advanceGameState();
+            handleAdvanceGameState();
         }
     });
 
     useChannel(channelName, AblyMessageType.DiceSwapped, (message) => {
         const msgData = message.data as DiceSwappedMessageData;
+        if (msgData.userId === userId) return; // client receives msg from API
         setLatestMsg(msgData);
         setBoardConfig(msgData.newBoard);
-        advanceGameState();
+        handleAdvanceGameState();
     });
 
     function handleBoardChange(boardConfig: BoardConfiguration) {
@@ -62,7 +63,7 @@ export default function GameManager({ gameId, initBoard, roomCode, playersOrdere
         round: round, turn: turn, phase: phase,
         phaseType: currTurnPhase, gameFinished: gameFinished
     };
-    function advanceGameState() {
+    function handleAdvanceGameState() {
         if (phase + 1 < settings.turnPhases.length) {
             setPhase(prev => prev + 1);
         } else {
@@ -78,6 +79,7 @@ export default function GameManager({ gameId, initBoard, roomCode, playersOrdere
                 }
             }
         }
+        console.log(`${round} ${turn} ${phase}`)
     }
 
     const clientTurn = playersOrdered.findIndex(p => p.userId === userId);
@@ -92,7 +94,7 @@ export default function GameManager({ gameId, initBoard, roomCode, playersOrdere
             }
             <Board boardConfig={boardConfig} roomCode={roomCode}
                 gameId={gameId} latestMsg={latestMsg} onBoardChange={handleBoardChange}
-                isClientsTurn={isClientsTurn} dragMode={currTurnPhase} />
+                isClientsTurn={isClientsTurn} dragMode={currTurnPhase} onAdvanceGameState={handleAdvanceGameState} />
             <Scoreboard playersOrdered={playersOrdered} scores={scores}
                 round={round} turn={turn} isClientsTurn={isClientsTurn}
                 gameState={gameState} lastSubmittedWordMsg={lastSubmittedWordMsg} />
