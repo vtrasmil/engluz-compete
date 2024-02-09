@@ -28,7 +28,6 @@ export default function Board({ boardConfig, roomCode, gameId, latestMsg,
     const [selectedLetterIds, setSelectedLetterIds] = useState<number[]>([]);
     const [isPointerDown, setIsPointerDown] = useState<boolean>(false);
     const [pointerOver, setPointerOver] = useState<number>(); // pointerover
-    const [lastSubmittedLetters, setLastSubmittedLetters] = useState<number[]>();
     const [swappedLetterState, setSwappedLetterState] = useState<SwappedLetterState | undefined>();
     const dropTargetsRef = useRef<Map<number, HTMLDivElement> | null>(null);
     const boardRef = useRef<HTMLDivElement | null>(null);

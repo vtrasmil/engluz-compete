@@ -52,7 +52,7 @@ export const lobbyRouter = createTRPCRouter({
     .mutation(async (opts) => {
 
       const { redis } = opts.ctx;
-      const roomCode = opts.input.roomCode;
+      const { roomCode } = opts.input;
       if (roomCode == undefined) throw new Error(`Please enter a room code`);
       const isRoomCodeActive = await redis.isRoomCodeActive(roomCode);
       if (!isRoomCodeActive) throw new Error(`Room code ${roomCode} is not currently active`);

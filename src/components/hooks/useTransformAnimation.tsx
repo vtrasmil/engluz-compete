@@ -1,4 +1,5 @@
-import { AblyMessageType, GameplayMessageData, SwappedLetterState } from "../Types";
+import type { GameplayMessageData, SwappedLetterState } from "../Types";
+import { AblyMessageType } from "../Types";
 import { useWindowSize } from "@react-hooks-library/core";
 import { useAnimate } from "framer-motion";
 import { useEffect, useState } from "react";
