@@ -10,3 +10,5 @@ export const BAD_FOUR_LETTER_WORDS = ['ANUS', 'ARSE', 'CLIT', 'COCK', 'COON',
     'POON', 'PUTO', 'SHIT', 'SHIZ', 'SLUT', 'SMEG', 'SPIC', 'TARD', 'TITS', 'TWAT',
     'TWIT', 'WANK'
 ];
+
+export const UNKNOWN_ERROR_MESSAGE = 'Something went wrong. Please try again later.';
