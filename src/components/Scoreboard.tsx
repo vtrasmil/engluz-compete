@@ -18,7 +18,7 @@ interface ScoreboardProps {
 export default function Scoreboard({ playersOrdered, scores,
     isClientsTurn, gameState, lastSubmittedWordMsg }: ScoreboardProps) {
     const [prevGameState, setPrevGameState] = useState<GameState>(gameState);
-    // const currPlayer = playersOrdered[gameState.turn];
+    const currPlayer = playersOrdered[gameState.turn];
     const userId = useUserIdContext();
     const lastSubmittedWordPlayerName = playersOrdered.find(p => p.userId === lastSubmittedWordMsg?.userId)?.playerName;
 
@@ -36,7 +36,10 @@ export default function Scoreboard({ playersOrdered, scores,
             );
         } else {
             return (
-                <div>{lastSubmittedWordMessage()}</div>
+                <>
+                    <div>{lastSubmittedWordMessage()}</div>
+                    <div>{instructionMessage()}</div>
+                </>
             );
         }
     }
@@ -58,6 +61,8 @@ export default function Scoreboard({ playersOrdered, scores,
     }
 
     function instructionMessage() {
+        if (currPlayer != undefined && !isClientsTurn)
+            return `Waiting for ${currPlayer?.playerName}'s move...`
         if (gameState.phaseType === DragMode.DragNDrop) return 'Swap a pair of letters.';
         if (gameState.phaseType === DragMode.DragToSelect) return 'Select a word.';
     }
@@ -76,8 +81,8 @@ export default function Scoreboard({ playersOrdered, scores,
                 return (
                     <div key={p.userId} className="turnOrder">
                         {gameState.turn === i && <span className="absolute left-[-70px]">►</span>}
-                        {p.playerName}{gameState.gameFinished && <span>: {score?.score} point{score && score?.score > 1 && 's'}</span>}
-                        {/* {p.playerName} {<span>: {score?.score}</span>} */}
+                        {/* {p.playerName}{gameState.gameFinished && <span>: {score?.score} point{score && score?.score > 1 && 's'}</span>} */}
+                        {p.playerName} {<span>: {score?.score}</span>}
                     </div>
                 )
             }
