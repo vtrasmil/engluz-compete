@@ -1,16 +1,9 @@
 import Head from "next/head";
 import { useUserIdContext } from "~/components/hooks/useUserIdContext";
-import dynamic from "next/dynamic";
 import { Analytics } from '@vercel/analytics/react';
 import { cn } from "~/lib/utils";
 import { Inter as FontSans } from "next/font/google";
-
-
-const Lobby = dynamic(() => import('../components/Lobby'), { ssr: false });
-
-
-
-// setUseWhatChange(process.env.NODE_ENV === 'development');
+import Lobby from "~/components/Lobby";
 
 export const fontSans = FontSans({
   subsets: ["latin"],
