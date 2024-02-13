@@ -5,15 +5,14 @@ import { Checkbox } from "~/components/ui/checkbox";
 import { ablyChannelName } from "~/server/ably/ablyHelpers";
 import { GameStartedMessageData } from "./Types";
 import { api } from "~/utils/api";
-import GameManager from "./GameManager";
-import { AblyMessageType, BasePlayerInfo, BasicPlayerInfo, BoardConfiguration, RoomPlayerInfo } from "./Types";
+import { AblyMessageType, PlayerInfo, SimplePlayerInfo, BoardConfiguration, RoomPlayerInfo } from "./Types";
 import { Button } from "./ui/button";
 import { Icons } from "./ui/icons";
 import { RulesDialog } from "./RulesDialog";
 
 
 interface WaitingRoomProps {
-    basePlayer: BasePlayerInfo,
+    basePlayer: PlayerInfo,
     gameId: string,
     roomCode: string,
     onLeaveRoom: () => void;
@@ -22,7 +21,7 @@ export default function WaitingRoom({ basePlayer, gameId, roomCode, onLeaveRoom 
     const channelName = ablyChannelName(roomCode);
     const [initBoard, setInitBoard] = useState<BoardConfiguration | undefined>();
     const startGameMutation = api.lobby.startGame.useMutation({});
-    const [playersOrdered, setPlayersOrdered] = useState<BasicPlayerInfo[]>();
+    const [playersOrdered, setPlayersOrdered] = useState<SimplePlayerInfo[]>();
     const [hasGameStarted, setHasGameStarted] = useState<boolean>(false);
 
     function handleStartGame() {
@@ -81,50 +80,43 @@ export default function WaitingRoom({ basePlayer, gameId, roomCode, onLeaveRoom 
     })();
 
     function waitingOrGame() {
-        if (roomCode !== '' && initBoard && gameId && playersOrdered) {
-            return (
-                <GameManager gameId={gameId} initBoard={initBoard} roomCode={roomCode}
-                    playersOrdered={playersOrdered}
-                />
-            )
-        } else {
-            return (
-                <div className="space-y-6">
-                    <div className="flex items-center space-x-2 justify-center">
-                        <Checkbox className="w-10 h-10"
-                            id="ready-checkbox" onCheckedChange={handleReadyToggle} />
-                        <label
-                            htmlFor="terms"
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                        >
-                            I&apos;m Ready
-                        </label>
-                    </div>
-
-                    {basePlayer.isHost &&
-                        <Button className="w-full bg-green-500"
-                            disabled={!allPlayersReady}
-                            onClick={handleStartGame}>
-                            Start Game
-                            {startGameMutation.isLoading && <Icons.spinner className="h-4 w-4 animate-spin ml-1" />}
-                        </Button>
-                    }
-
-                    {!hasGameStarted &&
-                        <>
-                            {allPlayersReady ?
-                                <div>Waiting for host to start... </div> :
-                                <div>Waiting for players... </div>}
-                            {presencePlayers.map(p => (
-                                <div key={p.userId}>
-                                    {p.playerName}: {p.readyStatus}
-                                </div>
-                            ))}
-                        </>
-                    }
+        return (
+            <div className="space-y-6">
+                <div className="flex items-center space-x-2 justify-center">
+                    <Checkbox className="w-10 h-10"
+                        id="ready-checkbox" onCheckedChange={handleReadyToggle} />
+                    <label
+                        htmlFor="terms"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                        I&apos;m Ready
+                    </label>
                 </div>
-            )
-        }
+
+                {basePlayer.isHost &&
+                    <Button className="w-full bg-green-500"
+                        disabled={!allPlayersReady}
+                        onClick={handleStartGame}>
+                        Start Game
+                        {startGameMutation.isLoading && <Icons.spinner className="h-4 w-4 animate-spin ml-1" />}
+                    </Button>
+                }
+
+                {!hasGameStarted &&
+                    <>
+                        {allPlayersReady ?
+                            <div>Waiting for host to start... </div> :
+                            <div>Waiting for players... </div>}
+                        {presencePlayers.map(p => (
+                            <div key={p.userId}>
+                                {p.playerName}: {p.readyStatus}
+                            </div>
+                        ))}
+                    </>
+                }
+            </div>
+        )
+
     }
 
     return (

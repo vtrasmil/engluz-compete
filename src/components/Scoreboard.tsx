@@ -1,16 +1,15 @@
 
 import { isEqual } from 'lodash';
 import { useState } from "react";
-import type { BasicPlayerInfo, Score, WordSubmittedMessageData } from "./Types";
+import type { SimplePlayerInfo, Score, WordSubmittedMessageData } from "./Types";
 import { DragMode } from "./Types";
 import { useUserIdContext } from "./hooks/useUserIdContext";
+import { GameState } from './Types';
 
 
 interface ScoreboardProps {
-    playersOrdered: BasicPlayerInfo[],
+    playersOrdered: SimplePlayerInfo[],
     scores: Score[],
-    round: number,
-    turn: number,
     isClientsTurn: boolean,
     gameState: GameState,
     lastSubmittedWordMsg: WordSubmittedMessageData | undefined,
@@ -71,7 +70,7 @@ export default function Scoreboard({ playersOrdered, scores,
     function turnOrder() {
         return playersOrdered.map((p, i) => {
             const score = scores.find(s => s.userId === p.userId);
-            if (gameState.gameFinished) {
+            if (gameState.isGameFinished) {
                 return (
                     <div key={p.userId} className="totalScores">
                         <span>{p.playerName}: {score?.score} point{score && score?.score > 1 && 's'}</span>
@@ -96,17 +95,10 @@ export default function Scoreboard({ playersOrdered, scores,
                 {message()}
             </div>
             <div id="scoreboard" className="relative">
-                {gameState.gameFinished && <h2>Final Score:</h2>}
+                {gameState.isGameFinished && <h2>Final Score:</h2>}
                 {turnOrder()}
             </div>
         </>
     );
 }
 
-export type GameState = {
-    round: number,
-    turn: number,
-    phase: number,
-    phaseType: DragMode,
-    gameFinished: boolean,
-}

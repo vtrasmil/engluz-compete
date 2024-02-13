@@ -9,17 +9,16 @@ import { useSessionStorage } from '@react-hooks-library/core';
 
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
-import WaitingRoom from "./WaitingRoom";
 import { Icons } from "./ui/icons";
 import { RulesDialog } from "./RulesDialog";
 
 
 interface LobbyProps {
     userId: string,
+    onSetSessionInfo: (playerName: string, isHost: boolean, gameId: string, roomCode: string) => void,
 }
 
-export default function Lobby({ userId }: LobbyProps) {
-
+export default function Lobby({ userId, onSetSessionInfo }: LobbyProps) {
     const [roomCode, setRoomCode] = useState('');
     const [storedRoomCode, setStoredRoomCode] = useSessionStorage('roomCode', '');
     const [playerName, setPlayerName] = useState('');
@@ -28,17 +27,14 @@ export default function Lobby({ userId }: LobbyProps) {
 
     const hostGameMutation = api.lobby.hostGame.useMutation({
         onSuccess: (data) => {
-            setStoredRoomCode(data.roomCode);
-            setGameId(data.gameId);
-            setIsHost(true);
+            onSetSessionInfo(playerName, true, data.gameId, data.roomCode);
         }
     });
 
     const joinGameMutation = api.lobby.joinGame.useMutation({
         onSuccess: (data) => {
-            setStoredRoomCode(data.roomCode);
-            setGameId(data.gameId);
-            hostGameMutation.reset(); // TODO: is this useful anymore?
+            onSetSessionInfo(playerName, false, data.gameId, data.roomCode);
+            hostGameMutation.reset();
         }
     });
 
@@ -58,14 +54,6 @@ export default function Lobby({ userId }: LobbyProps) {
             playerName: playerName,
         });
         joinGameMutation.reset(); // clear any join game errors
-    }
-
-    function handleLeaveRoom() {
-        setStoredRoomCode('');
-        setGameId(undefined);
-        setStoredRoomCode('');
-        setPlayerName('');
-        setIsHost(false);
     }
 
     function handleRoomCodeInputChange(e: ChangeEvent<HTMLInputElement>) {
@@ -90,18 +78,7 @@ export default function Lobby({ userId }: LobbyProps) {
 
 
                 <>
-                    {gameId == undefined ?
-                        lobbyStart() :
-                        <WaitingRoom
-                            basePlayer={{
-                                userId: userId,
-                                playerName: playerName,
-                                isHost: isHost,
-                            }}
-                            gameId={gameId}
-                            roomCode={storedRoomCode}
-                            onLeaveRoom={handleLeaveRoom}
-                        />}
+                    {lobbyStart()}
                 </>
             </div>
         )

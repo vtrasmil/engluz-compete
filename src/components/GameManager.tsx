@@ -4,17 +4,20 @@ import { ablyChannelName } from "~/server/ably/ablyHelpers.ts";
 import Board from "./Board.tsx";
 import Scoreboard from "./Scoreboard.tsx";
 import type {
-    BasicPlayerInfo, BoardConfiguration, DiceSwappedMessageData, GameSettings,
-    GameplayMessageData, Score, WordSubmittedMessageData
+    SimplePlayerInfo, BoardConfiguration, DiceSwappedMessageData, GameSettings,
+    GameplayMessageData, Score, WordSubmittedMessageData, GameState
 } from "./Types.tsx";
 import { AblyMessageType, DragMode } from "./Types.tsx";
 import { useUserIdContext } from "./hooks/useUserIdContext";
+import { Button } from "./ui/button.tsx";
+import { RulesDialog } from "./RulesDialog.tsx";
 
 interface GameManagerProps {
     gameId: string,
     initBoard: BoardConfiguration,
     roomCode: string,
-    playersOrdered: BasicPlayerInfo[],
+    playersOrdered: SimplePlayerInfo[],
+    onLeaveRoom: () => void,
 }
 
 const settings: GameSettings = {
@@ -22,7 +25,7 @@ const settings: GameSettings = {
     numRounds: 5,
 }
 
-export default function GameManager({ gameId, initBoard, roomCode, playersOrdered }: GameManagerProps) {
+export default function GameManager({ gameId, initBoard, roomCode, playersOrdered, onLeaveRoom }: GameManagerProps) {
     const userId = useUserIdContext();
     const [boardConfig, setBoardConfig] = useState<BoardConfiguration>(initBoard);
     const [scores, setScores] = useState<Score[]>(
@@ -61,8 +64,9 @@ export default function GameManager({ gameId, initBoard, roomCode, playersOrdere
     if (currTurnPhase == undefined) throw new Error('Turn phase is undefined');
     const gameState = {
         round: round, turn: turn, phase: phase,
-        phaseType: currTurnPhase, gameFinished: gameFinished
-    };
+        phaseType: currTurnPhase, isGameFinished: gameFinished,
+        board: boardConfig
+    } satisfies GameState;
     function handleAdvanceGameState() {
         if (phase + 1 < settings.turnPhases.length) {
             setPhase(prev => prev + 1);
@@ -88,6 +92,10 @@ export default function GameManager({ gameId, initBoard, roomCode, playersOrdere
 
     return (
         <>
+            <div className="flex space-x-1">
+                <Button className="" onClick={onLeaveRoom} variant="secondary">Leave Room: {roomCode}</Button>
+                <RulesDialog />
+            </div>
             {gameFinished ?
                 <h2>Game Over!</h2> :
                 <h2>Round {(round + 1).toString()}/{settings.numRounds.toString()}</h2>
@@ -96,8 +104,8 @@ export default function GameManager({ gameId, initBoard, roomCode, playersOrdere
                 gameId={gameId} latestMsg={latestMsg} onBoardChange={handleBoardChange}
                 isClientsTurn={isClientsTurn} dragMode={currTurnPhase} onAdvanceGameState={handleAdvanceGameState} />
             <Scoreboard playersOrdered={playersOrdered} scores={scores}
-                round={round} turn={turn} isClientsTurn={isClientsTurn}
-                gameState={gameState} lastSubmittedWordMsg={lastSubmittedWordMsg} />
+                isClientsTurn={isClientsTurn} gameState={gameState}
+                lastSubmittedWordMsg={lastSubmittedWordMsg} />
         </>
     )
 

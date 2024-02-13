@@ -4,23 +4,39 @@ import type { ReadyOptions } from "./WaitingRoom";
 
 
 
-export const basicPlayerInfoSchema = z.object({
-    userId: z.string(),
-    playerName: z.string(),
-})
-export type BasicPlayerInfo = z.infer<typeof basicPlayerInfoSchema>;
 
-export interface BasePlayerInfo {
+
+/* =========================== ROOM INFO =========================== */
+export interface SessionInfo {
+    playerName: string,
+    isHost: boolean,
+    gameId: string,
+    roomCode: string
+}
+
+export interface PlayerInfo {
     userId: string,
     playerName: string,
     isHost: boolean
 }
 
-export interface RoomPlayerInfo extends BasePlayerInfo {
+export const simplePlayerInfoSchema = z.object({
+    userId: z.string(),
+    playerName: z.string(),
+})
+export type SimplePlayerInfo = z.infer<typeof simplePlayerInfoSchema>;
 
+export interface RoomPlayerInfo extends PlayerInfo {
     readyStatus: ReadyOptions,
 }
 
+export type RoomInfo = {
+    players: PlayerInfo[],
+    activeGameId: string,
+    roomCode: string,
+}
+
+/* =========================== GAME INFO =========================== */
 export type Score = {
     userId: string,
     score: number
@@ -31,17 +47,42 @@ export interface GameSettings {
     numRounds: number
 }
 
+export interface GameInfo {
+    state: GameState,
+    scores: Score[],
+    words: undefined,
+    gameId: string,
+    roomCode: string,
+}
+
+export type GameInfoUpdate = Partial<Pick<GameInfo, 'state' | 'scores'>>;
+
+export type GameState = {
+    round: number;
+    turn: number;
+    phase: number;
+    phaseType: DragMode;
+    isGameFinished: boolean;
+    board: BoardConfiguration;
+};
+
+
+/* =========================== GAMEPLAY =========================== */
+
 export type BoardConfiguration = BoardLetterDie[];
+
+export type BoardLetterDie = {
+    cellId: number;
+    letterBlock: LetterDieSchema;
+};
+
 export interface SwappedLetterState {
     swappedLetter: LetterDieSchema | undefined;
     dragSourceCell: number;
     dropTargetCell: number;
 }
 
-export type BoardLetterDie = {
-    cellId: number;
-    letterBlock: LetterDieSchema;
-}; export enum DragMode {
+export enum DragMode {
     DragToSelect = 'dragToSelect',
     DragNDrop = 'dragNDrop',
     Disabled = 'disabled'
@@ -87,7 +128,7 @@ export type DiceSwappedMessageData = {
 
 export type GameStartedMessageData = {
     initBoard: BoardConfiguration;
-    players: BasicPlayerInfo[];
+    players: SimplePlayerInfo[];
 } & DefaultAblyMessageData;
 
 /* export type ScoreUpdatedMessageData = {
@@ -95,4 +136,5 @@ export type GameStartedMessageData = {
 } & DefaultAblyMessageData; */
 
 export type GameplayMessageData = WordSubmittedMessageData | DiceSwappedMessageData;
+
 

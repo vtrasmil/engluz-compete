@@ -1,3 +1,4 @@
+import { BoardConfiguration, BoardLetterDie } from "~/components/Types";
 import shuffleArrayCopy, { shuffleString } from "~/components/helpers";
 
 export type LetterDieSchema = {
@@ -30,26 +31,32 @@ export const BoggleDice: LetterDieSchema[] =
         { letters: "GILRUW", id: 15, numTimesRolled: 0 },
     ]
 
-export function rollAndShuffleDice(dice: LetterDieSchema[]) : LetterDieSchema[] {
+export function rollAndShuffleDice(dice: LetterDieSchema[]) : BoardConfiguration {
     const shuffledDice = shuffleArrayCopy<LetterDieSchema>(dice);
-    let roll: LetterDieSchema[] = [];
+    let board: BoardConfiguration = [];
     shuffledDice.forEach((die, i) => {
-        die = {letters: shuffleString(die.letters), id: die.id, numTimesRolled: die.numTimesRolled + 1};
-        roll = [...roll, die];
+        const boardLetterDie = {
+            cellId: i,
+            letterBlock: { letters: shuffleString(die.letters), id: die.id, numTimesRolled: die.numTimesRolled + 1 }
+        } satisfies BoardLetterDie;
+        board = [...board, boardLetterDie];
     });
-    return roll;
+    return board;
 }
 
 // TODO: should this roll dice by ID or position in array?
-export function rollDice(dice: LetterDieSchema[], diceToRoll: number[]) {
-    let roll: LetterDieSchema[] = [];
-    dice.forEach((die, i) => {
-        if (diceToRoll.includes(i)) {
-            die = {letters: shuffleString(die.letters), id: die.id, numTimesRolled: die.numTimesRolled + 1};
+export function rollDice(board: BoardConfiguration, cellsToRoll: number[]) {
+    board.forEach((_, i) => {
+        if (cellsToRoll.includes(i)) {
+            // die = {letters: shuffleString(die.letters), id: die.id, numTimesRolled: die.numTimesRolled + 1};
+            const die = board[i];
+            if (die == undefined) return;
+            const letters = die.letterBlock.letters;
+            die.letterBlock.letters = shuffleString(letters);
+            die.letterBlock.numTimesRolled += 1;
         }
-        roll = [...roll, die];
     });
-    return roll;
+    return board;
 }
 
 

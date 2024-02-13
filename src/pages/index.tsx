@@ -9,14 +9,14 @@ export const fontSans = FontSans({
   subsets: ["latin"],
   variable: "--font-sans",
 })
-export default function Home() {
 
+interface HomeProps {
+  onSetSessionInfo: (playerName: string, isHost: boolean, gameId: string, roomCode: string) => void,
 
+}
 
+export default function Home({ onSetSessionInfo, }: HomeProps) {
   const userId = useUserIdContext();
-  if (userId != undefined) {
-
-  }
 
   return (
     <>
@@ -37,7 +37,7 @@ export default function Home() {
       <main className={cn("bg-gray-100 min-h-screen flex items-center justify-center touch-none text-base", fontSans.variable)}>
         <div className="max-w-lg rounded-lg shadow-md bg-white p-6 space-y-6 border-gray-400 dark:border-gray-700">
           <div className="text-center">
-            <Lobby userId={userId} />
+            <Lobby userId={userId} onSetSessionInfo={onSetSessionInfo} />
             <Analytics />
           </div>
         </div>
