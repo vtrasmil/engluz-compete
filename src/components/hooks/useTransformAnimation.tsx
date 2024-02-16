@@ -120,7 +120,7 @@ export default function useTransformAnimation(
 
     useEffect(() => {
         if (latestMsg?.messageType === AblyMessageType.WordSubmitted &&
-            latestMsg.sourceCellIds.includes(sourceCell)) {
+            latestMsg.sourceCellIds.includes(sourceCell) && latestMsg.isValid) {
             setRollChange(true);
             setTimeout(() => setRollChange(false), 300);
         } else if (latestMsg?.messageType === AblyMessageType.DiceSwapped &&
