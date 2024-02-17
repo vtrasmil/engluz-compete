@@ -6,12 +6,19 @@ Eventually: Boggle but competitive.
 
 Try it out at https://word-scramble-react.vercel.app/
 
-![lobby](https://github.com/mikey555/word-scramble-react/assets/983004/173d9b91-8ec2-40f1-a4aa-17f00ddf4ec8)
+![Screenshot 2024-02-16 at 10 11 08 PM](https://github.com/mikey555/word-scramble-react/assets/983004/cd53359f-6b09-4d54-91bd-613aef6b15a4)
 
-![words](https://github.com/mikey555/word-scramble-react/assets/983004/78bfc29b-fa85-45d3-b31a-ff73200a4ec5)
+![word scramble](https://github.com/mikey555/word-scramble-react/assets/983004/1921558d-553e-4f3a-a8b9-a2977598f689)
 
+## Rules
 
-<p><i>(what's happening here: (1) player swaps letter I with B and (2) selects the word "RAIN". (3) The selected letters "re-roll", revealing new letters.)</i></p>
+Swap letters, find words, get points. The longer the word, the more points you get.
+<br/>On your turn,
+<ul>
+  <li>(1) drag to swap a pair of letters</li>
+  <li>(2) drag to select a word.</li>
+</ul>
+The player with the most points after 5 rounds wins.
 
 ## Development
 ```
