@@ -129,11 +129,7 @@ export default function useTransformAnimation(
             setCellChange(true);
             setTimeout(() => setCellChange(false), 300);
         }
-
     }, [latestMsg, sourceCell, userId]);
-
-
-
     /**
      *  Since blocks are rendered initially at top-left of board, we use board div
      * as our anchor point.
