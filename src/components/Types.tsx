@@ -10,7 +10,6 @@ import type { ReadyOptions } from "./WaitingRoom";
 export interface SessionInfo {
     playerName: string,
     isHost: boolean,
-    gameId: string,
     roomCode: string
 }
 
@@ -32,7 +31,7 @@ export interface RoomPlayerInfo extends PlayerInfo {
 
 export type RoomInfo = {
     players: PlayerInfo[],
-    activeGameId: string,
+    activeGameId: string | undefined,
     roomCode: string,
 }
 
@@ -106,7 +105,7 @@ export type WordSubmittedMessageData = (ValidWordSubmittedMessageData | InvalidW
     & { messageType: AblyMessageType.WordSubmitted };
 
 export type ValidWordSubmittedMessageData = {
-    newBoard: BoardConfiguration;
+    game: GameInfo,
     word: string;
     sourceCellIds: number[];
     newScores: Score[];
@@ -121,7 +120,7 @@ export type InvalidWordSubmittedMessageData = {
 } & DefaultAblyMessageData;
 
 export type DiceSwappedMessageData = {
-    newBoard: BoardConfiguration;
+    game: GameInfo,
     sourceCellIds: number[];
     messageType: AblyMessageType.DiceSwapped;
 } & DefaultAblyMessageData;

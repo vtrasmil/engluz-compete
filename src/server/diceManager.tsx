@@ -31,7 +31,7 @@ export const BoggleDice: LetterDieSchema[] =
         { letters: "GILRUW", id: 15, numTimesRolled: 0 },
     ]
 
-export function rollAndShuffleDice(dice: LetterDieSchema[]) : BoardConfiguration {
+export function rollAndShuffleDice(dice: LetterDieSchema[]): BoardConfiguration {
     const shuffledDice = shuffleArrayCopy<LetterDieSchema>(dice);
     let board: BoardConfiguration = [];
     shuffledDice.forEach((die, i) => {
@@ -46,22 +46,19 @@ export function rollAndShuffleDice(dice: LetterDieSchema[]) : BoardConfiguration
 
 // TODO: should this roll dice by ID or position in array?
 export function rollDice(board: BoardConfiguration, cellsToRoll: number[]) {
-    board.forEach((_, i) => {
-        if (cellsToRoll.includes(i)) {
-            // die = {letters: shuffleString(die.letters), id: die.id, numTimesRolled: die.numTimesRolled + 1};
-            const die = board[i];
-            if (die == undefined) return;
-            const letters = die.letterBlock.letters;
-            die.letterBlock.letters = shuffleString(letters);
-            die.letterBlock.numTimesRolled += 1;
-        }
-    });
+    board.filter(die => cellsToRoll.includes(die.cellId))
+        .map(die => rollDie(die));
     return board;
+}
+
+function rollDie(die: BoardLetterDie) {
+    die.letterBlock.letters = shuffleString(die.letterBlock.letters);
+    die.letterBlock.numTimesRolled += 1;
 }
 
 
 export function toStoredDiceRoll(dice: string[]) {
-        return dice.join(',');
+    return dice.join(',');
 }
 
 export function toFaceUpValues(dice: LetterDieSchema[]) {

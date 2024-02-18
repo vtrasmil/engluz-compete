@@ -66,7 +66,6 @@ export default function Scoreboard({ playersOrdered, scores,
         if (gameState.phaseType === DragMode.DragToSelect) return 'Select a word.';
     }
 
-
     function turnOrder() {
         return playersOrdered.map((p, i) => {
             const score = scores.find(s => s.userId === p.userId);
@@ -88,11 +87,10 @@ export default function Scoreboard({ playersOrdered, scores,
         })
     }
 
-
     return (
         <>
             <div className="h-16">
-                {message()}
+                {!gameState.isGameFinished && message()}
             </div>
             <div id="scoreboard" className="relative">
                 {gameState.isGameFinished && <h2>Final Score:</h2>}

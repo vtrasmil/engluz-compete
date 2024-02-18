@@ -1,42 +1,64 @@
 
 import { api } from "~/utils/api";
 
-import { useState, FormEvent, ChangeEvent } from "react";
+import { useState, FormEvent, ChangeEvent, useEffect } from "react";
 
 // import { Button, TextField } from "@mui/material";
-import { useSessionStorage } from '@react-hooks-library/core';
 
 
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { Icons } from "./ui/icons";
 import { RulesDialog } from "./RulesDialog";
+import { useRouter } from "next/router";
+import { useSessionStorage } from "@react-hooks-library/core";
+import { SessionInfo } from "./Types";
 
 
 interface LobbyProps {
     userId: string,
-    onSetSessionInfo: (playerName: string, isHost: boolean, gameId: string, roomCode: string) => void,
+    onSetSessionInfo: (playerName: string, isHost: boolean, roomCode: string) => void,
 }
 
 export default function Lobby({ userId, onSetSessionInfo }: LobbyProps) {
+    const router = useRouter();
+    const [sessionInfo, setSessionInfo] = useSessionStorage<SessionInfo | undefined>('sessionInfo', undefined);
+
     const [roomCode, setRoomCode] = useState('');
-    const [storedRoomCode, setStoredRoomCode] = useSessionStorage('roomCode', '');
     const [playerName, setPlayerName] = useState('');
     const [gameId, setGameId] = useState<string>();
     const [isHost, setIsHost] = useState<boolean>(false);
+    // const [hostGameErrorMsg, setHostGameErrorMsg] = useState<string | undefined>();
 
     const hostGameMutation = api.lobby.hostGame.useMutation({
         onSuccess: (data) => {
-            onSetSessionInfo(playerName, true, data.gameId, data.roomCode);
+            setSessionInfo({
+                playerName: playerName,
+                isHost: true,
+                roomCode: data.roomCode
+            });
+        },
+        onError: (e) => {
+            // setHostGameErrorMsg(e.message);
         }
     });
 
     const joinGameMutation = api.lobby.joinGame.useMutation({
         onSuccess: (data) => {
-            onSetSessionInfo(playerName, false, data.gameId, data.roomCode);
+            setSessionInfo({
+                playerName: playerName,
+                isHost: false,
+                roomCode: data.roomCode
+            });
             hostGameMutation.reset();
         }
     });
+
+    useEffect(() => {
+        if (sessionInfo?.roomCode != undefined) {
+            void router.push(`/${sessionInfo.roomCode}`);
+        }
+    }, [sessionInfo, router])
 
     function handleJoinGame(e: FormEvent) {
         e.preventDefault();
@@ -114,6 +136,8 @@ export default function Lobby({ userId, onSetSessionInfo }: LobbyProps) {
                     Host a Game
                     {hostGameMutation.isLoading && <Icons.spinner className="h-4 w-4 animate-spin ml-1" />}
                 </Button>
+                <div className="text-sm text-red-500">{hostGameMutation.error?.message}</div>
+
 
             </div>
         );

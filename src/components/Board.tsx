@@ -16,14 +16,12 @@ interface BoardProps {
     roomCode: string,
     gameId: string,
     latestMsg: GameplayMessageData | undefined,
-    onBoardChange: (arg0: BoardConfiguration) => void,
     dragMode: DragMode,
     isClientsTurn: boolean,
-    onAdvanceGameState: () => void,
 }
 
 export default function Board({ boardConfig, roomCode, gameId, latestMsg,
-    onBoardChange, dragMode, isClientsTurn, onAdvanceGameState }: BoardProps) {
+    dragMode, isClientsTurn }: BoardProps) {
 
     const [selectedLetterIds, setSelectedLetterIds] = useState<number[]>([]);
     const [isPointerDown, setIsPointerDown] = useState<boolean>(false);
@@ -53,7 +51,7 @@ export default function Board({ boardConfig, roomCode, gameId, latestMsg,
     const swapDiceMutation = api.gameplay.swapDice.useMutation({});
 
     const currDragMode = (() => {
-        if (/* swapDiceMutation.isLoading ||*/ submitWordMutation.isLoading) {
+        if (swapDiceMutation.isLoading || submitWordMutation.isLoading || !isClientsTurn) {
             return DragMode.Disabled;
         } else {
             return dragMode;
@@ -134,8 +132,6 @@ export default function Board({ boardConfig, roomCode, gameId, latestMsg,
             gameId: gameId,
             roomCode: roomCode,
         });
-        onAdvanceGameState();
-        onBoardChange(updated);
     };
 
     function handleSubmitLetters(letterIds: number[]) {

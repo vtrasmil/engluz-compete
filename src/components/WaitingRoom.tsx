@@ -1,23 +1,23 @@
 import { CheckedState } from "@radix-ui/react-checkbox";
-import { useChannel, usePresence } from "ably/react";
+import { usePresence } from "ably/react";
 import { useState } from "react";
 import { Checkbox } from "~/components/ui/checkbox";
 import { ablyChannelName } from "~/server/ably/ablyHelpers";
-import { GameStartedMessageData } from "./Types";
+import { SessionInfo } from "./Types";
 import { api } from "~/utils/api";
-import { AblyMessageType, PlayerInfo, SimplePlayerInfo, BoardConfiguration, RoomPlayerInfo } from "./Types";
+import { PlayerInfo, SimplePlayerInfo, BoardConfiguration, RoomPlayerInfo } from "./Types";
 import { Button } from "./ui/button";
 import { Icons } from "./ui/icons";
 import { RulesDialog } from "./RulesDialog";
+import { useSessionStorage } from "@react-hooks-library/core";
 
 
 interface WaitingRoomProps {
     basePlayer: PlayerInfo,
-    gameId: string,
     roomCode: string,
-    onLeaveRoom: () => void;
 }
-export default function WaitingRoom({ basePlayer, gameId, roomCode, onLeaveRoom }: WaitingRoomProps) {
+export default function WaitingRoom({ basePlayer, roomCode }: WaitingRoomProps) {
+    const [sessionInfo, setSessionInfo] = useSessionStorage<SessionInfo | undefined>('sessionInfo', undefined);
     const channelName = ablyChannelName(roomCode);
     const [initBoard, setInitBoard] = useState<BoardConfiguration | undefined>();
     const startGameMutation = api.lobby.startGame.useMutation({});
@@ -29,7 +29,6 @@ export default function WaitingRoom({ basePlayer, gameId, roomCode, onLeaveRoom 
             throw new Error('Player presence not found.')
         }
         startGameMutation.mutate({
-            gameId: gameId,
             userId: basePlayer.userId,
             roomCode: roomCode,
             players: presencePlayers.map(p => {
@@ -39,19 +38,7 @@ export default function WaitingRoom({ basePlayer, gameId, roomCode, onLeaveRoom 
                 }
             }),
         });
-
-
-
-
     }
-
-    useChannel(channelName, AblyMessageType.GameStarted, (message) => {
-        const msgData = message.data as GameStartedMessageData;
-        // if (msgData.userId == playerInfo.userId) return;
-        setInitBoard(msgData.initBoard);
-        setHasGameStarted(true);
-        setPlayersOrdered(msgData.players);
-    });
 
     function handleReadyToggle(checked: CheckedState) {
         if (checked) {
@@ -60,8 +47,6 @@ export default function WaitingRoom({ basePlayer, gameId, roomCode, onLeaveRoom 
             updateStatus(createPresenceObj(ReadyOptions.NotReady));
         }
     }
-
-    // basePlayerInfo.map(bpi => { return { ...bpi, readyStatus: ReadyOptions.NotReady } })
 
     function createPresenceObj(status: ReadyOptions): RoomPlayerInfo {
         return {
@@ -79,8 +64,16 @@ export default function WaitingRoom({ basePlayer, gameId, roomCode, onLeaveRoom 
         return false;
     })();
 
-    function waitingOrGame() {
-        return (
+    function handleLeaveRoom() {
+        setSessionInfo(undefined);
+    }
+
+    return (
+        <>
+            <div className="flex space-x-1">
+                <Button className="" onClick={handleLeaveRoom} variant="secondary">Leave Room: {roomCode}</Button>
+                <RulesDialog />
+            </div>
             <div className="space-y-6">
                 <div className="flex items-center space-x-2 justify-center">
                     <Checkbox className="w-10 h-10"
@@ -115,23 +108,9 @@ export default function WaitingRoom({ basePlayer, gameId, roomCode, onLeaveRoom 
                     </>
                 }
             </div>
-        )
-
-    }
-
-    return (
-        <>
-            <div className="flex space-x-1">
-                <Button className="" onClick={onLeaveRoom} variant="secondary">Leave Room: {roomCode}</Button>
-                <RulesDialog />
-            </div>
-            {waitingOrGame()}
         </>
     )
-
 }
-
-
 
 export enum ReadyOptions {
     Ready = "Ready",

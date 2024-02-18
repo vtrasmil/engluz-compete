@@ -11,8 +11,7 @@ export const fontSans = FontSans({
 })
 
 interface HomeProps {
-  onSetSessionInfo: (playerName: string, isHost: boolean, gameId: string, roomCode: string) => void,
-
+  onSetSessionInfo: (playerName: string, isHost: boolean, roomCode: string) => void,
 }
 
 export default function Home({ onSetSessionInfo, }: HomeProps) {

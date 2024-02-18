@@ -15,8 +15,8 @@ const RedisObjects = {
 export type LocalRedis = ReturnType<typeof createClient>;
 export type BoggleRedisType = LocalRedis | VercelKV;
 
-function getGameInfoKey(gameId: string) {
-    return `game:${gameId}`;
+function getGameInfoKey(roomCode: string) {
+    return `room:${roomCode}:gameInfo`;
 }
 
 function getRoomInfoKey(roomCode: string) {
@@ -31,7 +31,7 @@ export class RedisBoggleCommands {
     }
 
     async createGameInfo(gameId: string, roomCode: string) {
-        const key = getGameInfoKey(gameId);
+        const key = getGameInfoKey(roomCode);
         const newBoard = rollAndShuffleDice(BoggleDice);
         const gameInfo = {
             state: {
@@ -50,30 +50,32 @@ export class RedisBoggleCommands {
 
     }
 
-    async updateGameInfo(gameId: string, gameInfoUpdate: GameInfoUpdate) {
-        const key = getGameInfoKey(gameId);
-        const get = await this.fetchGameInfo(gameId);
+    async updateGameInfo(gameId: string, roomCode: string, gameInfoUpdate: GameInfoUpdate) {
+        const key = getGameInfoKey(roomCode);
+        const get = await this.fetchGameInfo(roomCode);
         const info = {
             ...get,
             ...gameInfoUpdate
         } satisfies GameInfo;
         const set = await this.redis.json.set(key, '$', info);
         if (set == null) throw new Error(`gameInfo failed to set for gameId: ${gameId}`);
+        return info;
     }
 
-    async fetchGameInfo(gameId: string) {
-        const key = getGameInfoKey(gameId);
+    async fetchGameInfo(roomCode: string) {
+        if (roomCode.length != 4) throw new Error('roomCode.length != 4')
+        const key = getGameInfoKey(roomCode);
         const gameInfo = await this.redis.json.get(key) as GameInfo;
-        if (gameInfo == null) throw new Error(`No game info found for gameId: ${gameId}`);
+        if (gameInfo == null) throw new Error(`No game info associated with room: ${roomCode}`);
         return gameInfo;
     }
 
-    async getGameId(roomCode: string) {
+    /* async getGameId(roomCode: string) {
         // TODO: validate with zod instead of asserting
         const gameId = await this.redis.get(`roomCode:${roomCode}:gameId`) as string;
         if (gameId == null) throw new Error(`No gameId found for room code: ${roomCode}`);
         return gameId;
-    }
+    } */
 
     async createGameId() {
         let gameId: string | undefined;
@@ -85,7 +87,7 @@ export class RedisBoggleCommands {
         return gameId;
     }
 
-    async createRoomCode(gameId: string) {
+    async createRoomCode() {
         let roomCode: string | undefined;
         while (roomCode == undefined) {
             roomCode = generateRandomString(4);
@@ -95,8 +97,8 @@ export class RedisBoggleCommands {
             const roomCodeActiveAdded = await this.redis.sadd(RedisObjects.ActiveRoomsSet, roomCode);
             if (roomCodeActiveAdded == null) throw new Error('room code not added to ActiveRoomsSet')
 
-            const roomCodeGameIdAdded = await this.redis.set(`roomCode:${roomCode}:gameId`, gameId);
-            if (roomCodeGameIdAdded == null) throw new Error('room code not added to roomCode:${roomCode}:gameId');
+            // const roomCodeGameIdAdded = await this.redis.set(`roomCode:${roomCode}:gameId`, gameId);
+            // if (roomCodeGameIdAdded == null) throw new Error('room code not added to roomCode:${roomCode}:gameId');
 
         }
         return roomCode;
@@ -108,7 +110,7 @@ export class RedisBoggleCommands {
         const players = [player];
         const roomInfo = {
             players: players,
-            activeGameId: await this.getGameId(roomCode),
+            activeGameId: undefined,
             roomCode: roomCode
         } satisfies RoomInfo;
         const setRoomInfo = await this.redis.json.set(key, '$', JSON.stringify(roomInfo));

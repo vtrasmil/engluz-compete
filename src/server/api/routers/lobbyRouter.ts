@@ -6,8 +6,7 @@ import { AblyMessageType } from "~/components/Types";
 import shuffleArrayCopy from "~/components/helpers";
 import { simplePlayerInfoSchema } from "~/components/Types";
 import { MAX_NUM_PLAYERS_PER_ROOM, UNKNOWN_ERROR_MESSAGE } from "~/components/Constants";
-
-const totalPlayers = 4;
+import { isErrorWithMessage } from "~/server/Error";
 
 export const lobbyRouter = createTRPCRouter({
   hostGame: publicProcedure
@@ -18,10 +17,9 @@ export const lobbyRouter = createTRPCRouter({
     .mutation(async (opts) => {
       const { redis } = opts.ctx;
       const { userId, playerName } = opts.input;
-      let gameId, roomCode;
+      let roomCode;
       try {
-        gameId = await redis.createGameId();
-        roomCode = await redis.createRoomCode(gameId);
+        roomCode = await redis.createRoomCode();
         await redis.createRoomInfo(
           roomCode,
           {
@@ -35,10 +33,8 @@ export const lobbyRouter = createTRPCRouter({
       }
       return {
         roomCode: roomCode,
-        gameId: gameId,
       }
     }),
-
   joinGame: publicProcedure
     // TODO: map room codes to gameIds in redis hash
     .input(z.object({
@@ -54,9 +50,6 @@ export const lobbyRouter = createTRPCRouter({
       const isRoomCodeActive = await redis.isRoomCodeActive(roomCode);
       if (!isRoomCodeActive) throw new Error(`Room code ${roomCode} is not currently active`);
 
-      const gameId = await redis.getGameId(roomCode);
-      if (gameId == undefined) throw new Error(`No game is associated with room code ${roomCode}`);
-
       if ((await redis.fetchRoomInfo(roomCode)).players.length >= MAX_NUM_PLAYERS_PER_ROOM)
         throw new Error(`Max. number of players per room is ${MAX_NUM_PLAYERS_PER_ROOM}`);
 
@@ -65,29 +58,27 @@ export const lobbyRouter = createTRPCRouter({
           userId: userId,
           playerName: playerName,
           isHost: false
-        }, gameId);
+        }, roomCode);
       } catch (e) {
         throw new Error(UNKNOWN_ERROR_MESSAGE);
       }
       return {
         roomCode: roomCode,
-        gameId: gameId,
       }
     }),
-
   startGame: publicProcedure
     .input(z.object({
       userId: z.string(),
-      gameId: z.string(),
       roomCode: z.string(),
       players: simplePlayerInfoSchema.array(),
     }))
     .mutation(async (opts) => {
       const { redis, ably } = opts.ctx;
-      const { players, roomCode, gameId, userId } = opts.input;
+      const { players, roomCode, userId } = opts.input;
       const channelName = ablyChannelName(roomCode);
-      let game;
+      let game, gameId;
       try {
+        gameId = await redis.createGameId();
         game = await redis.createGameInfo(gameId, roomCode);
         const playersOrdered = shuffleArrayCopy(players);
         const gameStartedMsg: GameStartedMessageData = {
@@ -102,26 +93,34 @@ export const lobbyRouter = createTRPCRouter({
       } catch (e) {
         throw new Error(UNKNOWN_ERROR_MESSAGE);
       }
-
     }),
   fetchGameInfo: publicProcedure
     .input(z.object({
-      gameId: z.string().optional()
-    }))
-    .query(async (opts) => {
-      const { gameId } = opts.input;
-      const { redis } = opts.ctx;
-      if (gameId == undefined) throw new Error('gameId should not be undefined - check gameInfoQuery')
-      return await redis.fetchGameInfo(gameId);
-    }),
-  fetchRoomInfo: publicProcedure
-    .input(z.object({
-      roomCode: z.string().optional()
+      roomCode: z.string(),
     }))
     .query(async (opts) => {
       const { roomCode } = opts.input;
       const { redis } = opts.ctx;
-      if (roomCode == undefined) throw new Error('gameId should not be undefined - check roomInfoQuery')
+      if (roomCode === '') throw new Error('roomCode should not be empty string - check gameInfoQuery')
+      try {
+        return await redis.fetchGameInfo(roomCode);
+      } catch (e) {
+        if (isErrorWithMessage(e) && e.message.includes('No game info associated with room')) {
+          return null;
+        }
+        throw new Error(UNKNOWN_ERROR_MESSAGE);
+      }
+    }),
+  fetchRoomInfo: publicProcedure
+    .input(z.object({
+      roomCode: z.string(),
+    }))
+    .query(async (opts) => {
+      const { roomCode } = opts.input;
+      const { redis } = opts.ctx;
+      if (roomCode === '') throw new Error('gameId should not be empty string - check roomInfoQuery')
       return await redis.fetchRoomInfo(roomCode);
     }),
 });
+
+

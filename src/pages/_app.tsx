@@ -3,29 +3,23 @@ import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
 import { CssBaseline } from "@mui/material";
-import { useSessionStorage } from '@react-hooks-library/core';
+// import { useSessionStorage } from '@react-hooks-library/core';
 import * as Ably from "ably";
 import { AblyProvider } from "ably/react";
 import { type AppType } from "next/app";
 import { HTML5toTouch } from 'rdndmb-html5-to-touch'; // or any other pipeline
-import type { CSSProperties } from "react";
+import { useEffect, type CSSProperties } from "react";
 import { DndProvider, usePreview } from 'react-dnd-multi-backend';
-import {
-  Navigate,
-  RouterProvider,
-  createBrowserRouter
-} from "react-router-dom";
-import ErrorPage from '~/components/ErrorPage';
-import GameManager from '~/components/GameManager';
 import type { DraggedLetter } from "~/components/LetterBlock";
-import { GameInfo, RoomInfo, SessionInfo } from '~/components/Types';
-import WaitingRoom from '~/components/WaitingRoom';
+import { SessionInfo } from '~/components/Types';
 import { useIsClient } from "~/components/hooks/useIsClient";
 import { UserIdProvider } from "~/components/hooks/useUserIdContext";
 import "~/styles/globals.css";
 import { api, getBaseUrl } from "~/utils/api";
 import { uniqueId } from "~/utils/helpers";
-import Home from '.';
+import { useSessionStorage } from 'usehooks-ts';
+
+
 
 const MyDragPreview = () => {
   const preview = usePreview<DraggedLetter, HTMLDivElement>();
@@ -44,14 +38,10 @@ const MyDragPreview = () => {
 const MyApp: AppType = ({ Component, pageProps }) => {
   const [userId, setUserId] = useSessionStorage('userId', uniqueId('user'))
   const [sessionInfo, setSessionInfo] = useSessionStorage<SessionInfo | undefined>('sessionInfo', undefined)
-  const gameInfoQuery = api.lobby.fetchGameInfo.useQuery(
-    { gameId: sessionInfo?.gameId },
-    { enabled: sessionInfo != undefined }
-  ); // get from redis
-  const roomInfoQuery = api.lobby.fetchRoomInfo.useQuery(
-    { roomCode: sessionInfo?.roomCode },
-    { enabled: sessionInfo != undefined }
-  )
+
+  useEffect(() => {
+    setUserId(userId); // must set for it to be stored in session
+  }, [setUserId, userId])
 
   const isClient = useIsClient(); // to avoid sessionStorage-related hydration errors
   if (!isClient) {
@@ -69,16 +59,16 @@ const MyApp: AppType = ({ Component, pageProps }) => {
     setSessionInfo(undefined);
   }
 
-  function handleSetSessionInfo(playerName: string, isHost: boolean, gameId: string, roomCode: string) {
+  /* function handleSetSessionInfo(playerName: string, isHost: boolean, roomCode: string) {
     setSessionInfo({
       playerName: playerName,
       isHost: isHost,
-      gameId: gameId,
       roomCode: roomCode
     });
   }
 
-  function getRoomCodeRoute(session: SessionInfo | undefined, game: GameInfo | undefined, room: RoomInfo | undefined) {
+  async function getRoomCodeRoute(session: SessionInfo | undefined, game: GameInfo | null | undefined, room: RoomInfo | undefined) {
+    await Promise.allSettled([gameInfoQuery, roomInfoQuery])
     if (session != undefined) {
       if (gameInfoQuery.isSuccess && game && room) {
         return <GameManager gameId={game.gameId} initBoard={game.state.board}
@@ -86,16 +76,16 @@ const MyApp: AppType = ({ Component, pageProps }) => {
       } else {
         return <WaitingRoom
           basePlayer={{ userId: userId, playerName: session.playerName, isHost: session.isHost }}
-          gameId={session.gameId} roomCode={session.roomCode} onLeaveRoom={handleLeaveRoom} />
+          roomCode={session.roomCode} onLeaveRoom={handleLeaveRoom} />
       }
     } else {
       return <Navigate to={'/'} />;
     }
-  }
+  } */
 
 
 
-  const router = createBrowserRouter([
+  /* const router = createBrowserRouter([
     {
       path: "/",
       // element: <Component {...pageProps} />,
@@ -104,10 +94,13 @@ const MyApp: AppType = ({ Component, pageProps }) => {
     },
     {
       path: "/:roomCode",
-      element: getRoomCodeRoute(sessionInfo, gameInfoQuery.data, roomInfoQuery.data),
+      element: (
+          getRoomCodeRoute(sessionInfo, gameInfoQuery.data, roomInfoQuery.data)
+      ),
 
     },
-  ]);
+  ]); */
+  console.log(`userId in app.tsx: ${userId}`);
 
 
   if (userId !== undefined)
@@ -117,7 +110,8 @@ const MyApp: AppType = ({ Component, pageProps }) => {
           <UserIdProvider userId={userId}>
             <CssBaseline>
               {<MyDragPreview />}
-              <RouterProvider router={router} />
+              {/* <RouterProvider router={router} /> */}
+              <Component {...pageProps} />
             </CssBaseline>
           </UserIdProvider>
         </DndProvider>
