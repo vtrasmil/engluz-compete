@@ -10,22 +10,6 @@ import { MAX_NUM_PLAYERS_PER_ROOM, UNKNOWN_ERROR_MESSAGE } from "~/components/Co
 const totalPlayers = 4;
 
 export const lobbyRouter = createTRPCRouter({
-  hello: publicProcedure
-    // using zod schema to validate and infer input values
-    .input(
-      z.object({
-        text: z.string().nullish(),
-      })
-        .nullish(),
-    )
-    .query((opts) => {
-      return {
-        greeting: `hello ${opts.input?.text ?? 'world'}`,
-      };
-    }),
-
-
-
   hostGame: publicProcedure
     .input(z.object({
       userId: z.string(),
