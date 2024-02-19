@@ -18,6 +18,7 @@ import "~/styles/globals.css";
 import { api, getBaseUrl } from "~/utils/api";
 import { uniqueId } from "~/utils/helpers";
 import { useSessionStorage } from 'usehooks-ts';
+import Layout from '~/components/Layout';
 
 
 
@@ -109,9 +110,10 @@ const MyApp: AppType = ({ Component, pageProps }) => {
         <DndProvider options={HTML5toTouch}>
           <UserIdProvider userId={userId}>
             <CssBaseline>
-              {<MyDragPreview />}
-              {/* <RouterProvider router={router} /> */}
-              <Component {...pageProps} />
+              <Layout>
+                {<MyDragPreview />}
+                <Component {...pageProps} />
+              </Layout>
             </CssBaseline>
           </UserIdProvider>
         </DndProvider>

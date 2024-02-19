@@ -70,7 +70,7 @@ export default function WaitingRoom({ basePlayer, roomCode }: WaitingRoomProps) 
 
     return (
         <>
-            <div className="flex space-x-1">
+            <div className="flex space-x-1 mb-6">
                 <Button className="" onClick={handleLeaveRoom} variant="secondary">Leave Room: {roomCode}</Button>
                 <RulesDialog />
             </div>

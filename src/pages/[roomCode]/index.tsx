@@ -2,7 +2,7 @@ import { useSessionStorage } from "@react-hooks-library/core";
 import { useChannel } from "ably/react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { AblyMessageType, GameStartedMessageData, SessionInfo } from "~/components/Types";
+import { AblyMessageType, SessionInfo } from "~/components/Types";
 import WaitingRoom from "~/components/WaitingRoom";
 import { ablyChannelName } from "~/server/ably/ablyHelpers";
 import { api } from "~/utils/api";
@@ -15,7 +15,7 @@ export default function RoomPage() {
     //      if game is finished, redirect to Lobby
     // if no session info
     //      redirect to Lobby
-    
+
     const router = useRouter();
     const [roomCode, setRoomCode] = useState<string>('');
     const [isRoomInfoFetched, setIsRoomInfoFetched] = useState(false);
@@ -66,11 +66,7 @@ export default function RoomPage() {
         return (
             <>
                 <WaitingRoom basePlayer={player} roomCode={roomInfoQuery.data.roomCode} />
-                <div>Room ${roomCode}</div>
-                <div>Session Room ${sessionInfo?.roomCode}</div>
             </>
         );
     }
-    return <div>Nothing</div>
-
 }

@@ -26,21 +26,12 @@ export default function Scoreboard({ playersOrdered, scores,
     }
 
     function message() {
-        if (isClientsTurn) {
-            return (
-                <>
-                    <div>{lastSubmittedWordMessage()}</div>
-                    <div>{instructionMessage()}</div>
-                </>
-            );
-        } else {
-            return (
-                <>
-                    <div>{lastSubmittedWordMessage()}</div>
-                    <div>{instructionMessage()}</div>
-                </>
-            );
-        }
+        return (
+            <>
+                <div>{lastSubmittedWordMessage()}</div>
+                <div>{instructionMessage()}</div>
+            </>
+        );
     }
 
     function lastSubmittedWordMessage() {
@@ -78,8 +69,7 @@ export default function Scoreboard({ playersOrdered, scores,
             } else {
                 return (
                     <div key={p.userId} className="turnOrder">
-                        {gameState.turn === i && <span className="absolute left-[-70px]">►</span>}
-                        {/* {p.playerName}{gameState.gameFinished && <span>: {score?.score} point{score && score?.score > 1 && 's'}</span>} */}
+                        {gameState.turn === i && <span className="absolute left-[40px]">►</span>}
                         {p.playerName} {<span>: {score?.score}</span>}
                     </div>
                 )

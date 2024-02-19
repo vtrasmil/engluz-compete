@@ -51,7 +51,7 @@ export default function GameManager({ gameId, roomCode, playersOrdered, onLeaveR
 
     return (
         <>
-            <div className="flex space-x-1">
+            <div className="flex space-x-1 mb-6">
                 <Button className="" onClick={onLeaveRoom} variant="secondary">Leave Room: {roomCode}</Button>
                 <RulesDialog />
             </div>
