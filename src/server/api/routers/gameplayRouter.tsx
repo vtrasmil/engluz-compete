@@ -1,11 +1,12 @@
 import { z } from "zod";
 import type { DiceSwappedMessageData, WordSubmittedMessageData } from "~/components/Types";
-import { AblyMessageType } from "~/components/Types";
+import { AblyMessageType, DragMode } from "~/components/Types";
 import { ablyChannelName } from "~/server/ably/ablyHelpers";
 import { rollDice } from "~/server/diceManager";
 import { getWordFromBoard, isWordValid } from "~/server/wordListManager";
-import { swap } from "~/utils/helpers";
+import { swapCells } from "~/utils/helpers";
 import { createTRPCRouter, publicProcedure } from "../trpc";
+import advanceGameState from "../gameState";
 
 export const gameplayRouter = createTRPCRouter({
 
@@ -22,20 +23,21 @@ export const gameplayRouter = createTRPCRouter({
 
             const channelName = ablyChannelName(roomCode);
             const channel = ably.channels.get(channelName);
-            const dice = await redis.getDice(gameId);
-            const { word, score } = getWordFromBoard(cellIds, dice);
+            const [game, room] = await Promise.all([redis.fetchGameInfo(roomCode), redis.fetchRoomInfo(roomCode)]);
+            const board = game.state.board;
+            const { word, score } = getWordFromBoard(cellIds, board);
             const isValid = await isWordValid(word);
             if (isValid) {
-                const reroll = rollDice(dice, cellIds);
-                await redis.setDice(gameId, reroll);
+                const reroll = rollDice(board, cellIds);
+                game.state.board = reroll;
+                advanceGameState(game.state, room.players);
+                await redis.updateGameInfo(gameId, roomCode, { state: game.state });
+
                 const newScores = await redis.updateGameScore(gameId, userId, score);
                 const wordSubmittedMsg: WordSubmittedMessageData = {
                     userId: userId,
                     messageType: AblyMessageType.WordSubmitted,
-                    newBoard: reroll.map((lb, i) => ({
-                        cellId: i,
-                        letterBlock: lb
-                    })),
+                    game: game,
                     word: word,
                     sourceCellIds: cellIds,
                     newScores: newScores,
@@ -66,21 +68,24 @@ export const gameplayRouter = createTRPCRouter({
             roomCode: z.string().min(1),
         }))
         .mutation(async (opts) => {
-            const { userId, gameId, letterBlockIdA, letterBlockIdB } = opts.input;
-            const dice = await opts.ctx.redis.getDice(gameId);
-            const indexA = dice.findIndex(x => x.id === letterBlockIdA);
-            const indexB = dice.findIndex(x => x.id === letterBlockIdB);
-            if (indexA === -1 || indexB === -1) throw new Error(`Dice swap failed: Index not found in dice`)
-            const swappedDice = swap(dice, indexA, indexB);
-            await opts.ctx.redis.setDice(opts.input.gameId, swappedDice);
-            const ably = opts.ctx.ably;
+            const { userId, gameId, roomCode, letterBlockIdA, letterBlockIdB } = opts.input;
+            const { redis, ably } = opts.ctx;
+            const [game, room] = await Promise.all([redis.fetchGameInfo(roomCode), redis.fetchRoomInfo(roomCode)]);
+
+            if (game.state.phaseType !== DragMode.DragNDrop) throw new Error('SwapDice API called out of order')
+            const board = game.state.board;
+            const indexA = board.find(x => x.letterBlock.id === letterBlockIdA)?.cellId;
+            const indexB = board.find(x => x.letterBlock.id === letterBlockIdB)?.cellId;
+            if (indexA == undefined || indexB == undefined) throw new Error(`Dice swap failed: Index not found in board`)
+            const swappedBoard = swapCells(board, indexA, indexB);
+            game.state.board = swappedBoard;
+            advanceGameState(game.state, room.players);
+            await redis.updateGameInfo(gameId, roomCode, { state: game.state });
+
             const channel = ably.channels.get(ablyChannelName(opts.input.roomCode));
             const diceSwappedMsg: DiceSwappedMessageData = {
                 userId: userId,
-                newBoard: swappedDice.map((lb, i) => ({
-                    cellId: i,
-                    letterBlock: lb
-                })),
+                game: game,
                 messageType: AblyMessageType.DiceSwapped,
                 sourceCellIds: [indexA, indexB]
             }

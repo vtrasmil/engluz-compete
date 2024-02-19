@@ -1,5 +1,5 @@
 import { promises as fs } from 'fs';
-import type { LetterDieSchema } from "./diceManager";
+import { BoardConfiguration } from '~/components/Types';
 
 const dictionaryFilePath = `/public/CSW2019.txt`;
 export let dictionary: Set<string>;
@@ -40,8 +40,11 @@ async function loadDictIntoMem() {
     }
 }
 
-export function getWordFromBoard(blocks: number[], board: LetterDieSchema[]) {
-    const word = blocks.map((n) => board[n]?.letters.substring(0, 1)).join('').replace('Q', 'QU');
+export function getWordFromBoard(cellIds: number[], board: BoardConfiguration) {
+    let word = cellIds.reduce((str, cellId) =>
+        str.concat(board.find(l => l.cellId === cellId)?.letterBlock.letters[0] ?? ''),
+        '');
+    word = word.replace('Q', 'QU');
     if (word.length < 3) throw new Error('Word submitted with length < 3')
     const score = getWordScore(word);
 

@@ -1,46 +1,64 @@
 
 import { api } from "~/utils/api";
 
-import { useState, FormEvent, ChangeEvent } from "react";
+import { useState, FormEvent, ChangeEvent, useEffect } from "react";
 
 // import { Button, TextField } from "@mui/material";
-import { useSessionStorage } from '@react-hooks-library/core';
 
 
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
-import WaitingRoom from "./WaitingRoom";
 import { Icons } from "./ui/icons";
 import { RulesDialog } from "./RulesDialog";
+import { useRouter } from "next/router";
+import { useSessionStorage } from "@react-hooks-library/core";
+import { SessionInfo } from "./Types";
 
 
 interface LobbyProps {
     userId: string,
+    onSetSessionInfo: (playerName: string, isHost: boolean, roomCode: string) => void,
 }
 
-export default function Lobby({ userId }: LobbyProps) {
+export default function Lobby({ userId, onSetSessionInfo }: LobbyProps) {
+    const router = useRouter();
+    const [sessionInfo, setSessionInfo] = useSessionStorage<SessionInfo | undefined>('sessionInfo', undefined);
 
     const [roomCode, setRoomCode] = useState('');
-    const [storedRoomCode, setStoredRoomCode] = useSessionStorage('roomCode', '');
     const [playerName, setPlayerName] = useState('');
     const [gameId, setGameId] = useState<string>();
     const [isHost, setIsHost] = useState<boolean>(false);
+    // const [hostGameErrorMsg, setHostGameErrorMsg] = useState<string | undefined>();
 
     const hostGameMutation = api.lobby.hostGame.useMutation({
         onSuccess: (data) => {
-            setStoredRoomCode(data.roomCode);
-            setGameId(data.gameId);
-            setIsHost(true);
+            setSessionInfo({
+                playerName: playerName,
+                isHost: true,
+                roomCode: data.roomCode
+            });
+        },
+        onError: (e) => {
+            // setHostGameErrorMsg(e.message);
         }
     });
 
     const joinGameMutation = api.lobby.joinGame.useMutation({
         onSuccess: (data) => {
-            setStoredRoomCode(data.roomCode);
-            setGameId(data.gameId);
-            hostGameMutation.reset(); // TODO: is this useful anymore?
+            setSessionInfo({
+                playerName: playerName,
+                isHost: false,
+                roomCode: data.roomCode
+            });
+            hostGameMutation.reset();
         }
     });
+
+    useEffect(() => {
+        if (sessionInfo?.roomCode != undefined) {
+            void router.push(`/${sessionInfo.roomCode}`);
+        }
+    }, [sessionInfo, router])
 
     function handleJoinGame(e: FormEvent) {
         e.preventDefault();
@@ -58,14 +76,6 @@ export default function Lobby({ userId }: LobbyProps) {
             playerName: playerName,
         });
         joinGameMutation.reset(); // clear any join game errors
-    }
-
-    function handleLeaveRoom() {
-        setStoredRoomCode('');
-        setGameId(undefined);
-        setStoredRoomCode('');
-        setPlayerName('');
-        setIsHost(false);
     }
 
     function handleRoomCodeInputChange(e: ChangeEvent<HTMLInputElement>) {
@@ -90,18 +100,7 @@ export default function Lobby({ userId }: LobbyProps) {
 
 
                 <>
-                    {gameId == undefined ?
-                        lobbyStart() :
-                        <WaitingRoom
-                            basePlayer={{
-                                userId: userId,
-                                playerName: playerName,
-                                isHost: isHost,
-                            }}
-                            gameId={gameId}
-                            roomCode={storedRoomCode}
-                            onLeaveRoom={handleLeaveRoom}
-                        />}
+                    {lobbyStart()}
                 </>
             </div>
         )
@@ -137,6 +136,8 @@ export default function Lobby({ userId }: LobbyProps) {
                     Host a Game
                     {hostGameMutation.isLoading && <Icons.spinner className="h-4 w-4 animate-spin ml-1" />}
                 </Button>
+                <div className="text-sm text-red-500">{hostGameMutation.error?.message}</div>
+
 
             </div>
         );

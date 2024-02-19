@@ -1,23 +1,26 @@
-import { type AppType } from "next/app";
-import { api, getBaseUrl } from "~/utils/api";
-import "~/styles/globals.css";
-import { UserIdProvider } from "~/components/hooks/useUserIdContext";
-import { getUserIdFromSessionStorage } from "~/utils/helpers";
-import { CssBaseline } from "@mui/material";
-import { DndProvider, usePreview } from 'react-dnd-multi-backend';
-import { HTML5toTouch } from 'rdndmb-html5-to-touch'; // or any other pipeline
-import { AblyProvider } from "ably/react";
-import * as Ably from "ably";
-
-
-
 import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
+import { CssBaseline } from "@mui/material";
+// import { useSessionStorage } from '@react-hooks-library/core';
+import * as Ably from "ably";
+import { AblyProvider } from "ably/react";
+import { type AppType } from "next/app";
+import { HTML5toTouch } from 'rdndmb-html5-to-touch'; // or any other pipeline
+import { useEffect, type CSSProperties } from "react";
+import { DndProvider, usePreview } from 'react-dnd-multi-backend';
+import type { DraggedLetter } from "~/components/LetterBlock";
+import { SessionInfo } from '~/components/Types';
 import { useIsClient } from "~/components/hooks/useIsClient";
-import { DraggedLetter } from "~/components/LetterBlock";
-import { CSSProperties } from "react";
+import { UserIdProvider } from "~/components/hooks/useUserIdContext";
+import "~/styles/globals.css";
+import { api, getBaseUrl } from "~/utils/api";
+import { uniqueId } from "~/utils/helpers";
+import { useSessionStorage } from 'usehooks-ts';
+import Layout from '~/components/Layout';
+
+
 
 const MyDragPreview = () => {
   const preview = usePreview<DraggedLetter, HTMLDivElement>();
@@ -34,11 +37,17 @@ const MyDragPreview = () => {
 }
 
 const MyApp: AppType = ({ Component, pageProps }) => {
+  const [userId, setUserId] = useSessionStorage('userId', uniqueId('user'))
+  const [sessionInfo, setSessionInfo] = useSessionStorage<SessionInfo | undefined>('sessionInfo', undefined)
+
+  useEffect(() => {
+    setUserId(userId); // must set for it to be stored in session
+  }, [setUserId, userId])
+
   const isClient = useIsClient(); // to avoid sessionStorage-related hydration errors
   if (!isClient) {
     return null;
   }
-  const userId = getUserIdFromSessionStorage() ?? '';
 
   const client = new Ably.Realtime.Promise({
     authUrl: `${getBaseUrl()}/api/createTokenRequest`,
@@ -47,14 +56,64 @@ const MyApp: AppType = ({ Component, pageProps }) => {
     }
   });
 
+  function handleLeaveRoom() {
+    setSessionInfo(undefined);
+  }
+
+  /* function handleSetSessionInfo(playerName: string, isHost: boolean, roomCode: string) {
+    setSessionInfo({
+      playerName: playerName,
+      isHost: isHost,
+      roomCode: roomCode
+    });
+  }
+
+  async function getRoomCodeRoute(session: SessionInfo | undefined, game: GameInfo | null | undefined, room: RoomInfo | undefined) {
+    await Promise.allSettled([gameInfoQuery, roomInfoQuery])
+    if (session != undefined) {
+      if (gameInfoQuery.isSuccess && game && room) {
+        return <GameManager gameId={game.gameId} initBoard={game.state.board}
+          roomCode={game.roomCode} playersOrdered={room.players} onLeaveRoom={handleLeaveRoom} />
+      } else {
+        return <WaitingRoom
+          basePlayer={{ userId: userId, playerName: session.playerName, isHost: session.isHost }}
+          roomCode={session.roomCode} onLeaveRoom={handleLeaveRoom} />
+      }
+    } else {
+      return <Navigate to={'/'} />;
+    }
+  } */
+
+
+
+  /* const router = createBrowserRouter([
+    {
+      path: "/",
+      // element: <Component {...pageProps} />,
+      element: <Home onSetSessionInfo={handleSetSessionInfo} />,
+      errorElement: <ErrorPage />,
+    },
+    {
+      path: "/:roomCode",
+      element: (
+          getRoomCodeRoute(sessionInfo, gameInfoQuery.data, roomInfoQuery.data)
+      ),
+
+    },
+  ]); */
+  console.log(`userId in app.tsx: ${userId}`);
+
+
   if (userId !== undefined)
     return (
       <AblyProvider client={client}>
         <DndProvider options={HTML5toTouch}>
           <UserIdProvider userId={userId}>
             <CssBaseline>
-              {<MyDragPreview />}
-              <Component {...pageProps} />
+              <Layout>
+                {<MyDragPreview />}
+                <Component {...pageProps} />
+              </Layout>
             </CssBaseline>
           </UserIdProvider>
         </DndProvider>

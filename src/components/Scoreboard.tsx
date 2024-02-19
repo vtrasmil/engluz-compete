@@ -1,16 +1,15 @@
 
 import { isEqual } from 'lodash';
 import { useState } from "react";
-import type { BasicPlayerInfo, Score, WordSubmittedMessageData } from "./Types";
+import type { SimplePlayerInfo, Score, WordSubmittedMessageData } from "./Types";
 import { DragMode } from "./Types";
 import { useUserIdContext } from "./hooks/useUserIdContext";
+import { GameState } from './Types';
 
 
 interface ScoreboardProps {
-    playersOrdered: BasicPlayerInfo[],
+    playersOrdered: SimplePlayerInfo[],
     scores: Score[],
-    round: number,
-    turn: number,
     isClientsTurn: boolean,
     gameState: GameState,
     lastSubmittedWordMsg: WordSubmittedMessageData | undefined,
@@ -27,21 +26,12 @@ export default function Scoreboard({ playersOrdered, scores,
     }
 
     function message() {
-        if (isClientsTurn) {
-            return (
-                <>
-                    <div>{lastSubmittedWordMessage()}</div>
-                    <div>{instructionMessage()}</div>
-                </>
-            );
-        } else {
-            return (
-                <>
-                    <div>{lastSubmittedWordMessage()}</div>
-                    <div>{instructionMessage()}</div>
-                </>
-            );
-        }
+        return (
+            <>
+                <div>{lastSubmittedWordMessage()}</div>
+                <div>{instructionMessage()}</div>
+            </>
+        );
     }
 
     function lastSubmittedWordMessage() {
@@ -68,11 +58,10 @@ export default function Scoreboard({ playersOrdered, scores,
         if (gameState.phaseType === DragMode.DragToSelect) return 'Select a word.';
     }
 
-
     function turnOrder() {
         return playersOrdered.map((p, i) => {
             const score = scores.find(s => s.userId === p.userId);
-            if (gameState.gameFinished) {
+            if (gameState.isGameFinished) {
                 return (
                     <div key={p.userId} className="totalScores">
                         <span>{p.playerName}: {score?.score} point{score && score?.score > 1 && 's'}</span>
@@ -81,8 +70,7 @@ export default function Scoreboard({ playersOrdered, scores,
             } else {
                 return (
                     <div key={p.userId} className="turnOrder">
-                        {gameState.turn === i && <span className="absolute left-[-70px]">►</span>}
-                        {/* {p.playerName}{gameState.gameFinished && <span>: {score?.score} point{score && score?.score > 1 && 's'}</span>} */}
+                        {gameState.turn === i && <span className="absolute left-[40px]">►</span>}
                         {p.playerName} {<span>: {score?.score}</span>}
                     </div>
                 )
@@ -90,24 +78,16 @@ export default function Scoreboard({ playersOrdered, scores,
         })
     }
 
-
     return (
         <>
             <div className="h-16">
-                {message()}
+                {!gameState.isGameFinished && message()}
             </div>
             <div id="scoreboard" className="relative">
-                {gameState.gameFinished && <h2>Final Score:</h2>}
+                {gameState.isGameFinished && <h2>Final Score:</h2>}
                 {turnOrder()}
             </div>
         </>
     );
 }
 
-export type GameState = {
-    round: number,
-    turn: number,
-    phase: number,
-    phaseType: DragMode,
-    gameFinished: boolean,
-}
