@@ -15,8 +15,9 @@ import { useSessionStorage } from "@react-hooks-library/core";
 interface WaitingRoomProps {
     basePlayer: PlayerInfo,
     roomCode: string,
+    onLeaveRoom: () => void,
 }
-export default function WaitingRoom({ basePlayer, roomCode }: WaitingRoomProps) {
+export default function WaitingRoom({ basePlayer, roomCode, onLeaveRoom }: WaitingRoomProps) {
     const [sessionInfo, setSessionInfo] = useSessionStorage<SessionInfo | undefined>('sessionInfo', undefined);
     const channelName = ablyChannelName(roomCode);
     const [initBoard, setInitBoard] = useState<BoardConfiguration | undefined>();
@@ -71,7 +72,7 @@ export default function WaitingRoom({ basePlayer, roomCode }: WaitingRoomProps) 
     return (
         <>
             <div className="flex space-x-1 mb-6">
-                <Button className="" onClick={handleLeaveRoom} variant="secondary">Leave Room: {roomCode}</Button>
+                <Button className="" onClick={onLeaveRoom} variant="secondary">Leave Room: {roomCode}</Button>
                 <RulesDialog />
             </div>
             <div className="space-y-6">

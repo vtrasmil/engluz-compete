@@ -55,7 +55,11 @@ export default function RoomPage() {
         void router.push(`${roomCode}/play`);
     });
 
-    console.log(roomInfoQuery.status);
+    function handleLeaveRoom() {
+        setSessionInfo(undefined);
+        void router.push(`/`);
+    }
+
     if (roomInfoQuery.isLoading) {
         return <div>Loading...</div>
     } else if (roomInfoQuery.isError) {
@@ -65,7 +69,7 @@ export default function RoomPage() {
     if (player) {
         return (
             <>
-                <WaitingRoom basePlayer={player} roomCode={roomInfoQuery.data.roomCode} />
+                <WaitingRoom basePlayer={player} roomCode={roomInfoQuery.data.roomCode} onLeaveRoom={handleLeaveRoom} />
             </>
         );
     }
