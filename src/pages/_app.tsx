@@ -110,8 +110,9 @@ const MyApp: AppType = ({ Component, pageProps }) => {
         <DndProvider options={HTML5toTouch}>
           <UserIdProvider userId={userId}>
             <CssBaseline>
+              <MyDragPreview />
               <Layout>
-                {<MyDragPreview />}
+
                 <Component {...pageProps} />
               </Layout>
             </CssBaseline>

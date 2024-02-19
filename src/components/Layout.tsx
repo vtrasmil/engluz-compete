@@ -5,7 +5,7 @@ import { cn } from "~/lib/utils"
 import { fontSans } from "~/pages"
 
 interface LayoutProps {
-    children: ReactNode[]
+    children: ReactNode
 }
 export default function Layout({ children }: LayoutProps) {
     return (
