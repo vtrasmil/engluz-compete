@@ -60,50 +60,6 @@ const MyApp: AppType = ({ Component, pageProps }) => {
     setSessionInfo(undefined);
   }
 
-  /* function handleSetSessionInfo(playerName: string, isHost: boolean, roomCode: string) {
-    setSessionInfo({
-      playerName: playerName,
-      isHost: isHost,
-      roomCode: roomCode
-    });
-  }
-
-  async function getRoomCodeRoute(session: SessionInfo | undefined, game: GameInfo | null | undefined, room: RoomInfo | undefined) {
-    await Promise.allSettled([gameInfoQuery, roomInfoQuery])
-    if (session != undefined) {
-      if (gameInfoQuery.isSuccess && game && room) {
-        return <GameManager gameId={game.gameId} initBoard={game.state.board}
-          roomCode={game.roomCode} playersOrdered={room.players} onLeaveRoom={handleLeaveRoom} />
-      } else {
-        return <WaitingRoom
-          basePlayer={{ userId: userId, playerName: session.playerName, isHost: session.isHost }}
-          roomCode={session.roomCode} onLeaveRoom={handleLeaveRoom} />
-      }
-    } else {
-      return <Navigate to={'/'} />;
-    }
-  } */
-
-
-
-  /* const router = createBrowserRouter([
-    {
-      path: "/",
-      // element: <Component {...pageProps} />,
-      element: <Home onSetSessionInfo={handleSetSessionInfo} />,
-      errorElement: <ErrorPage />,
-    },
-    {
-      path: "/:roomCode",
-      element: (
-          getRoomCodeRoute(sessionInfo, gameInfoQuery.data, roomInfoQuery.data)
-      ),
-
-    },
-  ]); */
-  console.log(`userId in app.tsx: ${userId}`);
-
-
   if (userId !== undefined)
     return (
       <AblyProvider client={client}>
