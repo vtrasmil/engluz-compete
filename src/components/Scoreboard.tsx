@@ -51,7 +51,7 @@ export default function Scoreboard({ playersOrdered, scores,
     }
 
     function instructionMessage() {
-        if (gameState.gameFinished) return;
+        if (gameState.isGameFinished) return;
         if (currPlayer != undefined && !isClientsTurn)
             return `Waiting for ${currPlayer?.playerName}'s move...`
         if (gameState.phaseType === DragMode.DragNDrop) return 'Swap a pair of letters.';
