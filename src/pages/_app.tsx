@@ -27,8 +27,15 @@ const MyDragPreview = () => {
   if (!preview.display) {
     return null;
   }
-  const { itemType, item, style } = preview;
-  const newStyle: CSSProperties = { ...style, width: '50px', height: '50px' }
+  const { itemType, item, style, ref, monitor } = preview;
+  const offset = monitor.getClientOffset();
+  if (offset == null) return;
+  const newStyle: CSSProperties = {
+    ...style,
+    width: '50px', height: '50px',
+    WebkitTransform: `translateX(${offset.x}px) translateY(${offset.y}px)`,
+    transform: `translateX(${offset.x}px) translateY(${offset.y}px)`,
+  }
   return (
     <div className="item-list__item border border-gray-400" style={newStyle}>
       <div className={'w-full h-full flex justify-center items-center'}>{item.letters[0]}</div>
@@ -68,7 +75,6 @@ const MyApp: AppType = ({ Component, pageProps }) => {
             <CssBaseline>
               <MyDragPreview />
               <Layout>
-
                 <Component {...pageProps} />
               </Layout>
             </CssBaseline>
