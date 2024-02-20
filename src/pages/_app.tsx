@@ -33,8 +33,11 @@ const MyDragPreview = () => {
   const newStyle: CSSProperties = {
     ...style,
     width: '50px', height: '50px',
-    WebkitTransform: `translateX(${offset.x}px) translateY(${offset.y}px)`,
-    transform: `translateX(${offset.x}px) translateY(${offset.y}px)`,
+    WebkitTransform: `translateX(${offset.x - 50}px) translateY(${offset.y - 50}px)`,
+    transform: `translateX(${offset.x - 50}px) translateY(${offset.y - 50}px)`,
+    fontFamily: `Poppins, sans-serif`,
+    fontWeight: 400,
+    fontSize: `x-large`
   }
   return (
     <div className="item-list__item border border-gray-400" style={newStyle}>
