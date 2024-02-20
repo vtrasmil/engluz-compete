@@ -37,7 +37,8 @@ const MyDragPreview = () => {
     transform: `translateX(${offset.x - 50}px) translateY(${offset.y - 50}px)`,
     fontFamily: `Poppins, sans-serif`,
     fontWeight: 400,
-    fontSize: `x-large`
+    fontSize: `x-large`,
+    zIndex: 20 // letterBlock is 10
   }
   return (
     <div className="item-list__item border border-gray-400" style={newStyle}>
