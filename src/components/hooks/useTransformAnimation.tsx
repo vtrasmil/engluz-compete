@@ -29,11 +29,8 @@ function getPoint2DDelta(a: Point2D, b: Point2D) {
 }
 
 export default function useTransformAnimation(
-    isDragging: boolean,
     sourceCell: number,
-    prevSourceCell: number,
     temporaryCell: number | undefined,
-    letterBlockDiv: HTMLDivElement | null,
     dropTargetDivMap: Map<number, HTMLDivElement> | null,
     swappedLetterState: SwappedLetterState | undefined,
     boardDiv: HTMLDivElement | null,

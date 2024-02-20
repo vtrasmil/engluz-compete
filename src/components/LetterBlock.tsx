@@ -69,8 +69,9 @@ export function LetterBlock({
     }, [isDragging, onDragStart])
 
 
-    const transformAnim = useTransformAnimation(isDragging, sourceCell, prevCell.current, temporaryCell, eventTargetRef.current,
-        dropTargetRefs, swappedLetterState, boardDiv, isPointerOver, isSelected, latestMsg);
+    const transformAnim = useTransformAnimation(sourceCell, temporaryCell,
+        dropTargetRefs, swappedLetterState, boardDiv, isPointerOver, isSelected,
+        latestMsg);
 
     const handlePointerUp = (e: PointerEvent) => {
         onPointerUp(e, id);
