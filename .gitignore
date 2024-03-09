@@ -48,3 +48,5 @@ dump.rdb
 
 # Sentry Config File
 .sentryclirc
+
+.idea/
