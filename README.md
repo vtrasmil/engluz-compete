@@ -1,4 +1,4 @@
-# Words Words Words
+# Big Words
 
 Currently: swap letters, find words, with friends. (A work-in-progress)
 <br/>
