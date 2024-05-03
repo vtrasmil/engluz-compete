@@ -16,31 +16,18 @@ interface BoardProps {
     roomCode: string,
     gameId: string,
     latestMsg: GameplayMessageData | undefined,
-    dragMode: DragMode,
-    isClientsTurn: boolean,
 }
 
-export default function Board({ boardConfig, roomCode, gameId, latestMsg,
-    dragMode, isClientsTurn }: BoardProps) {
+export default function Board({ boardConfig, roomCode, gameId, latestMsg }: BoardProps) {
 
     const [selectedLetterIds, setSelectedLetterIds] = useState<number[]>([]);
     const [isPointerDown, setIsPointerDown] = useState<boolean>(false);
     const [pointerOver, setPointerOver] = useState<number>(); // pointerover
-    const [swappedLetterState, setSwappedLetterState] = useState<SwappedLetterState | undefined>();
-    const dropTargetsRef = useRef<Map<number, HTMLDivElement> | null>(null);
     const boardRef = useRef<HTMLDivElement | null>(null);
     const [_, setHasFirstRenderHappened] = useState(false);
-    const [isDragging, setIsDragging] = useState(false);
     const userId = useUserIdContext();
 
     const channelName = ablyChannelName(roomCode);
-
-    function getDropTargetsMap() {
-        if (!dropTargetsRef.current) {
-            dropTargetsRef.current = new Map();
-        }
-        return dropTargetsRef.current;
-    }
 
     const submitWordMutation = api.gameplay.submitWord.useMutation({
         onSettled: () => {
@@ -48,22 +35,10 @@ export default function Board({ boardConfig, roomCode, gameId, latestMsg,
         }
     });
 
-    const swapDiceMutation = api.gameplay.swapDice.useMutation({});
-
-    const currDragMode = (() => {
-        if (swapDiceMutation.isLoading || submitWordMutation.isLoading || !isClientsTurn) {
-            return DragMode.Disabled;
-        } else {
-            return dragMode;
-        }
-    })();
-
     const handleLetterBlockDown = (e: PointerEvent, letterBlockId: number) => {
         if (submitWordMutation.isLoading) return;
         setIsPointerDown(true);
-        if (currDragMode == DragMode.DragToSelect) {
-            setSelectedLetterIds([letterBlockId]);
-        }
+        setSelectedLetterIds([letterBlockId]);
     }
 
     // force re-render in order to pass DOM refs to children
@@ -73,18 +48,16 @@ export default function Board({ boardConfig, roomCode, gameId, latestMsg,
 
     const handleLetterBlockEnter = (e: PointerEvent, letterBlockId: number) => {
         if (!isPointerDown || letterBlockId == undefined || selectedLetterIds.includes(letterBlockId) || submitWordMutation.isLoading) return;
-        if (currDragMode === DragMode.DragToSelect) {
-            const lastBlockSelected = selectedLetterIds.slice(-1)[0];
-            if (lastBlockSelected == undefined) return;
-            const lastCellSelected = getCellIdFromLetterId(boardConfig, lastBlockSelected);
-            const currCellSelected = getCellIdFromLetterId(boardConfig, letterBlockId);
-            if (lastCellSelected != undefined && currCellSelected != undefined) {
-                const isNeighbor = getNeighbors(lastCellSelected)?.includes(currCellSelected);
-                if (!isNeighbor) return;
-            }
-            setPointerOver(letterBlockId);
-            setSelectedLetterIds([...selectedLetterIds, letterBlockId]);
+        const lastBlockSelected = selectedLetterIds.slice(-1)[0];
+        if (lastBlockSelected == undefined) return;
+        const lastCellSelected = getCellIdFromLetterId(boardConfig, lastBlockSelected);
+        const currCellSelected = getCellIdFromLetterId(boardConfig, letterBlockId);
+        if (lastCellSelected != undefined && currCellSelected != undefined) {
+            const isNeighbor = getNeighbors(lastCellSelected)?.includes(currCellSelected);
+            if (!isNeighbor) return;
         }
+        setPointerOver(letterBlockId);
+        setSelectedLetterIds([...selectedLetterIds, letterBlockId]);
     }
 
     const handlePointerUp = (e: PointerEvent) => {
@@ -92,47 +65,6 @@ export default function Board({ boardConfig, roomCode, gameId, latestMsg,
         setIsPointerDown(false);
         handleSubmitLetters(selectedLetterIds);
     }
-
-    const handleOnDragStart = () => {
-        if (!isClientsTurn) return;
-        setIsDragging(true);
-    }
-
-    const handleOnDragEnd = () => {
-        setIsDragging(false);
-        setSwappedLetterState(undefined);
-    };
-
-    const handleHoverSwapLetter = (dropTargetCell: number, dragSourceCell: number) => {
-        const newSwappedLetterState: SwappedLetterState = {
-            swappedLetter: getLetterAtCell(dropTargetCell, boardConfig),
-            dragSourceCell: dragSourceCell,
-            dropTargetCell: dropTargetCell,
-        }
-
-        if (!swappedLetterState || newSwappedLetterState.dropTargetCell != swappedLetterState.dropTargetCell) {
-            setSwappedLetterState(newSwappedLetterState);
-        }
-    };
-
-    const handleDropLetter = (dropTargetCell: number) => {
-        if (swappedLetterState != undefined && dropTargetCell === swappedLetterState.dragSourceCell) return;
-        if (swappedLetterState == undefined)
-            throw new Error('Cannot drop letter when SwappedLetterState is undefined');
-        const updated = swapCells(boardConfig, dropTargetCell, swappedLetterState?.dragSourceCell);
-
-        const letterBlockIdA = getLetterAtCell(dropTargetCell, boardConfig).id;
-        const letterBlockIdB = getLetterAtCell(swappedLetterState.dragSourceCell, boardConfig).id;
-        if (letterBlockIdA == undefined || letterBlockIdB == undefined) throw new Error('Missing LetterBlock ID(s)');
-
-        swapDiceMutation.mutate({
-            letterBlockIdA: letterBlockIdA,
-            letterBlockIdB: letterBlockIdB,
-            userId: userId,
-            gameId: gameId,
-            roomCode: roomCode,
-        });
-    };
 
     function handleSubmitLetters(letterIds: number[]) {
         if (letterIds.length < MIN_WORD_LENGTH) {
@@ -152,7 +84,6 @@ export default function Board({ boardConfig, roomCode, gameId, latestMsg,
     const windowRef = useRef<EventTarget>(window);
     useSelectionDrag(windowRef, [isPointerDown, selectedLetterIds], {
         onPointerUp: handlePointerUp,
-        dragMode: currDragMode
     }, 'window');
 
     // prevent tap-and-hold browser context menu from appearing
@@ -173,56 +104,25 @@ export default function Board({ boardConfig, roomCode, gameId, latestMsg,
                     <div key={row} className="board-row flex justify-center">
                         {rows.map(col => {
                             const i = boardWidth * row + col;
-                            return (
-                                <LetterDropTarget key={i} cellId={i}
-                                    onHover={handleHoverSwapLetter} onDrop={handleDropLetter}
-                                    swappedLetterState={swappedLetterState} isDragging={isDragging}
-                                    ref={(node) => {
-                                        const map = getDropTargetsMap();
-                                        if (node) {
-                                            map.set(i, node);
-                                        } else {
-                                            map.delete(i);
-                                        }
-                                    }}
-                                />
-                            )
+                            const letterBlock = boardConfig[i]?.letterBlock;
+                            if (letterBlock != undefined) {
+                                return (
+                                    <LetterBlock key={letterBlock.id} id={letterBlock.id} letters={letterBlock.letters}
+                                                 onPointerDown={handleLetterBlockDown} onPointerUp={handlePointerUp}
+                                                 onPointerEnter={handleLetterBlockEnter}
+                                                 isSelected={selectedLetterIds.includes(letterBlock.id)}
+                                                 blocksSelected={selectedLetterIds}
+                                                 boardDiv={boardRef.current}
+                                                 numTimesRolled={letterBlock.numTimesRolled}
+                                                 latestMsg={latestMsg}
+                                    />
+                                )
+                            }
+
                         })}
                     </div>
                 )}
-                {/* LetterBlocks must be rendered in order of letterBlockId -- divs should be static */}
-                {boardConfig.sort((a, b) => a.letterBlock.id - b.letterBlock.id).map(boardLetter => {
-                    const sourceCellId = boardLetter.cellId;
-                    const tempCellId = () => {
-                        if (swappedLetterState?.dropTargetCell === sourceCellId) {
-                            return swappedLetterState.dragSourceCell;
-                        } else if (swappedLetterState?.dragSourceCell === sourceCellId) {
-                            return swappedLetterState.dropTargetCell;
-                        }
-                        return undefined;
-                    }
-                    const letterBlock = boardLetter.letterBlock;
-                    return (
-                        <LetterBlock key={letterBlock.id} id={letterBlock.id} letters={letterBlock.letters}
-                            onPointerDown={handleLetterBlockDown} onPointerUp={handlePointerUp}
-                            onPointerEnter={handleLetterBlockEnter}
-                            isSelected={selectedLetterIds.includes(letterBlock.id)}
-                            blocksSelected={selectedLetterIds}
-                            sourceCell={sourceCellId}
-                            temporaryCell={tempCellId()}
-                            dragMode={currDragMode}
-                            onDragStart={handleOnDragStart}
-                            onDragEnd={handleOnDragEnd}
-                            dropTargetRefs={dropTargetsRef.current}
-                            swappedLetterState={swappedLetterState}
-                            boardDiv={boardRef.current}
-                            numTimesRolled={letterBlock.numTimesRolled}
-                            latestMsg={latestMsg}
-                            isClientsTurn={isClientsTurn}
 
-                        />)
-                })
-                }
             </div>
         </>
     );

@@ -35,8 +35,7 @@ export class RedisBoggleCommands {
         const newBoard = rollAndShuffleDice(BoggleDice);
         const gameInfo = {
             state: {
-                round: 0, turn: 0, phase: 0,
-                phaseType: DragMode.DragNDrop, isGameFinished: false,
+                round: 0, isGameFinished: false,
                 board: newBoard,
             },
             scores: [],

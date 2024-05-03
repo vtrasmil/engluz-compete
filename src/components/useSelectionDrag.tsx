@@ -11,7 +11,6 @@ interface DragOptions {
     onPointerEnter?: (e: PointerEvent) => void,
     onPointerLeave?: (e: PointerEvent) => void,
     onDrag?: (e: PointerEvent) => void,
-    dragMode: DragMode,
 }
 
 // should accept ref to window and HTMLElement
@@ -49,7 +48,6 @@ export const useSelectionDrag = (ref: RefObject<HTMLDivElement | EventTarget>, d
     }
 
     const handlePointerMove = (e: Event) => {
-        if (options.dragMode !== DragMode.DragNDrop) return;
         if (!isPointerEvent(e)) throw new Error('Event is not a PointerEvent');
         if (isDragging) {
             onDrag(e);

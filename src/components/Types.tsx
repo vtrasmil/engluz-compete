@@ -42,7 +42,6 @@ export type Score = {
 }
 
 export interface GameSettings {
-    turnPhases: DragMode[],
     numRounds: number
 }
 
@@ -58,9 +57,6 @@ export type GameInfoUpdate = Partial<Pick<GameInfo, 'state' | 'scores'>>;
 
 export type GameState = {
     round: number;
-    turn: number;
-    phase: number;
-    phaseType: DragMode;
     isGameFinished: boolean;
     board: BoardConfiguration;
 };

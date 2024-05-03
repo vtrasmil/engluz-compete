@@ -38,15 +38,6 @@ export default function GameManager({ gameId, roomCode, playersOrdered, onLeaveR
         }
     });
 
-    useChannel(channelName, AblyMessageType.DiceSwapped, (message) => {
-        const msgData = message.data as DiceSwappedMessageData;
-        // if (msgData.userId === userId) return; // client receives msg from API
-        setLatestMsg(msgData);
-        setGameState(msgData.game.state);
-    });
-
-    const clientTurn = playersOrdered.findIndex(p => p.userId === userId);
-    const isClientsTurn = gameState.turn === clientTurn && !gameState.isGameFinished;
     const lastSubmittedWordMsg = latestMsg?.messageType === AblyMessageType.WordSubmitted ? latestMsg : undefined;
 
     return (
@@ -60,10 +51,8 @@ export default function GameManager({ gameId, roomCode, playersOrdered, onLeaveR
                 <h2>Round {(gameState.round + 1).toString()}/{NUM_ROUNDS.toString()}</h2>
             }
             <Board boardConfig={gameState.board} roomCode={roomCode}
-                gameId={gameId} latestMsg={latestMsg}
-                isClientsTurn={isClientsTurn} dragMode={gameState.phaseType} />
-            <Scoreboard playersOrdered={playersOrdered} scores={scores}
-                isClientsTurn={isClientsTurn} gameState={gameState}
+                gameId={gameId} latestMsg={latestMsg} />
+            <Scoreboard playersOrdered={playersOrdered} scores={scores} gameState={gameState}
                 lastSubmittedWordMsg={lastSubmittedWordMsg} />
         </>
     )

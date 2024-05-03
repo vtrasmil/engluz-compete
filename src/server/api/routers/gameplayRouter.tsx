@@ -58,39 +58,4 @@ export const gameplayRouter = createTRPCRouter({
                 return { isValid: false, wordSubmitted: word };
             }
         }),
-
-    swapDice: publicProcedure
-        .input(z.object({
-            letterBlockIdA: z.number(),
-            letterBlockIdB: z.number(),
-            userId: z.string().min(1),
-            gameId: z.string().min(1),
-            roomCode: z.string().min(1),
-        }))
-        .mutation(async (opts) => {
-            const { userId, gameId, roomCode, letterBlockIdA, letterBlockIdB } = opts.input;
-            const { redis, ably } = opts.ctx;
-            const [game, room] = await Promise.all([redis.fetchGameInfo(roomCode), redis.fetchRoomInfo(roomCode)]);
-
-            if (game.state.phaseType !== DragMode.DragNDrop) throw new Error('SwapDice API called out of order')
-            const board = game.state.board;
-            const indexA = board.find(x => x.letterBlock.id === letterBlockIdA)?.cellId;
-            const indexB = board.find(x => x.letterBlock.id === letterBlockIdB)?.cellId;
-            if (indexA == undefined || indexB == undefined) throw new Error(`Dice swap failed: Index not found in board`)
-            const swappedBoard = swapCells(board, indexA, indexB);
-            game.state.board = swappedBoard;
-            advanceGameState(game.state, room.players);
-            await redis.updateGameInfo(gameId, roomCode, { state: game.state });
-
-            const channel = ably.channels.get(ablyChannelName(opts.input.roomCode));
-            const diceSwappedMsg: DiceSwappedMessageData = {
-                userId: userId,
-                game: game,
-                messageType: AblyMessageType.DiceSwapped,
-                sourceCellIds: [indexA, indexB]
-            }
-            await channel.publish(AblyMessageType.DiceSwapped, diceSwappedMsg);
-            return diceSwappedMsg;
-        }),
-
 })

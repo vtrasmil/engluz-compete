@@ -10,14 +10,12 @@ import { GameState } from './Types';
 interface ScoreboardProps {
     playersOrdered: SimplePlayerInfo[],
     scores: Score[],
-    isClientsTurn: boolean,
     gameState: GameState,
     lastSubmittedWordMsg: WordSubmittedMessageData | undefined,
 }
 export default function Scoreboard({ playersOrdered, scores,
-    isClientsTurn, gameState, lastSubmittedWordMsg }: ScoreboardProps) {
+    gameState, lastSubmittedWordMsg }: ScoreboardProps) {
     const [prevGameState, setPrevGameState] = useState<GameState>(gameState);
-    const currPlayer = playersOrdered[gameState.turn];
     const userId = useUserIdContext();
     const lastSubmittedWordPlayerName = playersOrdered.find(p => p.userId === lastSubmittedWordMsg?.userId)?.playerName;
 
@@ -52,10 +50,7 @@ export default function Scoreboard({ playersOrdered, scores,
 
     function instructionMessage() {
         if (gameState.isGameFinished) return;
-        if (currPlayer != undefined && !isClientsTurn)
-            return `Waiting for ${currPlayer?.playerName}'s move...`
-        if (gameState.phaseType === DragMode.DragNDrop) return 'Swap a pair of letters.';
-        if (gameState.phaseType === DragMode.DragToSelect) return 'Select a word.';
+        return 'Select a word.';
     }
 
     function turnOrder() {
@@ -70,7 +65,6 @@ export default function Scoreboard({ playersOrdered, scores,
             } else {
                 return (
                     <div key={p.userId} className="turnOrder">
-                        {gameState.turn === i && <span className="absolute left-[40px]">►</span>}
                         {p.playerName} {<span>: {score?.score}</span>}
                     </div>
                 )
