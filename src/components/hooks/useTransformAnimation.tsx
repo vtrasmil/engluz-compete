@@ -30,9 +30,6 @@ function getPoint2DDelta(a: Point2D, b: Point2D) {
 
 export default function useTransformAnimation(
     sourceCell: number,
-    temporaryCell: number | undefined,
-    dropTargetDivMap: Map<number, HTMLDivElement> | null,
-    swappedLetterState: SwappedLetterState | undefined,
     boardDiv: HTMLDivElement | null,
     isPointerOver: boolean,
     isSelected: boolean,
@@ -45,34 +42,6 @@ export default function useTransformAnimation(
     const [cellChange, setCellChange] = useState(false);
     const userId = useUserIdContext();
     // const [animationEndState, setAnimationEndState] = useState("visible");
-
-    const getTransformVector = () => {
-        if (!dropTargetDivMap || !boardDiv) return;
-        const cellId = temporaryCell != undefined ? temporaryCell : sourceCell;
-        const dropTargetDiv = dropTargetDivMap.get(cellId);
-        const boardAbsPos = boardDiv && getXYPosition(boardDiv);
-        const dropTargetAbsPos = dropTargetDiv && getXYPosition(dropTargetDiv);
-        const deltaPos = boardAbsPos && dropTargetAbsPos && getPoint2DDelta(boardAbsPos, dropTargetAbsPos);
-        return deltaPos;
-    };
-    useWindowSize({ initialWidth: window.innerWidth, initialHeight: window.innerHeight });
-    const currVector = getTransformVector();
-
-    useEffect(() => {
-        const immediate = temporaryCell == undefined && swappedLetterState == undefined;
-        const animPosition = async () => {
-            await animate(scope.current,
-                {
-                    x: currVector?.x,
-                    y: currVector?.y
-                },
-                {
-                    type: 'tween',
-                    duration: immediate ? 0 : 0.2,
-                });
-        };
-        void animPosition();
-    }, [temporaryCell, swappedLetterState, isPointerOver, isSelected, currVector, scope, animate]);
 
     useEffect(() => {
         const animScale = async () => {

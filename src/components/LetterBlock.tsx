@@ -4,6 +4,7 @@ import { LetterDieSchema } from "~/server/diceManager.tsx";
 import useSelectionDrag from "./useSelectionDrag.tsx";
 import clsx from 'clsx';
 import { ResolvedValues, easeInOut, motion } from "framer-motion";
+import useTransformAnimation from "~/components/hooks/useTransformAnimation.tsx";
 
 
 
@@ -36,6 +37,8 @@ export function LetterBlock({
     const [prevNumTimesRolled, setPrevNumTimesRolled] = useState(numTimesRolled);
     const [prevLetters, setPrevLetters] = useState(letters); // hang onto prev letters for reroll animation
     const [animationEndState, setAnimationEndState] = useState("visible");
+
+    const transformAnimScope = useTransformAnimation(sourceCell, boardDiv, isPointerOver, isSelected, latestMsg);
 
     const handlePointerUp = (e: PointerEvent) => {
         onPointerUp(e, id);
@@ -97,8 +100,8 @@ export function LetterBlock({
                     'border-gray-400 letter-block select-none', 'w-[50px] h-[50px]')
                 }
                 variants={variants} animate={animationEndState}
-                onUpdate={onUpdate} transition={transition} style={style}
-            >
+                onUpdate={onUpdate} transition={transition} style={style} ref={transformAnimScope}>
+
                 <div ref={eventTargetRef} className={`w-full h-full flex justify-center items-center`}>
                     {prevLetters.at(0)?.toUpperCase().replace('Q', 'Qu')}
                 </div>
