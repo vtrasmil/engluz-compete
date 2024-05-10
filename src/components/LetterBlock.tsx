@@ -10,6 +10,7 @@ import useTransformAnimation from "~/components/hooks/useTransformAnimation.tsx"
 
 export interface LetterBlockProps {
     id: number,
+    sourceCell: number,
     letters: string;
     isSelected: boolean;
     isPointerDown?: boolean;
@@ -29,7 +30,7 @@ export interface DraggedLetter extends LetterDieSchema {
 
 
 export function LetterBlock({
-    id, letters, isSelected, onPointerDown, onPointerUp, onPointerEnter,
+    id, sourceCell, letters, isSelected, onPointerDown, onPointerUp, onPointerEnter,
     isPointerDown, blocksSelected, boardDiv, numTimesRolled, latestMsg
 }: LetterBlockProps) {
     const eventTargetRef = useRef<HTMLDivElement>(null);

@@ -104,10 +104,11 @@ export default function Board({ boardConfig, roomCode, gameId, latestMsg }: Boar
                     <div key={row} className="board-row flex justify-center">
                         {rows.map(col => {
                             const i = boardWidth * row + col;
+
                             const letterBlock = boardConfig[i]?.letterBlock;
                             if (letterBlock != undefined) {
                                 return (
-                                    <LetterBlock key={letterBlock.id} id={letterBlock.id} letters={letterBlock.letters}
+                                    <LetterBlock key={letterBlock.id} sourceCell={i} id={letterBlock.id} letters={letterBlock.letters}
                                                  onPointerDown={handleLetterBlockDown} onPointerUp={handlePointerUp}
                                                  onPointerEnter={handleLetterBlockEnter}
                                                  isSelected={selectedLetterIds.includes(letterBlock.id)}
