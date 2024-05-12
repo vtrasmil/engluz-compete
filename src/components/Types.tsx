@@ -87,7 +87,6 @@ export enum DragMode {
 
 export enum AblyMessageType {
     WordSubmitted = 'wordSubmitted',
-    DiceSwapped = 'diceSwapped',
     GameStarted = 'gameStarted',
     ScoreUpdated = 'scoreUpdated'
 }
@@ -115,21 +114,11 @@ export type InvalidWordSubmittedMessageData = {
     isValid: false;
 } & DefaultAblyMessageData;
 
-export type DiceSwappedMessageData = {
-    game: GameInfo,
-    sourceCellIds: number[];
-    messageType: AblyMessageType.DiceSwapped;
-} & DefaultAblyMessageData;
-
 export type GameStartedMessageData = {
     initBoard: BoardConfiguration;
     players: SimplePlayerInfo[];
 } & DefaultAblyMessageData;
 
-/* export type ScoreUpdatedMessageData = {
-    scores: Score[];
-} & DefaultAblyMessageData; */
-
-export type GameplayMessageData = WordSubmittedMessageData | DiceSwappedMessageData;
+export type GameplayMessageData = WordSubmittedMessageData;
 
 
