@@ -82,7 +82,6 @@ export const lobbyRouter = createTRPCRouter({
         game = await redis.createGameInfo(gameId, roomCode);
         const playersOrdered = shuffleArrayCopy(players);
         const gameStartedMsg: GameStartedMessageData = {
-          userId: userId,
           messageType: AblyMessageType.GameStarted,
           initBoard: game.state.board,
           players: playersOrdered

@@ -6,7 +6,7 @@ import { DragMode, GameSettings, GameState, PlayerInfo } from "~/components/Type
 const SETTINGS: GameSettings = {
     numRounds: NUM_ROUNDS,
 }
-export default function advanceGameState(gameState: GameState, playersOrdered: PlayerInfo[]) {
+export default function advanceGameState(gameState: GameState) {
     if (gameState.round + 1 < SETTINGS.numRounds) {
         gameState.round += 1;
     } else {

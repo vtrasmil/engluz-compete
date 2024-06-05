@@ -1,6 +1,7 @@
 import { useState, useEffect, RefObject } from 'react';
 import { isPointerEvent } from '~/utils/helpers';
 import { DragMode } from "./Types";
+import * as console from "node:console";
 
 
 interface DragOptions {
@@ -70,6 +71,7 @@ export const useSelectionDrag = (ref: RefObject<HTMLDivElement | EventTarget>, d
     useEffect(() => {
         const element = ref.current;
         if (element) {
+
             // console.log(`${blockId}: ${deps}`);
             element.addEventListener('pointerdown', handlePointerDown);
             element.addEventListener('pointerup', handlePointerUp);
@@ -79,6 +81,7 @@ export const useSelectionDrag = (ref: RefObject<HTMLDivElement | EventTarget>, d
                 element.addEventListener('gotpointercapture', handleGotPointerCapture);
                 element.addEventListener('lostpointercapture', handleLostPointerCapture);
             } */
+
 
             return () => {
                 element.removeEventListener('pointerdown', handlePointerDown);
@@ -91,7 +94,7 @@ export const useSelectionDrag = (ref: RefObject<HTMLDivElement | EventTarget>, d
                 } */
             };
         }
-    }); // TODO: bring back deps to improve performance
+    }, ); // TODO: bring back deps to improve performance
 
     return { isDragging };
 }

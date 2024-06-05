@@ -61,6 +61,12 @@ export type GameState = {
     board: BoardConfiguration;
 };
 
+export type ConfirmedWord = {
+    userId: string,
+    word: string,
+    score: number,
+    sourceCellIds: number[],
+}
 
 /* =========================== GAMEPLAY =========================== */
 
@@ -83,42 +89,62 @@ export enum DragMode {
     Disabled = 'disabled'
 }
 
+
+
 /* =========================== ABLY TYPES =========================== */
 
 export enum AblyMessageType {
     WordSubmitted = 'wordSubmitted',
     GameStarted = 'gameStarted',
-    ScoreUpdated = 'scoreUpdated'
+    ScoreUpdated = 'scoreUpdated',
+    WordConfirmed = 'wordConfirmed',
+    AllWordsConfirmed = 'allWordsConfirmed',
 }
 interface DefaultAblyMessageData {
-    userId: string;
     messageType: AblyMessageType;
 }
 // NOTE: Ably only allows serialized data in messages
 
-export type WordSubmittedMessageData = (ValidWordSubmittedMessageData | InvalidWordSubmittedMessageData)
-    & { messageType: AblyMessageType.WordSubmitted };
+export type WordSubmittedMessageData = (ValidWordSubmittedMessageData | InvalidWordSubmittedMessageData);
 
-export type ValidWordSubmittedMessageData = {
+export type ValidWordSubmittedMessageData = DefaultAblyMessageData & {
+    messageType: AblyMessageType.WordSubmitted;
+    userId: string;
     game: GameInfo,
     word: string;
     sourceCellIds: number[];
     newScores: Score[];
     isValid: true;
     score: number;
-} & DefaultAblyMessageData;
+};
 
-export type InvalidWordSubmittedMessageData = {
+export type InvalidWordSubmittedMessageData = DefaultAblyMessageData & {
+    messageType: AblyMessageType.WordSubmitted;
+    userId: string;
     word: string;
     sourceCellIds: number[];
     isValid: false;
-} & DefaultAblyMessageData;
+};
+
+export type WordConfirmedMessageData = DefaultAblyMessageData & {
+    messageType: AblyMessageType.WordConfirmed;
+    userId: string;
+    word: string;
+    sourceCellIds: number[];
+};
+
+export type AllWordsConfirmedMessageData = DefaultAblyMessageData & {
+    messageType: AblyMessageType.AllWordsConfirmed;
+    words: ConfirmedWord[];
+};
 
 export type GameStartedMessageData = {
+    messageType: AblyMessageType.GameStarted;
     initBoard: BoardConfiguration;
     players: SimplePlayerInfo[];
 } & DefaultAblyMessageData;
 
-export type GameplayMessageData = WordSubmittedMessageData;
+export type GameplayMessageData = WordSubmittedMessageData | WordConfirmedMessageData;
+export type GameEventMessageData = GameStartedMessageData | AllWordsConfirmedMessageData;
 
 

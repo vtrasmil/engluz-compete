@@ -1,13 +1,12 @@
-import { useEffect, useRef, useState } from "react";
-import { ablyChannelName } from "~/server/ably/ablyHelpers";
-import { BoggleDice } from "~/server/diceManager";
-import { api } from "~/utils/api";
-import { getCellIdFromLetterId, getLetterAtCell, swapCells } from "~/utils/helpers";
-import { MIN_WORD_LENGTH } from "./Constants.tsx";
-import { LetterBlock } from "./LetterBlock";
-import LetterDropTarget from "./LetterDropTarget";
-import { BoardConfiguration, DragMode, GameplayMessageData, SwappedLetterState } from "./Types.tsx";
-import { useUserIdContext } from "./hooks/useUserIdContext";
+import {useEffect, useRef, useState} from "react";
+import {ablyChannelName} from "~/server/ably/ablyHelpers";
+import {BoggleDice} from "~/server/diceManager";
+import {api} from "~/utils/api";
+import {getCellIdFromLetterId} from "~/utils/helpers";
+import {MIN_WORD_LENGTH} from "./Constants.tsx";
+import {LetterBlock} from "./LetterBlock";
+import {AblyMessageType, BoardConfiguration, GameEventMessageData, GameplayMessageData} from "./Types.tsx";
+import {useUserIdContext} from "./hooks/useUserIdContext";
 import useSelectionDrag from "./useSelectionDrag.tsx";
 
 
@@ -15,10 +14,12 @@ interface BoardProps {
     boardConfig: BoardConfiguration,
     roomCode: string,
     gameId: string,
-    latestMsg: GameplayMessageData | undefined,
+    latestMsg: GameplayMessageData | GameEventMessageData | undefined,
+    onSubmitWord: (cellIds: number[]) => void,
+    isMutationLoading: boolean,
 }
 
-export default function Board({ boardConfig, roomCode, gameId, latestMsg }: BoardProps) {
+export default function Board({ boardConfig, roomCode, gameId, latestMsg, onSubmitWord, isMutationLoading }: BoardProps) {
 
     const [selectedLetterIds, setSelectedLetterIds] = useState<number[]>([]);
     const [isPointerDown, setIsPointerDown] = useState<boolean>(false);
@@ -29,14 +30,9 @@ export default function Board({ boardConfig, roomCode, gameId, latestMsg }: Boar
 
     const channelName = ablyChannelName(roomCode);
 
-    const submitWordMutation = api.gameplay.submitWord.useMutation({
-        onSettled: () => {
-            setSelectedLetterIds([]);
-        }
-    });
 
     const handleLetterBlockDown = (e: PointerEvent, letterBlockId: number) => {
-        if (submitWordMutation.isLoading) return;
+        if (isMutationLoading) return;
         setIsPointerDown(true);
         setSelectedLetterIds([letterBlockId]);
     }
@@ -47,7 +43,7 @@ export default function Board({ boardConfig, roomCode, gameId, latestMsg }: Boar
     }, [])
 
     const handleLetterBlockEnter = (e: PointerEvent, letterBlockId: number) => {
-        if (!isPointerDown || letterBlockId == undefined || selectedLetterIds.includes(letterBlockId) || submitWordMutation.isLoading) return;
+        if (!isPointerDown || letterBlockId == undefined || selectedLetterIds.includes(letterBlockId) || isMutationLoading) return;
         const lastBlockSelected = selectedLetterIds.slice(-1)[0];
         if (lastBlockSelected == undefined) return;
         const lastCellSelected = getCellIdFromLetterId(boardConfig, lastBlockSelected);
@@ -61,7 +57,7 @@ export default function Board({ boardConfig, roomCode, gameId, latestMsg }: Boar
     }
 
     const handlePointerUp = (e: PointerEvent) => {
-        if (submitWordMutation.isLoading) return;
+        if (isMutationLoading) return;
         setIsPointerDown(false);
         handleSubmitLetters(selectedLetterIds);
     }
@@ -71,14 +67,11 @@ export default function Board({ boardConfig, roomCode, gameId, latestMsg }: Boar
             setSelectedLetterIds([]);
             return;
         }
-        submitWordMutation.mutate({
-            userId: userId,
-            gameId: gameId,
-            // cellIds: getCellIdsFromLetterIds(boardConfig, letterIds),
-            cellIds: letterIds.map(lid => getCellIdFromLetterId(boardConfig, lid)),
-            roomCode: roomCode,
-        })
+        onSubmitWord(letterIds.map(lid => getCellIdFromLetterId(boardConfig, lid)),);
     }
+
+    // TODO: letterIds or sourceCellIds?
+
 
     // when pointerup happens outside a letter
     const windowRef = useRef<EventTarget>(window);
@@ -103,19 +96,18 @@ export default function Board({ boardConfig, roomCode, gameId, latestMsg }: Boar
                 {rows.map((row) =>
                     <div key={row} className="board-row flex justify-center">
                         {rows.map(col => {
-                            const i = boardWidth * row + col;
-
+                            const i = (boardWidth * row) + col;
                             const letterBlock = boardConfig[i]?.letterBlock;
                             if (letterBlock != undefined) {
                                 return (
-                                    <LetterBlock key={letterBlock.id} sourceCell={i} id={letterBlock.id} letters={letterBlock.letters}
+                                    <LetterBlock key={letterBlock.id.toString() + ":" + letterBlock.numTimesRolled.toString()}
+                                                 sourceCell={i} id={letterBlock.id} letters={letterBlock.letters}
                                                  onPointerDown={handleLetterBlockDown} onPointerUp={handlePointerUp}
                                                  onPointerEnter={handleLetterBlockEnter}
                                                  isSelected={selectedLetterIds.includes(letterBlock.id)}
                                                  blocksSelected={selectedLetterIds}
                                                  boardDiv={boardRef.current}
                                                  numTimesRolled={letterBlock.numTimesRolled}
-                                                 latestMsg={latestMsg}
                                     />
                                 )
                             }

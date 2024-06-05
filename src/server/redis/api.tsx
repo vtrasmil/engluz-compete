@@ -1,6 +1,14 @@
 import type { VercelKV } from "@vercel/kv";
 import type { createClient } from "redis";
-import { DragMode, type PlayerInfo, type GameInfo, type GameInfoUpdate, type Score, RoomInfo } from "~/components/Types";
+import {
+    DragMode,
+    type PlayerInfo,
+    type GameInfo,
+    type GameInfoUpdate,
+    type Score,
+    RoomInfo,
+    ConfirmedWord
+} from "~/components/Types";
 import { generateRandomString } from "~/components/helpers";
 import { uniqueId } from "~/utils/helpers";
 import { BoggleDice, rollAndShuffleDice } from "../diceManager";
@@ -46,7 +54,6 @@ export class RedisBoggleCommands {
         const gameAdded = await this.redis.json.set(key, '$', gameInfo);
         if (!gameAdded) throw new Error(`Game ${gameId} failed to initialize`);
         return gameInfo;
-
     }
 
     async updateGameInfo(gameId: string, roomCode: string, gameInfoUpdate: GameInfoUpdate) {
@@ -140,7 +147,6 @@ export class RedisBoggleCommands {
 
     async initGameScore(gameId: string, playersOrdered: { userId: string, playerName: string }[]) {
         const key = `game:${gameId}:scores`;
-        console.log(key)
         const initScores: Score[] = playersOrdered.map(p => {
             return { userId: p.userId, score: 0 };
         })
@@ -168,6 +174,28 @@ export class RedisBoggleCommands {
         } else {
             throw new Error(`Can't find score for userId ${userId} in gameId ${gameId}`)
         }
+    }
+
+    async addConfirmedWord(gameId: string, userId: string, word: string, sourceCellIds: number[], score: number,
+                           round: number) {
+        const key = `game:${gameId}:round:${round}:words`;
+        const confirmedWord = {
+            userId: userId,
+            word: word,
+            score: score,
+            sourceCellIds: sourceCellIds,
+        } satisfies ConfirmedWord;
+        const confirmedWords = await this.redis.json.get(key) as ConfirmedWord[];
+
+        let set;
+        if (confirmedWords == null) {
+            set = await this.redis.json.set(key, '$', JSON.stringify([confirmedWord]));
+        } else {
+            confirmedWords.push(confirmedWord);
+            set = await this.redis.json.set(key, '$', JSON.stringify(confirmedWords));
+        }
+        if (set == null) throw new Error(`Failed to set: ${word}, ${key}`);
+        return confirmedWords;
     }
 
     async isRoomCodeActive(roomCode: string) {

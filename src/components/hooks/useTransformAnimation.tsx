@@ -89,11 +89,6 @@ export default function useTransformAnimation(
             latestMsg.sourceCellIds.includes(sourceCell) && latestMsg.isValid) {
             setRollChange(true);
             setTimeout(() => setRollChange(false), 300);
-        } else if (latestMsg?.messageType === AblyMessageType.DiceSwapped &&
-            latestMsg.sourceCellIds.includes(sourceCell) &&
-            latestMsg.userId !== userId) {
-            setCellChange(true);
-            setTimeout(() => setCellChange(false), 300);
         }
     }, [latestMsg, sourceCell, userId]);
     /**

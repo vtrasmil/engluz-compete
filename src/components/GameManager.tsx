@@ -4,13 +4,19 @@ import { ablyChannelName } from "~/server/ably/ablyHelpers.ts";
 import Board from "./Board.tsx";
 import Scoreboard from "./Scoreboard.tsx";
 import type {
-    SimplePlayerInfo, DiceSwappedMessageData, GameplayMessageData, Score, WordSubmittedMessageData
+    SimplePlayerInfo,
+    GameplayMessageData,
+    Score,
+    WordSubmittedMessageData,
+    WordConfirmedMessageData, AllWordsConfirmedMessageData, GameEventMessageData
 } from "./Types.tsx";
 import { AblyMessageType, GameState } from "./Types.tsx";
 import { useUserIdContext } from "./hooks/useUserIdContext";
 import { Button } from "./ui/button.tsx";
 import { RulesDialog } from "./RulesDialog.tsx";
 import { NUM_ROUNDS } from "./Constants.tsx";
+import {getCellIdFromLetterId} from "~/utils/helpers.ts";
+import {api} from "~/utils/api.ts";
 
 interface GameManagerProps {
     gameId: string,
@@ -26,19 +32,55 @@ export default function GameManager({ gameId, roomCode, playersOrdered, onLeaveR
         playersOrdered.map(p => ({ userId: p.userId, score: 0 }))
     );
     const channelName = ablyChannelName(roomCode);
-    const [latestMsg, setLatestMsg] = useState<GameplayMessageData>();
+    const [latestMsg, setLatestMsg] = useState<GameplayMessageData | GameEventMessageData>();
     const [gameState, setGameState] = useState<GameState>(gameStateProp);
+    const [submittedCellIds, setSubmittedCellIds] = useState<number[]|undefined>();
 
-    useChannel(channelName, AblyMessageType.WordSubmitted, (message) => {
-        const msgData = message.data as WordSubmittedMessageData;
-        setLatestMsg(msgData);
-        if (msgData.isValid) {
-            setGameState(msgData.game.state);
-            setScores(msgData.newScores);
+    const submitWordMutation = api.gameplay.submitWord.useMutation({
+        onSuccess: (data) => {
+            setSubmittedCellIds(data.cellIds);
+        },
+        onError: (err) => {
+
+        }
+    });
+    const confirmWordMutation = api.gameplay.confirmWord.useMutation({
+        onSuccess: (data) => {
+
         }
     });
 
-    const lastSubmittedWordMsg = latestMsg?.messageType === AblyMessageType.WordSubmitted ? latestMsg : undefined;
+
+    useChannel(channelName, AblyMessageType.AllWordsConfirmed, (message) => {
+        const msgData = message.data as AllWordsConfirmedMessageData;
+        setLatestMsg(msgData);
+    })
+
+    function handleSubmitWord(cellIds: number[]) {
+        submitWordMutation.mutate({
+            userId: userId,
+            gameId: gameId,
+            roomCode: roomCode,
+            cellIds: cellIds,
+        })
+    }
+
+    function handleConfirmWord() {
+        if (submittedCellIds != undefined) {
+            confirmWordMutation.mutate({
+                userId: userId,
+                gameId: gameId,
+                roomCode: roomCode,
+                cellIds: submittedCellIds,
+            })
+        }
+    }
+
+
+    /*const lastSubmittedWordMsg = latestMsg?.messageType === AblyMessageType.WordSubmitted ? latestMsg : undefined;
+    const lastConfirmedWordMsg = latestMsg?.messageType === AblyMessageType.WordConfirmed ? latestMsg : undefined;
+    const lastAllWordsConfirmedMsg = latestMsg?.messageType === AblyMessageType.AllWordsConfirmed ? latestMsg : undefined;*/
+
 
     return (
         <>
@@ -50,10 +92,9 @@ export default function GameManager({ gameId, roomCode, playersOrdered, onLeaveR
                 <h2>Game Over!</h2> :
                 <h2>Round {(gameState.round + 1).toString()}/{NUM_ROUNDS.toString()}</h2>
             }
-            <Board boardConfig={gameState.board} roomCode={roomCode}
-                gameId={gameId} latestMsg={latestMsg} />
-            <Scoreboard playersOrdered={playersOrdered} scores={scores} gameState={gameState}
-                lastSubmittedWordMsg={lastSubmittedWordMsg} />
+            <Board boardConfig={gameState.board} roomCode={roomCode} gameId={gameId} latestMsg={latestMsg} onSubmitWord={handleSubmitWord}
+              isMutationLoading={submitWordMutation.isLoading}  />
+            <Scoreboard playersOrdered={playersOrdered} scores={scores} gameState={gameState} latestMsg={latestMsg} />
         </>
     )
 

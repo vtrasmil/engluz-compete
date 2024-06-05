@@ -3,8 +3,9 @@ import { GameplayMessageData } from "./Types.tsx";
 import { LetterDieSchema } from "~/server/diceManager.tsx";
 import useSelectionDrag from "./useSelectionDrag.tsx";
 import clsx from 'clsx';
-import { ResolvedValues, easeInOut, motion } from "framer-motion";
+import { ResolvedValues, easeInOut, motion, AnimatePresence } from "framer-motion";
 import useTransformAnimation from "~/components/hooks/useTransformAnimation.tsx";
+import {SELECTED_COLOR} from "~/components/Constants.tsx";
 
 
 
@@ -17,7 +18,6 @@ export interface LetterBlockProps {
     blocksSelected: number[];
     boardDiv: HTMLDivElement | null;
     numTimesRolled: number;
-    latestMsg: GameplayMessageData | undefined;
 
     onPointerDown: (e: PointerEvent, i: number) => void;
     onPointerUp: (e: PointerEvent, i: number) => void;
@@ -31,15 +31,16 @@ export interface DraggedLetter extends LetterDieSchema {
 
 export function LetterBlock({
     id, sourceCell, letters, isSelected, onPointerDown, onPointerUp, onPointerEnter,
-    isPointerDown, blocksSelected, boardDiv, numTimesRolled, latestMsg
+    isPointerDown, blocksSelected, boardDiv, numTimesRolled
 }: LetterBlockProps) {
     const eventTargetRef = useRef<HTMLDivElement>(null);
     const [isPointerOver, setIsPointerOver] = useState(false);
+    const [prevIsSelected, setPrevIsSelected] = useState(isSelected);
     const [prevNumTimesRolled, setPrevNumTimesRolled] = useState(numTimesRolled);
     const [prevLetters, setPrevLetters] = useState(letters); // hang onto prev letters for reroll animation
-    const [animationEndState, setAnimationEndState] = useState("visible");
+    const [animationState, setAnimationState] = useState("visible");
 
-    const transformAnimScope = useTransformAnimation(sourceCell, boardDiv, isPointerOver, isSelected, latestMsg);
+    // const transformAnimScope = useTransformAnimation(sourceCell, boardDiv, isPointerOver, isSelected, latestMsg);
 
     const handlePointerUp = (e: PointerEvent) => {
         onPointerUp(e, id);
@@ -72,21 +73,9 @@ export function LetterBlock({
     }
 
     const variants = {
-        hidden: { opacity: 0, scale: 0 },
-        visible: { opacity: 1, scale: 1 }
-    }
-
-    if (prevNumTimesRolled != numTimesRolled) {
-        setPrevNumTimesRolled(numTimesRolled);
-        setAnimationEndState('hidden');
-    }
-
-    function onUpdate(latest: ResolvedValues) {
-        if (latest.opacity === 0) {
-            console.log('opacity is 0!')
-            setAnimationEndState("visible");
-            setPrevLetters(letters);
-        }
+        // hidden: { opacity: 0, scale: 0 },
+        default: { opacity: 1, scale: 1 },
+        selected: { scale: 1.15, backgroundColor: SELECTED_COLOR },
     }
 
     const transition = {
@@ -94,20 +83,30 @@ export function LetterBlock({
         easeInOut
     }
 
-    return (
-        <>
-            <motion.div id={`letter-block-${id}`} data-letter={prevLetters[0]}
-                className={clsx('border',
-                    'border-gray-400 letter-block select-none', 'w-[50px] h-[50px]')
-                }
-                variants={variants} animate={animationEndState}
-                onUpdate={onUpdate} transition={transition} style={style} ref={transformAnimScope}>
+    const currVariant = isSelected ? 'selected' : 'default';
 
+    if (prevNumTimesRolled != numTimesRolled) {
+        setPrevNumTimesRolled(numTimesRolled);
+        setAnimationState('hidden');
+    }
+
+    if (prevIsSelected != isSelected) {
+        setAnimationState(isSelected ? 'selected' : 'visible');
+        setPrevIsSelected(isSelected);
+    }
+
+    return (
+        <AnimatePresence>
+            <motion.div id={`letter-block-${id}`} data-letter={prevLetters[0]}
+                className={clsx('border', 'letter-block select-none', 'w-[50px] h-[50px] m-2')}
+                variants={variants} animate={currVariant} exit={{scale: 0}} initial={{scale: 0}}
+                transition={transition} style={style} //ref={transformAnimScope}
+            >
                 <div ref={eventTargetRef} className={`w-full h-full flex justify-center items-center`}>
                     {prevLetters.at(0)?.toUpperCase().replace('Q', 'Qu')}
                 </div>
             </motion.div>
-        </>
+        </AnimatePresence>
     );
 }
 

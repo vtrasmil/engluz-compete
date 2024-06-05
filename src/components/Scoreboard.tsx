@@ -1,23 +1,28 @@
-
-import { isEqual } from 'lodash';
-import { useState } from "react";
-import type { SimplePlayerInfo, Score, WordSubmittedMessageData } from "./Types";
-import { DragMode } from "./Types";
-import { useUserIdContext } from "./hooks/useUserIdContext";
-import { GameState } from './Types';
+import {isEqual} from 'lodash';
+import {useState} from "react";
+import {
+    AblyMessageType, GameEventMessageData,
+    GameplayMessageData,
+    GameState,
+    Score,
+    SimplePlayerInfo, WordConfirmedMessageData,
+    WordSubmittedMessageData
+} from "./Types";
+import {useUserIdContext} from "./hooks/useUserIdContext";
+import {Button} from "~/components/ui/button.tsx";
 
 
 interface ScoreboardProps {
     playersOrdered: SimplePlayerInfo[],
     scores: Score[],
     gameState: GameState,
-    lastSubmittedWordMsg: WordSubmittedMessageData | undefined,
+    latestMsg: GameplayMessageData | GameEventMessageData | undefined,
+    onConfirmWord: () => void,
 }
 export default function Scoreboard({ playersOrdered, scores,
-    gameState, lastSubmittedWordMsg }: ScoreboardProps) {
+    gameState, latestMsg }: ScoreboardProps) {
     const [prevGameState, setPrevGameState] = useState<GameState>(gameState);
     const userId = useUserIdContext();
-    const lastSubmittedWordPlayerName = playersOrdered.find(p => p.userId === lastSubmittedWordMsg?.userId)?.playerName;
 
     if (!isEqual(prevGameState, gameState)) {
         setPrevGameState(gameState);
@@ -33,22 +38,33 @@ export default function Scoreboard({ playersOrdered, scores,
     }
 
     function lastSubmittedWordMessage() {
-        const name = lastSubmittedWordMsg?.userId === userId ? 'You' : lastSubmittedWordPlayerName;
-        const word = lastSubmittedWordMsg?.word;
-        const isValid = lastSubmittedWordMsg?.isValid;
-        let wordScore;
-        if (isValid) {
-            wordScore = lastSubmittedWordMsg?.score;
-        }
-        if (name && word && isValid != undefined) {
-            const msg = `${name} played ${word}`;
-            const emoji = isValid ? '✅' : '❌';
-            const score = wordScore != undefined ? `(+${wordScore})` : '';
+        // const name = latestMsg?.userId === userId ? 'You' : lastSubmittedWordPlayerName;
+        if (latestMsg == undefined) return 'Starting';
+        if (latestMsg.messageType === AblyMessageType.WordSubmitted) {
+            const word = latestMsg.word;
+            const isValid = latestMsg.isValid;
+            let wordScore, msg, emoji;
+            if (isValid) {
+                wordScore = latestMsg?.score;
+                msg = `You found ${word}!`;
+                emoji = '✅';
+            } else {
+                msg = `${word} is not a word.`
+                emoji = '❌';
+            }
+            const score = wordScore != undefined ? `(${wordScore} points)` : '';
             return `${emoji} ${msg} ${score}`;
         }
     }
 
     function instructionMessage() {
+        if (latestMsg?.messageType === AblyMessageType.WordSubmitted && latestMsg.isValid) {
+            return <div><Button>Confirm</Button></div>;
+        } else if (latestMsg?.messageType === AblyMessageType.WordConfirmed) {
+            <div>Waiting for other players...</div>
+        } else if (latestMsg?.messageType === AblyMessageType.AllWordsConfirmed) {
+            <div>All players have confirmed their words.</div>
+        }
         if (gameState.isGameFinished) return;
         return 'Select a word.';
     }
@@ -77,6 +93,7 @@ export default function Scoreboard({ playersOrdered, scores,
             <div className="h-16">
                 {!gameState.isGameFinished && message()}
             </div>
+
             <div id="scoreboard" className="relative">
                 {gameState.isGameFinished && <h2>Final Score:</h2>}
                 {turnOrder()}
