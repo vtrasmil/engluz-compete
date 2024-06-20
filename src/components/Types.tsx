@@ -68,6 +68,15 @@ export type ConfirmedWord = {
     sourceCellIds: number[],
 }
 
+export enum WordSubmissionState {
+    NotSubmitted = "notSubmitted",
+    Submitting = "submitting",
+    Submitted = "submitted",
+    SubmitFailed = "submitFailed",
+    Confirming = "confirming",
+    Confirmed = "confirmed",
+}
+
 /* =========================== GAMEPLAY =========================== */
 
 export type BoardConfiguration = BoardLetterDie[];

@@ -1,21 +1,22 @@
-import { useChannel } from "ably/react";
-import { useState } from "react";
-import { ablyChannelName } from "~/server/ably/ablyHelpers.ts";
+import {useChannel} from "ably/react";
+import {useState} from "react";
+import {ablyChannelName} from "~/server/ably/ablyHelpers.ts";
 import Board from "./Board.tsx";
 import Scoreboard from "./Scoreboard.tsx";
-import type {
-    SimplePlayerInfo,
+import {
+    AblyMessageType,
+    AllWordsConfirmedMessageData,
+    GameEventMessageData,
     GameplayMessageData,
+    GameState,
     Score,
-    WordSubmittedMessageData,
-    WordConfirmedMessageData, AllWordsConfirmedMessageData, GameEventMessageData
+    SimplePlayerInfo,
+    WordSubmissionState
 } from "./Types.tsx";
-import { AblyMessageType, GameState } from "./Types.tsx";
-import { useUserIdContext } from "./hooks/useUserIdContext";
-import { Button } from "./ui/button.tsx";
-import { RulesDialog } from "./RulesDialog.tsx";
-import { NUM_ROUNDS } from "./Constants.tsx";
-import {getCellIdFromLetterId} from "~/utils/helpers.ts";
+import {useUserIdContext} from "./hooks/useUserIdContext";
+import {Button} from "./ui/button.tsx";
+import {RulesDialog} from "./RulesDialog.tsx";
+import {NUM_ROUNDS} from "./Constants.tsx";
 import {api} from "~/utils/api.ts";
 
 interface GameManagerProps {
@@ -34,22 +35,33 @@ export default function GameManager({ gameId, roomCode, playersOrdered, onLeaveR
     const channelName = ablyChannelName(roomCode);
     const [latestMsg, setLatestMsg] = useState<GameplayMessageData | GameEventMessageData>();
     const [gameState, setGameState] = useState<GameState>(gameStateProp);
-    const [submittedCellIds, setSubmittedCellIds] = useState<number[]|undefined>();
+    const [submittedCellIds, setSubmittedCellIds] = useState<number[]>([]);
+    const [isWordConfirmed, setIsWordConfirmed] = useState(false);
+    const [wordSubmissionState, setWordSubmissionState] = useState<WordSubmissionState>(WordSubmissionState.NotSubmitted);
 
     const submitWordMutation = api.gameplay.submitWord.useMutation({
+        onMutate: (data => {
+            setWordSubmissionState(WordSubmissionState.Submitting)
+        }),
         onSuccess: (data) => {
-            setSubmittedCellIds(data.cellIds);
+            setWordSubmissionState(WordSubmissionState.Submitted);
         },
         onError: (err) => {
-
-        }
+            setWordSubmissionState(WordSubmissionState.SubmitFailed);
+        },
     });
+
     const confirmWordMutation = api.gameplay.confirmWord.useMutation({
+        onMutate: (data => {
+            setWordSubmissionState(WordSubmissionState.Confirming)
+        }),
         onSuccess: (data) => {
-
+            setWordSubmissionState(WordSubmissionState.Confirmed);
+        },
+        onError: (err) => {
+            setWordSubmissionState(WordSubmissionState.Submitted);
         }
     });
-
 
     useChannel(channelName, AblyMessageType.AllWordsConfirmed, (message) => {
         const msgData = message.data as AllWordsConfirmedMessageData;
@@ -65,8 +77,12 @@ export default function GameManager({ gameId, roomCode, playersOrdered, onLeaveR
         })
     }
 
+    function handleReselecting() {
+        setWordSubmissionState(WordSubmissionState.NotSubmitted);
+    }
+
     function handleConfirmWord() {
-        if (submittedCellIds != undefined) {
+        if (submittedCellIds.length > 0 && !isWordConfirmed) {
             confirmWordMutation.mutate({
                 userId: userId,
                 gameId: gameId,
@@ -75,7 +91,6 @@ export default function GameManager({ gameId, roomCode, playersOrdered, onLeaveR
             })
         }
     }
-
 
     /*const lastSubmittedWordMsg = latestMsg?.messageType === AblyMessageType.WordSubmitted ? latestMsg : undefined;
     const lastConfirmedWordMsg = latestMsg?.messageType === AblyMessageType.WordConfirmed ? latestMsg : undefined;
@@ -92,9 +107,11 @@ export default function GameManager({ gameId, roomCode, playersOrdered, onLeaveR
                 <h2>Game Over!</h2> :
                 <h2>Round {(gameState.round + 1).toString()}/{NUM_ROUNDS.toString()}</h2>
             }
-            <Board boardConfig={gameState.board} roomCode={roomCode} gameId={gameId} latestMsg={latestMsg} onSubmitWord={handleSubmitWord}
-              isMutationLoading={submitWordMutation.isLoading}  />
-            <Scoreboard playersOrdered={playersOrdered} scores={scores} gameState={gameState} latestMsg={latestMsg} />
+            <Board boardConfig={gameState.board} roomCode={roomCode} onSubmitWord={handleSubmitWord}
+               wordSubmissionState={wordSubmissionState} onReselecting={handleReselecting} />
+
+            <Scoreboard playersOrdered={playersOrdered} scores={scores} gameState={gameState} latestMsg={latestMsg}
+            onConfirmWord={handleConfirmWord} />
         </>
     )
 

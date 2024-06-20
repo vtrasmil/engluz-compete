@@ -1,11 +1,10 @@
 import {useEffect, useRef, useState} from "react";
 import {ablyChannelName} from "~/server/ably/ablyHelpers";
 import {BoggleDice} from "~/server/diceManager";
-import {api} from "~/utils/api";
 import {getCellIdFromLetterId} from "~/utils/helpers";
 import {MIN_WORD_LENGTH} from "./Constants.tsx";
 import {LetterBlock} from "./LetterBlock";
-import {AblyMessageType, BoardConfiguration, GameEventMessageData, GameplayMessageData} from "./Types.tsx";
+import {BoardConfiguration, WordSubmissionState} from "./Types.tsx";
 import {useUserIdContext} from "./hooks/useUserIdContext";
 import useSelectionDrag from "./useSelectionDrag.tsx";
 
@@ -13,28 +12,31 @@ import useSelectionDrag from "./useSelectionDrag.tsx";
 interface BoardProps {
     boardConfig: BoardConfiguration,
     roomCode: string,
-    gameId: string,
-    latestMsg: GameplayMessageData | GameEventMessageData | undefined,
     onSubmitWord: (cellIds: number[]) => void,
-    isMutationLoading: boolean,
+    wordSubmissionState: WordSubmissionState,
+    onReselecting: () => void,
 }
 
-export default function Board({ boardConfig, roomCode, gameId, latestMsg, onSubmitWord, isMutationLoading }: BoardProps) {
+export default function Board({ boardConfig, roomCode, onSubmitWord, wordSubmissionState, onReselecting }: BoardProps) {
 
     const [selectedLetterIds, setSelectedLetterIds] = useState<number[]>([]);
-    const [isPointerDown, setIsPointerDown] = useState<boolean>(false);
-    const [pointerOver, setPointerOver] = useState<number>(); // pointerover
+    const [isSelecting, setIsSelecting] = useState<boolean>(false);
     const boardRef = useRef<HTMLDivElement | null>(null);
     const [_, setHasFirstRenderHappened] = useState(false);
-    const userId = useUserIdContext();
 
+    const userId = useUserIdContext();
     const channelName = ablyChannelName(roomCode);
 
+    const isSelectionDisabled =
+        wordSubmissionState == WordSubmissionState.Submitting ||
+        wordSubmissionState == WordSubmissionState.Confirming ||
+        wordSubmissionState == WordSubmissionState.Confirmed;
 
-    const handleLetterBlockDown = (e: PointerEvent, letterBlockId: number) => {
-        if (isMutationLoading) return;
-        setIsPointerDown(true);
+    const handleSelectionStarted = (e: PointerEvent, letterBlockId: number) => {
+        if (isSelectionDisabled) return;
+        setIsSelecting(true);
         setSelectedLetterIds([letterBlockId]);
+        onReselecting();
     }
 
     // force re-render in order to pass DOM refs to children
@@ -43,7 +45,7 @@ export default function Board({ boardConfig, roomCode, gameId, latestMsg, onSubm
     }, [])
 
     const handleLetterBlockEnter = (e: PointerEvent, letterBlockId: number) => {
-        if (!isPointerDown || letterBlockId == undefined || selectedLetterIds.includes(letterBlockId) || isMutationLoading) return;
+        if (!isSelecting || letterBlockId == undefined || selectedLetterIds.includes(letterBlockId) || isSelectionDisabled) return;
         const lastBlockSelected = selectedLetterIds.slice(-1)[0];
         if (lastBlockSelected == undefined) return;
         const lastCellSelected = getCellIdFromLetterId(boardConfig, lastBlockSelected);
@@ -52,22 +54,17 @@ export default function Board({ boardConfig, roomCode, gameId, latestMsg, onSubm
             const isNeighbor = getNeighbors(lastCellSelected)?.includes(currCellSelected);
             if (!isNeighbor) return;
         }
-        setPointerOver(letterBlockId);
         setSelectedLetterIds([...selectedLetterIds, letterBlockId]);
     }
 
-    const handlePointerUp = (e: PointerEvent) => {
-        if (isMutationLoading) return;
-        setIsPointerDown(false);
-        handleSubmitLetters(selectedLetterIds);
-    }
-
-    function handleSubmitLetters(letterIds: number[]) {
-        if (letterIds.length < MIN_WORD_LENGTH) {
+    const handleSelectionFinished = (e: PointerEvent) => {
+        if (isSelectionDisabled) return; // TODO: there shouldn't be a mutation until selection is finished
+        setIsSelecting(false);
+        if (selectedLetterIds.length >= MIN_WORD_LENGTH) {
+            onSubmitWord(selectedLetterIds.map(lid => getCellIdFromLetterId(boardConfig, lid)),);
+        } else {
             setSelectedLetterIds([]);
-            return;
         }
-        onSubmitWord(letterIds.map(lid => getCellIdFromLetterId(boardConfig, lid)),);
     }
 
     // TODO: letterIds or sourceCellIds?
@@ -75,8 +72,8 @@ export default function Board({ boardConfig, roomCode, gameId, latestMsg, onSubm
 
     // when pointerup happens outside a letter
     const windowRef = useRef<EventTarget>(window);
-    useSelectionDrag(windowRef, [isPointerDown, selectedLetterIds], {
-        onPointerUp: handlePointerUp,
+    useSelectionDrag(windowRef, [isSelecting, selectedLetterIds], {
+        onPointerUp: handleSelectionFinished,
     }, 'window');
 
     // prevent tap-and-hold browser context menu from appearing
@@ -90,6 +87,8 @@ export default function Board({ boardConfig, roomCode, gameId, latestMsg, onSubm
         }
     }, []);
 
+
+
     return (
         <>
             <div className="board flex flex-col mb-6" ref={boardRef}>
@@ -101,12 +100,11 @@ export default function Board({ boardConfig, roomCode, gameId, latestMsg, onSubm
                             if (letterBlock != undefined) {
                                 return (
                                     <LetterBlock key={letterBlock.id.toString() + ":" + letterBlock.numTimesRolled.toString()}
-                                                 sourceCell={i} id={letterBlock.id} letters={letterBlock.letters}
-                                                 onPointerDown={handleLetterBlockDown} onPointerUp={handlePointerUp}
+                                                 id={letterBlock.id} letters={letterBlock.letters}
+                                                 onPointerDown={handleSelectionStarted} onPointerUp={handleSelectionFinished}
                                                  onPointerEnter={handleLetterBlockEnter}
                                                  isSelected={selectedLetterIds.includes(letterBlock.id)}
-                                                 blocksSelected={selectedLetterIds}
-                                                 boardDiv={boardRef.current}
+                                                 wordSubmissionState={wordSubmissionState}
                                                  numTimesRolled={letterBlock.numTimesRolled}
                                     />
                                 )

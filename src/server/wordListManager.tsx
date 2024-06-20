@@ -1,5 +1,6 @@
 import { promises as fs } from 'fs';
 import { BoardConfiguration } from '~/components/Types';
+import {MIN_WORD_LENGTH} from "~/components/Constants.tsx";
 
 const dictionaryFilePath = `/public/CSW2019.txt`;
 export let dictionary: Set<string>;
@@ -45,7 +46,7 @@ export function getWordFromBoard(cellIds: number[], board: BoardConfiguration) {
         str.concat(board.find(l => l.cellId === cellId)?.letterBlock.letters[0] ?? ''),
         '');
     word = word.replace('Q', 'QU');
-    if (word.length < 3) throw new Error('Word submitted with length < 3')
+    if (word.length < MIN_WORD_LENGTH) throw new Error(`Word submitted with length < ${MIN_WORD_LENGTH}`)
     const score = getWordScore(word);
 
     return {

@@ -1,44 +1,40 @@
-import { useEffect, useRef, useState } from "react";
-import { GameplayMessageData } from "./Types.tsx";
-import { LetterDieSchema } from "~/server/diceManager.tsx";
+import {useRef, useState} from "react";
+import {WordSubmissionState} from "./Types.tsx";
+import {LetterDieSchema} from "~/server/diceManager.tsx";
 import useSelectionDrag from "./useSelectionDrag.tsx";
 import clsx from 'clsx';
-import { ResolvedValues, easeInOut, motion, AnimatePresence } from "framer-motion";
-import useTransformAnimation from "~/components/hooks/useTransformAnimation.tsx";
-import {SELECTED_COLOR} from "~/components/Constants.tsx";
-
+import {AnimatePresence, easeInOut, motion} from "framer-motion";
+import {CONFIRMED_COLOR, SELECTED_COLOR, SUBMITTED_COLOR} from "~/components/Constants.tsx";
 
 
 export interface LetterBlockProps {
     id: number,
-    sourceCell: number,
     letters: string;
     isSelected: boolean;
+    wordSubmissionState: WordSubmissionState;
+
     isPointerDown?: boolean;
-    blocksSelected: number[];
-    boardDiv: HTMLDivElement | null;
     numTimesRolled: number;
 
     onPointerDown: (e: PointerEvent, i: number) => void;
     onPointerUp: (e: PointerEvent, i: number) => void;
     onPointerEnter: (e: PointerEvent, i: number) => void;
+
+
 }
 
 export interface DraggedLetter extends LetterDieSchema {
     currCell: number,
 }
 
-
 export function LetterBlock({
-    id, sourceCell, letters, isSelected, onPointerDown, onPointerUp, onPointerEnter,
-    isPointerDown, blocksSelected, boardDiv, numTimesRolled
+    id, letters, isSelected, onPointerDown, onPointerUp, onPointerEnter,
+    isPointerDown, numTimesRolled, wordSubmissionState,
 }: LetterBlockProps) {
     const eventTargetRef = useRef<HTMLDivElement>(null);
     const [isPointerOver, setIsPointerOver] = useState(false);
-    const [prevIsSelected, setPrevIsSelected] = useState(isSelected);
     const [prevNumTimesRolled, setPrevNumTimesRolled] = useState(numTimesRolled);
     const [prevLetters, setPrevLetters] = useState(letters); // hang onto prev letters for reroll animation
-    const [animationState, setAnimationState] = useState("visible");
 
     // const transformAnimScope = useTransformAnimation(sourceCell, boardDiv, isPointerOver, isSelected, latestMsg);
 
@@ -73,9 +69,11 @@ export function LetterBlock({
     }
 
     const variants = {
-        // hidden: { opacity: 0, scale: 0 },
         default: { opacity: 1, scale: 1 },
+        hidden: { opacity: 0, scale: 0 },
         selected: { scale: 1.15, backgroundColor: SELECTED_COLOR },
+        submitted: { scale: 1.25, backgroundColor: SUBMITTED_COLOR },
+        confirmed: { scale: 1.25, backgroundColor: CONFIRMED_COLOR },
     }
 
     const transition = {
@@ -83,23 +81,39 @@ export function LetterBlock({
         easeInOut
     }
 
-    const currVariant = isSelected ? 'selected' : 'default';
-
+    let animationState = 'default';
     if (prevNumTimesRolled != numTimesRolled) {
         setPrevNumTimesRolled(numTimesRolled);
-        setAnimationState('hidden');
+        animationState = 'hidden';
     }
 
-    if (prevIsSelected != isSelected) {
-        setAnimationState(isSelected ? 'selected' : 'visible');
-        setPrevIsSelected(isSelected);
+    if (isSelected) {
+        switch (wordSubmissionState) {
+            case WordSubmissionState.NotSubmitted:
+                animationState = 'selected';
+                break;
+            case WordSubmissionState.Submitting:
+                animationState = 'selected';
+                break;
+            case WordSubmissionState.Submitted:
+                animationState = 'submitted';
+                break;
+            case WordSubmissionState.Confirming:
+                animationState = 'submitted';
+                break;
+            case WordSubmissionState.Confirmed:
+                animationState = 'confirmed';
+                break;
+        }
+    } else if (wordSubmissionState === WordSubmissionState.SubmitFailed) {
+        animationState = 'default';
     }
 
     return (
         <AnimatePresence>
             <motion.div id={`letter-block-${id}`} data-letter={prevLetters[0]}
                 className={clsx('border', 'letter-block select-none', 'w-[50px] h-[50px] m-2')}
-                variants={variants} animate={currVariant} exit={{scale: 0}} initial={{scale: 0}}
+                variants={variants} animate={animationState} exit={{scale: 0}} initial={{scale: 0}}
                 transition={transition} style={style} //ref={transformAnimScope}
             >
                 <div ref={eventTargetRef} className={`w-full h-full flex justify-center items-center`}>

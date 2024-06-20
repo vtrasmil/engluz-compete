@@ -20,7 +20,7 @@ interface ScoreboardProps {
     onConfirmWord: () => void,
 }
 export default function Scoreboard({ playersOrdered, scores,
-    gameState, latestMsg }: ScoreboardProps) {
+    gameState, latestMsg, onConfirmWord }: ScoreboardProps) {
     const [prevGameState, setPrevGameState] = useState<GameState>(gameState);
     const userId = useUserIdContext();
 
@@ -59,11 +59,16 @@ export default function Scoreboard({ playersOrdered, scores,
 
     function instructionMessage() {
         if (latestMsg?.messageType === AblyMessageType.WordSubmitted && latestMsg.isValid) {
-            return <div><Button>Confirm</Button></div>;
+            return (
+            <>
+                <div>Confirm word?</div>
+                <Button className="" variant="secondary" onClick={onConfirmWord}>Confirm</Button>
+            </>
+            );
         } else if (latestMsg?.messageType === AblyMessageType.WordConfirmed) {
-            <div>Waiting for other players...</div>
+            return <div>Waiting for other players...</div>
         } else if (latestMsg?.messageType === AblyMessageType.AllWordsConfirmed) {
-            <div>All players have confirmed their words.</div>
+            return <div>All players have confirmed their words.</div>
         }
         if (gameState.isGameFinished) return;
         return 'Select a word.';
