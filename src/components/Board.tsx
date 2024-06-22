@@ -58,7 +58,7 @@ export default function Board({ boardConfig, roomCode, onSubmitWord, wordSubmiss
     }
 
     const handleSelectionFinished = (e: PointerEvent) => {
-        if (isSelectionDisabled) return; // TODO: there shouldn't be a mutation until selection is finished
+        if (isSelectionDisabled || !isSelecting) return; // TODO: there shouldn't be a mutation until selection is finished
         setIsSelecting(false);
         if (selectedLetterIds.length >= MIN_WORD_LENGTH) {
             onSubmitWord(selectedLetterIds.map(lid => getCellIdFromLetterId(boardConfig, lid)),);

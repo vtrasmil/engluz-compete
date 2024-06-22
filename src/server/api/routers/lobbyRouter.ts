@@ -17,17 +17,15 @@ export const lobbyRouter = createTRPCRouter({
     .mutation(async (opts) => {
       const { redis } = opts.ctx;
       const { userId, playerName } = opts.input;
+      const playerInfo = {
+        userId: userId,
+        playerName: playerName,
+        isHost: true
+      }
       let roomCode;
       try {
         roomCode = await redis.createRoomCode();
-        await redis.createRoomInfo(
-          roomCode,
-          {
-            userId: userId,
-            playerName: playerName,
-            isHost: true
-          }
-        );
+        await redis.createRoomInfo(roomCode, playerInfo);
       } catch (e) {
         throw new Error(UNKNOWN_ERROR_MESSAGE);
       }
@@ -49,6 +47,8 @@ export const lobbyRouter = createTRPCRouter({
 
       const isRoomCodeActive = await redis.isRoomCodeActive(roomCode);
       if (!isRoomCodeActive) throw new Error(`Room code ${roomCode} is not currently active`);
+
+      // const hasGameStarted = await redis.isGameStarted(roomCode);
 
       if ((await redis.fetchRoomInfo(roomCode)).players.length >= MAX_NUM_PLAYERS_PER_ROOM)
         throw new Error(`Max. number of players per room is ${MAX_NUM_PLAYERS_PER_ROOM}`);

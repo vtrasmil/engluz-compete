@@ -1,12 +1,11 @@
-import {isEqual} from 'lodash';
-import {useState} from "react";
 import {
-    AblyMessageType, GameEventMessageData,
-    GameplayMessageData,
     GameState,
+    RoundScoreMessageData,
+    RoundState,
     Score,
-    SimplePlayerInfo, WordConfirmedMessageData,
-    WordSubmittedMessageData
+    SimplePlayerInfo,
+    WordSubmissionResponse,
+    WordSubmissionState
 } from "./Types";
 import {useUserIdContext} from "./hooks/useUserIdContext";
 import {Button} from "~/components/ui/button.tsx";
@@ -16,36 +15,33 @@ interface ScoreboardProps {
     playersOrdered: SimplePlayerInfo[],
     scores: Score[],
     gameState: GameState,
-    latestMsg: GameplayMessageData | GameEventMessageData | undefined,
+    roundState: RoundState,
+    latestWordSubmission: WordSubmissionResponse | undefined,
+    latestRoundScoreMessage: RoundScoreMessageData | undefined,
     onConfirmWord: () => void,
+    wordSubmissionState: WordSubmissionState,
 }
 export default function Scoreboard({ playersOrdered, scores,
-    gameState, latestMsg, onConfirmWord }: ScoreboardProps) {
-    const [prevGameState, setPrevGameState] = useState<GameState>(gameState);
+    gameState, latestWordSubmission, latestRoundScoreMessage, onConfirmWord, wordSubmissionState }: ScoreboardProps) {
     const userId = useUserIdContext();
-
-    if (!isEqual(prevGameState, gameState)) {
-        setPrevGameState(gameState);
-    }
 
     function message() {
         return (
             <>
-                <div>{lastSubmittedWordMessage()}</div>
+                <div>{latestSubmittedWordMessage()}</div>
                 <div>{instructionMessage()}</div>
             </>
         );
     }
 
-    function lastSubmittedWordMessage() {
+    function latestSubmittedWordMessage() {
         // const name = latestMsg?.userId === userId ? 'You' : lastSubmittedWordPlayerName;
-        if (latestMsg == undefined) return 'Starting';
-        if (latestMsg.messageType === AblyMessageType.WordSubmitted) {
-            const word = latestMsg.word;
-            const isValid = latestMsg.isValid;
+        if (latestWordSubmission != undefined) {
+            const word = latestWordSubmission.wordSubmitted;
+            const isValid = latestWordSubmission.isValid;
             let wordScore, msg, emoji;
             if (isValid) {
-                wordScore = latestMsg?.score;
+                wordScore = latestWordSubmission.score;
                 msg = `You found ${word}!`;
                 emoji = '✅';
             } else {
@@ -58,23 +54,18 @@ export default function Scoreboard({ playersOrdered, scores,
     }
 
     function instructionMessage() {
-        if (latestMsg?.messageType === AblyMessageType.WordSubmitted && latestMsg.isValid) {
-            return (
-            <>
-                <div>Confirm word?</div>
-                <Button className="" variant="secondary" onClick={onConfirmWord}>Confirm</Button>
-            </>
-            );
-        } else if (latestMsg?.messageType === AblyMessageType.WordConfirmed) {
+        if (wordSubmissionState == WordSubmissionState.Submitted) {
+            return <Button className="" variant="secondary" onClick={onConfirmWord}>Confirm</Button>;
+        } else if (wordSubmissionState == WordSubmissionState.Confirmed) {
             return <div>Waiting for other players...</div>
-        } else if (latestMsg?.messageType === AblyMessageType.AllWordsConfirmed) {
+        } else if (latestRoundScoreMessage != undefined) {
             return <div>All players have confirmed their words.</div>
         }
         if (gameState.isGameFinished) return;
         return 'Select a word.';
     }
 
-    function turnOrder() {
+    function scoresDisplay() {
         return playersOrdered.map((p, i) => {
             const score = scores.find(s => s.userId === p.userId);
             if (gameState.isGameFinished) {
@@ -101,7 +92,7 @@ export default function Scoreboard({ playersOrdered, scores,
 
             <div id="scoreboard" className="relative">
                 {gameState.isGameFinished && <h2>Final Score:</h2>}
-                {turnOrder()}
+                {scoresDisplay()}
             </div>
         </>
     );

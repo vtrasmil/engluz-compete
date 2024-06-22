@@ -61,6 +61,11 @@ export type GameState = {
     board: BoardConfiguration;
 };
 
+export enum RoundState {
+    WordSelection = 'wordSelection',
+    ScorePresentation = 'scorePresentation',
+}
+
 export type ConfirmedWord = {
     userId: string,
     word: string,
@@ -103,37 +108,15 @@ export enum DragMode {
 /* =========================== ABLY TYPES =========================== */
 
 export enum AblyMessageType {
-    WordSubmitted = 'wordSubmitted',
     GameStarted = 'gameStarted',
     ScoreUpdated = 'scoreUpdated',
     WordConfirmed = 'wordConfirmed',
-    AllWordsConfirmed = 'allWordsConfirmed',
+    RoundScore = 'allWordsConfirmed',
 }
 interface DefaultAblyMessageData {
     messageType: AblyMessageType;
 }
 // NOTE: Ably only allows serialized data in messages
-
-export type WordSubmittedMessageData = (ValidWordSubmittedMessageData | InvalidWordSubmittedMessageData);
-
-export type ValidWordSubmittedMessageData = DefaultAblyMessageData & {
-    messageType: AblyMessageType.WordSubmitted;
-    userId: string;
-    game: GameInfo,
-    word: string;
-    sourceCellIds: number[];
-    newScores: Score[];
-    isValid: true;
-    score: number;
-};
-
-export type InvalidWordSubmittedMessageData = DefaultAblyMessageData & {
-    messageType: AblyMessageType.WordSubmitted;
-    userId: string;
-    word: string;
-    sourceCellIds: number[];
-    isValid: false;
-};
 
 export type WordConfirmedMessageData = DefaultAblyMessageData & {
     messageType: AblyMessageType.WordConfirmed;
@@ -142,8 +125,8 @@ export type WordConfirmedMessageData = DefaultAblyMessageData & {
     sourceCellIds: number[];
 };
 
-export type AllWordsConfirmedMessageData = DefaultAblyMessageData & {
-    messageType: AblyMessageType.AllWordsConfirmed;
+export type RoundScoreMessageData = DefaultAblyMessageData & {
+    messageType: AblyMessageType.RoundScore;
     words: ConfirmedWord[];
 };
 
@@ -153,7 +136,14 @@ export type GameStartedMessageData = {
     players: SimplePlayerInfo[];
 } & DefaultAblyMessageData;
 
-export type GameplayMessageData = WordSubmittedMessageData | WordConfirmedMessageData;
-export type GameEventMessageData = GameStartedMessageData | AllWordsConfirmedMessageData;
+export interface WordSubmissionResponse {
+    wordSubmitted: string,
+    score: number,
+    cellIds: number[],
+    isValid: boolean,
+}
+
+export type GameplayMessageData = WordConfirmedMessageData;
+export type GameEventMessageData = GameStartedMessageData | RoundScoreMessageData;
 
 

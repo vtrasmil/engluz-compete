@@ -5,13 +5,14 @@ import Board from "./Board.tsx";
 import Scoreboard from "./Scoreboard.tsx";
 import {
     AblyMessageType,
-    AllWordsConfirmedMessageData,
+    RoundScoreMessageData,
     GameEventMessageData,
     GameplayMessageData,
     GameState,
+    RoundState,
     Score,
     SimplePlayerInfo,
-    WordSubmissionState
+    WordSubmissionState, WordSubmissionResponse
 } from "./Types.tsx";
 import {useUserIdContext} from "./hooks/useUserIdContext";
 import {Button} from "./ui/button.tsx";
@@ -33,8 +34,11 @@ export default function GameManager({ gameId, roomCode, playersOrdered, onLeaveR
         playersOrdered.map(p => ({ userId: p.userId, score: 0 }))
     );
     const channelName = ablyChannelName(roomCode);
-    const [latestMsg, setLatestMsg] = useState<GameplayMessageData | GameEventMessageData>();
+    const [latestWordSubmission, setLatestWordSubmission] = useState<WordSubmissionResponse>();
     const [gameState, setGameState] = useState<GameState>(gameStateProp);
+    const [roundState, setRoundState] = useState<RoundState>(RoundState.WordSelection);
+    const [latestRoundScoreMessage, setLatestRoundScoreMessage] = useState<RoundScoreMessageData>();
+
     const [submittedCellIds, setSubmittedCellIds] = useState<number[]>([]);
     const [isWordConfirmed, setIsWordConfirmed] = useState(false);
     const [wordSubmissionState, setWordSubmissionState] = useState<WordSubmissionState>(WordSubmissionState.NotSubmitted);
@@ -43,12 +47,18 @@ export default function GameManager({ gameId, roomCode, playersOrdered, onLeaveR
         onMutate: (data => {
             setWordSubmissionState(WordSubmissionState.Submitting)
         }),
-        onSuccess: (data) => {
-            setWordSubmissionState(WordSubmissionState.Submitted);
+        onSuccess: (data: WordSubmissionResponse) => {
+            if (data.isValid) {
+                setWordSubmissionState(WordSubmissionState.Submitted);
+                setSubmittedCellIds(data.cellIds);
+            } else {
+                setWordSubmissionState(WordSubmissionState.SubmitFailed);
+            }
+            setLatestWordSubmission(data);
         },
-        onError: (err) => {
-            setWordSubmissionState(WordSubmissionState.SubmitFailed);
-        },
+        // onError: (err) => {
+        //
+        // },
     });
 
     const confirmWordMutation = api.gameplay.confirmWord.useMutation({
@@ -60,21 +70,23 @@ export default function GameManager({ gameId, roomCode, playersOrdered, onLeaveR
         },
         onError: (err) => {
             setWordSubmissionState(WordSubmissionState.Submitted);
-        }
+        },
     });
 
-    useChannel(channelName, AblyMessageType.AllWordsConfirmed, (message) => {
-        const msgData = message.data as AllWordsConfirmedMessageData;
-        setLatestMsg(msgData);
+    useChannel(channelName, AblyMessageType.RoundScore, (message) => {
+        const msgData = (message.data satisfies RoundScoreMessageData) as RoundScoreMessageData;
+        setLatestRoundScoreMessage(msgData);
+        setRoundState(RoundState.ScorePresentation);
     })
 
     function handleSubmitWord(cellIds: number[]) {
+        if (wordSubmissionState === WordSubmissionState.NotSubmitted || wordSubmissionState === WordSubmissionState.SubmitFailed ) {
         submitWordMutation.mutate({
             userId: userId,
             gameId: gameId,
             roomCode: roomCode,
             cellIds: cellIds,
-        })
+        })}
     }
 
     function handleReselecting() {
@@ -82,7 +94,7 @@ export default function GameManager({ gameId, roomCode, playersOrdered, onLeaveR
     }
 
     function handleConfirmWord() {
-        if (submittedCellIds.length > 0 && !isWordConfirmed) {
+        if (submittedCellIds.length > 0 && wordSubmissionState == WordSubmissionState.Submitted) {
             confirmWordMutation.mutate({
                 userId: userId,
                 gameId: gameId,
@@ -110,8 +122,9 @@ export default function GameManager({ gameId, roomCode, playersOrdered, onLeaveR
             <Board boardConfig={gameState.board} roomCode={roomCode} onSubmitWord={handleSubmitWord}
                wordSubmissionState={wordSubmissionState} onReselecting={handleReselecting} />
 
-            <Scoreboard playersOrdered={playersOrdered} scores={scores} gameState={gameState} latestMsg={latestMsg}
-            onConfirmWord={handleConfirmWord} />
+            <Scoreboard playersOrdered={playersOrdered} scores={scores} gameState={gameState} roundState={roundState}
+                        latestWordSubmission={latestWordSubmission} latestRoundScoreMessage={latestRoundScoreMessage}
+                        onConfirmWord={handleConfirmWord} wordSubmissionState={wordSubmissionState} />
         </>
     )
 

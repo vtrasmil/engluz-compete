@@ -1,5 +1,9 @@
 import {z} from "zod";
-import {AblyMessageType, AllWordsConfirmedMessageData, WordSubmittedMessageData} from "~/components/Types";
+import {
+    AblyMessageType,
+    RoundScoreMessageData,
+    WordSubmissionResponse
+} from "~/components/Types";
 import {ablyChannelName} from "~/server/ably/ablyHelpers";
 import {rollDice} from "~/server/diceManager";
 import {getWordFromBoard, isWordValid} from "~/server/wordListManager";
@@ -25,11 +29,7 @@ export const gameplayRouter = createTRPCRouter({
             const board = game.state.board;
             const { word, score } = getWordFromBoard(cellIds, board);
             const isValid = await isWordValid(word);
-            if (isValid) {
-                return { wordSubmitted: word, score: score, cellIds: cellIds };
-            } else {
-                throw new Error(`${word} is not valid`);
-            }
+            return { wordSubmitted: word, score: score, cellIds: cellIds, isValid: isValid } satisfies WordSubmissionResponse;
         }),
     confirmWord: publicProcedure
         .input(z.object({
@@ -49,7 +49,7 @@ export const gameplayRouter = createTRPCRouter({
             const { word, score } = getWordFromBoard(cellIds, board);
 
             // tell redis about confirmed word
-            const players = await redis.getPlayers(gameId);
+            const players = await redis.getPlayers(roomCode);
             const confirmedWords =
                 await redis.addConfirmedWord(gameId, userId, word, cellIds, score, game.state.round);
 
@@ -58,12 +58,11 @@ export const gameplayRouter = createTRPCRouter({
                 throw new Error(`Too many confirmed words for number of players: ${players.length} players, ${confirmedWords.length} confirmed words`);
             }
             if (confirmedWords.length === players.length) {
-                const allWordsConfirmedMsg: AllWordsConfirmedMessageData = {
-                    messageType: AblyMessageType.AllWordsConfirmed,
+                const roundResultMsg: RoundScoreMessageData = {
+                    messageType: AblyMessageType.RoundScore,
                     words: confirmedWords,
-
                 }
-                await channel.publish(AblyMessageType.AllWordsConfirmed, allWordsConfirmedMsg);
+                await channel.publish(AblyMessageType.RoundScore, roundResultMsg);
 
                 // TODO: rerolling and advancing game state
                 const reroll = rollDice(board, cellIds);
@@ -71,7 +70,7 @@ export const gameplayRouter = createTRPCRouter({
                 advanceGameState(game.state);
                 await Promise.allSettled([
                     redis.updateGameInfo(gameId, roomCode, {state: game.state}),
-                    await redis.updateGameScore(gameId, userId, score)
+                    redis.updateGameScore(gameId, userId, score)
                 ]);
             }
         })

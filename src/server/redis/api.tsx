@@ -138,10 +138,11 @@ export class RedisBoggleCommands {
         if (setPlayerInfo == null) throw new Error(errorStr);
     }
 
-    async getPlayers(gameId: string) {
-        const key = `game:${gameId}:players`;
-        const playerInfos = await this.redis.json.get(key) as PlayerInfo[];
-        if (playerInfos == null) throw new Error(`No player infos found for gameId: ${gameId}`);
+    async getPlayers(roomCode: string) {
+        const key = getRoomInfoKey(roomCode) + ':players';
+        const roomInfo = await this.fetchRoomInfo(roomCode);
+        const playerInfos = roomInfo.players;
+        if (playerInfos == null) throw new Error(`No player infos found for room code: ${roomCode}`);
         return playerInfos;
     }
 
@@ -185,15 +186,12 @@ export class RedisBoggleCommands {
             score: score,
             sourceCellIds: sourceCellIds,
         } satisfies ConfirmedWord;
-        const confirmedWords = await this.redis.json.get(key) as ConfirmedWord[];
-
-        let set;
-        if (confirmedWords == null) {
-            set = await this.redis.json.set(key, '$', JSON.stringify([confirmedWord]));
-        } else {
-            confirmedWords.push(confirmedWord);
-            set = await this.redis.json.set(key, '$', JSON.stringify(confirmedWords));
+        const confirmedWords = await this.redis.json.get(key) as ConfirmedWord[] ?? [];
+        if (confirmedWords.some(x => x.userId === userId)) {
+            throw new Error(`User ${userId} already has confirmed word in gameId ${gameId}`);
         }
+        confirmedWords.push(confirmedWord);
+        const set = await this.redis.json.set(key, '$', JSON.stringify(confirmedWords));
         if (set == null) throw new Error(`Failed to set: ${word}, ${key}`);
         return confirmedWords;
     }
