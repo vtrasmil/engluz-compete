@@ -108,18 +108,18 @@ export enum DragMode {
 /* =========================== ABLY TYPES =========================== */
 
 export enum AblyMessageType {
-    GameStarted = 'gameStarted',
-    ScoreUpdated = 'scoreUpdated',
-    WordConfirmed = 'wordConfirmed',
-    RoundScore = 'allWordsConfirmed',
+    GameStarted = 'GameStarted',
+    ScoreUpdated = 'ScoreUpdated',
+    PlayerConfirmedWord = 'PlayerConfirmedWord',
+    RoundScore = 'RoundScore',
 }
 interface DefaultAblyMessageData {
     messageType: AblyMessageType;
 }
 // NOTE: Ably only allows serialized data in messages
 
-export type WordConfirmedMessageData = DefaultAblyMessageData & {
-    messageType: AblyMessageType.WordConfirmed;
+export type PlayerConfirmedWordMessageData = DefaultAblyMessageData & {
+    messageType: AblyMessageType.PlayerConfirmedWord;
     userId: string;
     word: string;
     sourceCellIds: number[];
@@ -142,8 +142,3 @@ export interface WordSubmissionResponse {
     cellIds: number[],
     isValid: boolean,
 }
-
-export type GameplayMessageData = WordConfirmedMessageData;
-export type GameEventMessageData = GameStartedMessageData | RoundScoreMessageData;
-
-

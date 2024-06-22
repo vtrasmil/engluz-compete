@@ -6,8 +6,6 @@ import Scoreboard from "./Scoreboard.tsx";
 import {
     AblyMessageType,
     RoundScoreMessageData,
-    GameEventMessageData,
-    GameplayMessageData,
     GameState,
     RoundState,
     Score,

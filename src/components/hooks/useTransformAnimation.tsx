@@ -1,6 +1,3 @@
-import type { GameplayMessageData, SwappedLetterState } from "../Types";
-import { AblyMessageType } from "../Types";
-import { useWindowSize } from "@react-hooks-library/core";
 import { useAnimate } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useUserIdContext } from "./useUserIdContext";
@@ -33,7 +30,6 @@ export default function useTransformAnimation(
     boardDiv: HTMLDivElement | null,
     isPointerOver: boolean,
     isSelected: boolean,
-    latestMsg: GameplayMessageData | undefined
 ) {
 
     // 1st render: letterBlockDiv and boardDiv are null, 2nd render: sets
@@ -84,13 +80,6 @@ export default function useTransformAnimation(
         void animColor();
     }, [color, scope, animate]);
 
-    useEffect(() => {
-        if (latestMsg?.messageType === AblyMessageType.WordSubmitted &&
-            latestMsg.sourceCellIds.includes(sourceCell) && latestMsg.isValid) {
-            setRollChange(true);
-            setTimeout(() => setRollChange(false), 300);
-        }
-    }, [latestMsg, sourceCell, userId]);
     /**
      *  Since blocks are rendered initially at top-left of board, we use board div
      * as our anchor point.
