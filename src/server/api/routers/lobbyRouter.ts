@@ -5,7 +5,7 @@ import { ablyChannelName } from "~/server/ably/ablyHelpers";
 import { AblyMessageType } from "~/components/Types";
 import shuffleArrayCopy from "~/components/helpers";
 import { simplePlayerInfoSchema } from "~/components/Types";
-import { MAX_NUM_PLAYERS_PER_ROOM, UNKNOWN_ERROR_MESSAGE } from "~/components/Constants";
+import { MAX_NUM_PLAYERS_PER_ROOM, UNKNOWN_ERROR_MESSAGE } from "~/server/Constants";
 import { isErrorWithMessage } from "~/server/Error";
 
 export const lobbyRouter = createTRPCRouter({

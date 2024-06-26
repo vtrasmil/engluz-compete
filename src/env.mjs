@@ -9,7 +9,8 @@ export const env = createEnv({
   server: {
     NODE_ENV: z.enum(["development", "test", "production"]),
     ABLY_API_KEY: z.string().min(1),
-    VERCEL_ENV: z.enum(["development", "preview", "production"])
+    VERCEL_ENV: z.enum(["development", "preview", "production"]),
+    MIN_WORD_LENGTH: z.coerce.number().min(1)
   },
 
   /**
@@ -19,6 +20,9 @@ export const env = createEnv({
    */
   client: {
     // NEXT_PUBLIC_CLIENTVAR: z.string().min(1),
+    NEXT_PUBLIC_NUM_ROUNDS_PER_GAME: z.coerce.number().min(1),
+    NEXT_PUBLIC_MIN_WORD_LENGTH: z.coerce.number().min(1),
+    NEXT_PUBLIC_MAX_NUM_PLAYERS_PER_ROOM: z.coerce.number().min(1),
   },
 
   /**
@@ -29,6 +33,10 @@ export const env = createEnv({
     NODE_ENV: process.env.NODE_ENV,
     ABLY_API_KEY: process.env.ABLY_API_KEY,
     VERCEL_ENV: process.env.VERCEL_ENV,
+    MIN_WORD_LENGTH: process.env.NEXT_PUBLIC_MIN_WORD_LENGTH,
+    NEXT_PUBLIC_NUM_ROUNDS_PER_GAME: process.env.NEXT_PUBLIC_NUM_ROUNDS_PER_GAME,
+    NEXT_PUBLIC_MIN_WORD_LENGTH: process.env.NEXT_PUBLIC_MIN_WORD_LENGTH,
+    NEXT_PUBLIC_MAX_NUM_PLAYERS_PER_ROOM: process.env.NEXT_PUBLIC_MAX_NUM_PLAYERS_PER_ROOM,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },
   /**

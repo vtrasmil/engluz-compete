@@ -1,5 +1,3 @@
-import { BAD_FOUR_LETTER_WORDS } from "./Constants";
-
 // https://dev.to/codebubb/how-to-shuffle-an-array-in-javascript-2ikj
 export default function shuffleArrayCopy<T>(array: T[]): T[] {
     const newArray = array.slice();
@@ -30,14 +28,3 @@ export function shuffleString(str: string) {
 
 }
 
-export function generateRandomString(length = 4): string {
-    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    let result = "";
-    for (let i = 0; i < length; i++) {
-        result += characters.charAt(Math.floor(Math.random() * characters.length));
-    }
-    if (BAD_FOUR_LETTER_WORDS.find(w => w === result)) {
-        return generateRandomString(length);
-    }
-    return result;
-}

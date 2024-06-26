@@ -16,7 +16,7 @@ import {
 import {useUserIdContext} from "./hooks/useUserIdContext";
 import {Button} from "./ui/button.tsx";
 import {RulesDialog} from "./RulesDialog.tsx";
-import {NUM_ROUNDS} from "./Constants.tsx";
+import {NUM_ROUNDS_PER_GAME} from "./Constants.tsx";
 import {api} from "~/utils/api.ts";
 
 interface GameManagerProps {
@@ -121,7 +121,7 @@ export default function GameManager({ gameId, roomCode, playersOrdered, onLeaveR
             </div>
             {gameState.isGameFinished ?
                 <h2>Game Over!</h2> :
-                <h2>Round {(gameState.round + 1).toString()}/{NUM_ROUNDS.toString()}</h2>
+                <h2>Round {(gameState.round + 1).toString()}/{NUM_ROUNDS_PER_GAME.toString()}</h2>
             }
             <Board boardConfig={gameState.board} roomCode={roomCode} onSubmitWord={handleSubmitWord}
                wordSubmissionState={wordSubmissionState} onReselecting={handleReselecting} roundState={roundState} />

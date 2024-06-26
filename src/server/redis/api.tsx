@@ -9,7 +9,7 @@ import {
     RoomInfo,
     ConfirmedWord
 } from "~/components/Types";
-import { generateRandomString } from "~/components/helpers";
+import {generateRandomString} from "~/server/helpers.tsx";
 import { uniqueId } from "~/utils/helpers";
 import { BoggleDice, rollAndShuffleDice } from "../diceManager";
 
