@@ -45,9 +45,14 @@ export function rollAndShuffleDice(dice: LetterDieSchema[]): BoardConfiguration 
 }
 
 // TODO: should this roll dice by ID or position in array?
-export function rollDice(board: BoardConfiguration, cellsToRoll: number[]) {
-    board.filter(die => cellsToRoll.includes(die.cellId))
-        .map(die => rollDie(die));
+export function rollDice(board: BoardConfiguration, cellsToRoll?: number[]) {
+
+    if (cellsToRoll != undefined) {
+        board.filter(die => cellsToRoll.includes(die.cellId))
+            .map(die => rollDie(die));
+    } else {
+        board.map(die => rollDie(die))
+    }
     return board;
 }
 

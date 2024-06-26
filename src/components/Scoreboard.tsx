@@ -1,14 +1,14 @@
 import {
-    GameState,
-    RoundScoreMessageData,
+    type EndOfRoundMessageData,
+    type GameState,
     RoundState,
-    Score,
-    SimplePlayerInfo,
-    WordSubmissionResponse,
+    type Score,
+    type SimplePlayerInfo,
+    type WordSubmissionResponse,
     WordSubmissionState
 } from "./Types";
-import {useUserIdContext} from "./hooks/useUserIdContext";
 import {Button} from "~/components/ui/button.tsx";
+import {CountDownTimer} from "~/components/ui.tsx";
 
 
 interface ScoreboardProps {
@@ -17,26 +17,29 @@ interface ScoreboardProps {
     gameState: GameState,
     roundState: RoundState,
     latestWordSubmission: WordSubmissionResponse | undefined,
-    latestRoundScoreMessage: RoundScoreMessageData | undefined,
+    latestEndOfRoundMessage: EndOfRoundMessageData | undefined,
     onConfirmWord: () => void,
     wordSubmissionState: WordSubmissionState,
+    onNextRound: () => void,
 }
 export default function Scoreboard({ playersOrdered, scores,
-    gameState, latestWordSubmission, latestRoundScoreMessage, onConfirmWord, wordSubmissionState }: ScoreboardProps) {
-    const userId = useUserIdContext();
+    gameState, roundState, latestWordSubmission, latestEndOfRoundMessage, onConfirmWord, wordSubmissionState,
+    onNextRound,
+}: ScoreboardProps) {
+    // const userId = useUserIdContext();
 
     function message() {
         return (
             <>
                 <div>{latestSubmittedWordMessage()}</div>
+                <div>{timerMessage()}</div>
                 <div>{instructionMessage()}</div>
             </>
         );
     }
 
     function latestSubmittedWordMessage() {
-        // const name = latestMsg?.userId === userId ? 'You' : lastSubmittedWordPlayerName;
-        if (latestWordSubmission != undefined) {
+        if (latestWordSubmission != undefined && (wordSubmissionState === WordSubmissionState.Submitted || wordSubmissionState === WordSubmissionState.SubmitFailed)) {
             const word = latestWordSubmission.wordSubmitted;
             const isValid = latestWordSubmission.isValid;
             let wordScore, msg, emoji;
@@ -54,19 +57,38 @@ export default function Scoreboard({ playersOrdered, scores,
     }
 
     function instructionMessage() {
-        if (wordSubmissionState == WordSubmissionState.Submitted) {
-            return <Button className="" variant="secondary" onClick={onConfirmWord}>Confirm</Button>;
-        } else if (wordSubmissionState == WordSubmissionState.Confirmed) {
-            return <div>Waiting for other players...</div>
-        } else if (latestRoundScoreMessage != undefined) {
-            return <div>All players have confirmed their words.</div>
+        if (roundState == RoundState.WordSelection) {
+            if (wordSubmissionState == WordSubmissionState.NotSubmitted) {
+                return 'Drag to select a word.';
+            }
+            else if (wordSubmissionState == WordSubmissionState.Submitted) {
+                return <Button className="" variant="secondary" onClick={onConfirmWord}>Confirm</Button>;
+            } else if (wordSubmissionState == WordSubmissionState.Confirmed) {
+                return <div>Waiting for other players...</div>
+            } else return;
+        } else if (roundState == RoundState.EndOfRound) {
+            if (latestEndOfRoundMessage != undefined) {
+                return latestEndOfRoundMessage.words.map((word) => {
+                    const player = playersOrdered.find(p => p.userId === word.userId);
+                    return <div key={player?.userId}>{player?.playerName}: {word.word} (+{word.score})</div>
+                });
+            }
         }
         if (gameState.isGameFinished) return;
-        return 'Select a word.';
+
+    }
+
+    function timerMessage() {
+        if (latestEndOfRoundMessage != undefined && roundState == RoundState.EndOfRound && !gameState.isGameFinished) {
+            return <div>
+                Starting new round in... <CountDownTimer startDateTime={latestEndOfRoundMessage.dateTimePublished}
+                                                         durationSeconds={2} onTimeUp={onNextRound}/>
+            </div>;
+        }
     }
 
     function scoresDisplay() {
-        return playersOrdered.map((p, i) => {
+        return playersOrdered.map(p => {
             const score = scores.find(s => s.userId === p.userId);
             if (gameState.isGameFinished) {
                 return (

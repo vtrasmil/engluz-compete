@@ -1,9 +1,5 @@
 import {z} from "zod";
-import {
-    AblyMessageType,
-    RoundScoreMessageData,
-    WordSubmissionResponse
-} from "~/components/Types";
+import {AblyMessageType, type EndOfRoundMessageData, type Score, type WordSubmissionResponse} from "~/components/Types";
 import {ablyChannelName} from "~/server/ably/ablyHelpers";
 import {rollDice} from "~/server/diceManager";
 import {getWordFromBoard, isWordValid} from "~/server/wordListManager";
@@ -20,7 +16,7 @@ export const gameplayRouter = createTRPCRouter({
             roomCode: z.string().min(1),
         }))
         .mutation(async (opts) => {
-            const { userId, gameId, roomCode, cellIds } = opts.input;
+            const { roomCode, cellIds } = opts.input;
             const { redis, ably } = opts.ctx;
 
             const channelName = ablyChannelName(roomCode);
@@ -53,24 +49,38 @@ export const gameplayRouter = createTRPCRouter({
             const confirmedWords =
                 await redis.addConfirmedWord(gameId, userId, word, cellIds, score, game.state.round);
 
-
             if (confirmedWords.length > players.length) {
                 throw new Error(`Too many confirmed words for number of players: ${players.length} players, ${confirmedWords.length} confirmed words`);
             }
-            if (confirmedWords.length === players.length) {
-                const roundResultMsg: RoundScoreMessageData = {
-                    messageType: AblyMessageType.RoundScore,
-                    words: confirmedWords,
-                }
-                await channel.publish(AblyMessageType.RoundScore, roundResultMsg);
 
-                // TODO: rerolling and advancing game state
-                const reroll = rollDice(board, cellIds);
-                game.state.board = reroll;
+            // all players have confirmed
+            if (confirmedWords.length === players.length) {
+                game.state.board = rollDice(board);
                 advanceGameState(game.state);
+
+                const updatedScores = game.scores.map((score) => {
+                    const word = confirmedWords.find(word => word.userId === score.userId);
+                    if (word != undefined) {
+                        return {
+                            ...score,
+                            score: score.score += word.score,
+                        } satisfies Score;
+                    } else {
+                        return score;
+                    }
+                });
+                game.scores = updatedScores;
+
+                const endOfRoundMsg: EndOfRoundMessageData = {
+                    messageType: AblyMessageType.EndOfRound,
+                    words: confirmedWords,
+                    dateTimePublished: Date.now(),
+                    game: game,
+                }
+
                 await Promise.allSettled([
-                    redis.updateGameInfo(gameId, roomCode, {state: game.state}),
-                    redis.updateGameScore(gameId, userId, score)
+                    redis.updateGameInfo(gameId, roomCode, {state: game.state, scores: updatedScores}),
+                    channel.publish(AblyMessageType.EndOfRound, endOfRoundMsg)
                 ]);
             }
         })

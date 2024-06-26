@@ -38,15 +38,18 @@ export class RedisBoggleCommands {
         this.redis = redis;
     }
 
-    async createGameInfo(gameId: string, roomCode: string) {
+    async createGameInfo(gameId: string, roomCode: string, playersOrdered: { userId: string, playerName: string }[]) {
         const key = getGameInfoKey(roomCode);
         const newBoard = rollAndShuffleDice(BoggleDice);
+        const newScores: Score[] = playersOrdered.map(p => {
+            return { userId: p.userId, score: 0 };
+        })
         const gameInfo = {
             state: {
                 round: 0, isGameFinished: false,
                 board: newBoard,
             },
-            scores: [],
+            scores: newScores,
             words: undefined,
             gameId: gameId,
             roomCode: roomCode,
@@ -76,13 +79,6 @@ export class RedisBoggleCommands {
         return gameInfo;
     }
 
-    /* async getGameId(roomCode: string) {
-        // TODO: validate with zod instead of asserting
-        const gameId = await this.redis.get(`roomCode:${roomCode}:gameId`) as string;
-        if (gameId == null) throw new Error(`No gameId found for room code: ${roomCode}`);
-        return gameId;
-    } */
-
     async createGameId() {
         let gameId: string | undefined;
         while (gameId == undefined) {
@@ -102,10 +98,6 @@ export class RedisBoggleCommands {
 
             const roomCodeActiveAdded = await this.redis.sadd(RedisObjects.ActiveRoomsSet, roomCode);
             if (roomCodeActiveAdded == null) throw new Error('room code not added to ActiveRoomsSet')
-
-            // const roomCodeGameIdAdded = await this.redis.set(`roomCode:${roomCode}:gameId`, gameId);
-            // if (roomCodeGameIdAdded == null) throw new Error('room code not added to roomCode:${roomCode}:gameId');
-
         }
         return roomCode;
     }
@@ -146,46 +138,15 @@ export class RedisBoggleCommands {
         return playerInfos;
     }
 
-    async initGameScore(gameId: string, playersOrdered: { userId: string, playerName: string }[]) {
-        const key = `game:${gameId}:scores`;
-        const initScores: Score[] = playersOrdered.map(p => {
-            return { userId: p.userId, score: 0 };
-        })
-        const set = await this.redis.json.set(key, '$', JSON.stringify(initScores));
-        if (set == null) throw new Error(`Initial scores for gameId ${gameId} failed to set`);
-        return;
-    }
-
-    async getGameScore(gameId: string) {
-        const key = `game:${gameId}:scores`;
-        return JSON.parse(await this.redis.json.get(key) as string) as Score[];
-    }
-
-    async updateGameScore(gameId: string, userId: string, amount: number) {
-        const key = `game:${gameId}:scores`;
-        // const set = await this.redis.json.set(key, `$.*[?(@.userId==${userId})]`, scores);
-        const scores = await this.redis.json.get(key) as Score[]; // TODO: this badly needs validation
-        if (scores == null) throw new Error(`No scores found for gameId ${gameId}`);
-        const score = scores.find(x => x.userId === userId);
-        if (score != undefined) {
-            score.score += amount;
-            const set = await this.redis.json.set(key, '$', scores);
-            if (set == null) throw new Error(`Score of ${amount} for userId ${userId} in gameId ${gameId} failed to set`);
-            return scores;
-        } else {
-            throw new Error(`Can't find score for userId ${userId} in gameId ${gameId}`)
-        }
-    }
-
     async addConfirmedWord(gameId: string, userId: string, word: string, sourceCellIds: number[], score: number,
                            round: number) {
         const key = `game:${gameId}:round:${round}:words`;
-        const confirmedWord = {
+        const confirmedWord: ConfirmedWord = {
             userId: userId,
             word: word,
             score: score,
             sourceCellIds: sourceCellIds,
-        } satisfies ConfirmedWord;
+        };
         const confirmedWords = await this.redis.json.get(key) as ConfirmedWord[] ?? [];
         if (confirmedWords.some(x => x.userId === userId)) {
             throw new Error(`User ${userId} already has confirmed word in gameId ${gameId}`);

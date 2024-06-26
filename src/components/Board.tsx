@@ -4,7 +4,7 @@ import {BoggleDice} from "~/server/diceManager";
 import {getCellIdFromLetterId} from "~/utils/helpers";
 import {MIN_WORD_LENGTH} from "./Constants.tsx";
 import {LetterBlock} from "./LetterBlock";
-import {BoardConfiguration, WordSubmissionState} from "./Types.tsx";
+import {BoardConfiguration, RoundState, WordSubmissionState} from "./Types.tsx";
 import {useUserIdContext} from "./hooks/useUserIdContext";
 import useSelectionDrag from "./useSelectionDrag.tsx";
 
@@ -14,18 +14,19 @@ interface BoardProps {
     roomCode: string,
     onSubmitWord: (cellIds: number[]) => void,
     wordSubmissionState: WordSubmissionState,
+    roundState: RoundState,
     onReselecting: () => void,
 }
 
-export default function Board({ boardConfig, roomCode, onSubmitWord, wordSubmissionState, onReselecting }: BoardProps) {
+export default function Board({ boardConfig, roomCode, onSubmitWord, wordSubmissionState, roundState, onReselecting }: BoardProps) {
 
     const [selectedLetterIds, setSelectedLetterIds] = useState<number[]>([]);
     const [isSelecting, setIsSelecting] = useState<boolean>(false);
     const boardRef = useRef<HTMLDivElement | null>(null);
     const [_, setHasFirstRenderHappened] = useState(false);
-
     const userId = useUserIdContext();
     const channelName = ablyChannelName(roomCode);
+    const [prevRoundState, setPrevRoundState] = useState<RoundState>(roundState);
 
     const isSelectionDisabled =
         wordSubmissionState == WordSubmissionState.Submitting ||
@@ -87,7 +88,10 @@ export default function Board({ boardConfig, roomCode, onSubmitWord, wordSubmiss
         }
     }, []);
 
-
+    if (roundState != prevRoundState) {
+        setSelectedLetterIds([]);
+        setPrevRoundState(roundState);
+    }
 
     return (
         <>

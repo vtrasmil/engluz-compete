@@ -5,12 +5,13 @@ import Board from "./Board.tsx";
 import Scoreboard from "./Scoreboard.tsx";
 import {
     AblyMessageType,
-    RoundScoreMessageData,
-    GameState,
+    type EndOfRoundMessageData,
+    type GameState,
     RoundState,
-    Score,
-    SimplePlayerInfo,
-    WordSubmissionState, WordSubmissionResponse
+    type Score,
+    type SimplePlayerInfo,
+    type WordSubmissionResponse,
+    WordSubmissionState
 } from "./Types.tsx";
 import {useUserIdContext} from "./hooks/useUserIdContext";
 import {Button} from "./ui/button.tsx";
@@ -35,16 +36,15 @@ export default function GameManager({ gameId, roomCode, playersOrdered, onLeaveR
     const [latestWordSubmission, setLatestWordSubmission] = useState<WordSubmissionResponse>();
     const [gameState, setGameState] = useState<GameState>(gameStateProp);
     const [roundState, setRoundState] = useState<RoundState>(RoundState.WordSelection);
-    const [latestRoundScoreMessage, setLatestRoundScoreMessage] = useState<RoundScoreMessageData>();
+    const [latestEndOfRoundMessage, setLatestEndOfRoundMessage] = useState<EndOfRoundMessageData>();
 
     const [submittedCellIds, setSubmittedCellIds] = useState<number[]>([]);
-    const [isWordConfirmed, setIsWordConfirmed] = useState(false);
     const [wordSubmissionState, setWordSubmissionState] = useState<WordSubmissionState>(WordSubmissionState.NotSubmitted);
 
     const submitWordMutation = api.gameplay.submitWord.useMutation({
-        onMutate: (data => {
+        onMutate: () => {
             setWordSubmissionState(WordSubmissionState.Submitting)
-        }),
+        },
         onSuccess: (data: WordSubmissionResponse) => {
             if (data.isValid) {
                 setWordSubmissionState(WordSubmissionState.Submitted);
@@ -60,21 +60,21 @@ export default function GameManager({ gameId, roomCode, playersOrdered, onLeaveR
     });
 
     const confirmWordMutation = api.gameplay.confirmWord.useMutation({
-        onMutate: (data => {
+        onMutate: () => {
             setWordSubmissionState(WordSubmissionState.Confirming)
-        }),
-        onSuccess: (data) => {
+        },
+        onSuccess: () => {
             setWordSubmissionState(WordSubmissionState.Confirmed);
         },
-        onError: (err) => {
+        onError: () => {
             setWordSubmissionState(WordSubmissionState.Submitted);
         },
     });
 
-    useChannel(channelName, AblyMessageType.RoundScore, (message) => {
-        const msgData = (message.data satisfies RoundScoreMessageData) as RoundScoreMessageData;
-        setLatestRoundScoreMessage(msgData);
-        setRoundState(RoundState.ScorePresentation);
+    useChannel(channelName, AblyMessageType.EndOfRound, (message) => {
+        const msgData = (message.data satisfies EndOfRoundMessageData) as EndOfRoundMessageData;
+        setLatestEndOfRoundMessage(msgData);
+        setRoundState(RoundState.EndOfRound);
     })
 
     function handleSubmitWord(cellIds: number[]) {
@@ -102,10 +102,16 @@ export default function GameManager({ gameId, roomCode, playersOrdered, onLeaveR
         }
     }
 
-    /*const lastSubmittedWordMsg = latestMsg?.messageType === AblyMessageType.WordSubmitted ? latestMsg : undefined;
-    const lastConfirmedWordMsg = latestMsg?.messageType === AblyMessageType.WordConfirmed ? latestMsg : undefined;
-    const lastAllWordsConfirmedMsg = latestMsg?.messageType === AblyMessageType.AllWordsConfirmed ? latestMsg : undefined;*/
-
+    // when timer finishes
+    function handleNextRound() {
+        if (latestEndOfRoundMessage == undefined) return;
+        setGameState(latestEndOfRoundMessage.game.state);
+        setScores(latestEndOfRoundMessage.game.scores);
+        if (!latestEndOfRoundMessage.game.state.isGameFinished) {
+            setWordSubmissionState(WordSubmissionState.NotSubmitted);
+            setRoundState(RoundState.WordSelection);
+        }
+    }
 
     return (
         <>
@@ -118,11 +124,11 @@ export default function GameManager({ gameId, roomCode, playersOrdered, onLeaveR
                 <h2>Round {(gameState.round + 1).toString()}/{NUM_ROUNDS.toString()}</h2>
             }
             <Board boardConfig={gameState.board} roomCode={roomCode} onSubmitWord={handleSubmitWord}
-               wordSubmissionState={wordSubmissionState} onReselecting={handleReselecting} />
+               wordSubmissionState={wordSubmissionState} onReselecting={handleReselecting} roundState={roundState} />
 
             <Scoreboard playersOrdered={playersOrdered} scores={scores} gameState={gameState} roundState={roundState}
-                        latestWordSubmission={latestWordSubmission} latestRoundScoreMessage={latestRoundScoreMessage}
-                        onConfirmWord={handleConfirmWord} wordSubmissionState={wordSubmissionState} />
+                        latestWordSubmission={latestWordSubmission} latestEndOfRoundMessage={latestEndOfRoundMessage}
+                        onConfirmWord={handleConfirmWord} wordSubmissionState={wordSubmissionState} onNextRound={handleNextRound} />
         </>
     )
 

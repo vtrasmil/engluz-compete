@@ -1,6 +1,5 @@
-import { cloneDeep } from "lodash";
 import { NUM_ROUNDS } from "~/components/Constants";
-import { DragMode, GameSettings, GameState, PlayerInfo } from "~/components/Types";
+import { type GameSettings, type GameState } from "~/components/Types";
 
 
 const SETTINGS: GameSettings = {

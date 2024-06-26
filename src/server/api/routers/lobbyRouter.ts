@@ -76,18 +76,17 @@ export const lobbyRouter = createTRPCRouter({
       const { redis, ably } = opts.ctx;
       const { players, roomCode, userId } = opts.input;
       const channelName = ablyChannelName(roomCode);
-      let game, gameId;
+      const channel = ably.channels.get(channelName);
       try {
-        gameId = await redis.createGameId();
-        game = await redis.createGameInfo(gameId, roomCode);
+        const gameId = await redis.createGameId();
         const playersOrdered = shuffleArrayCopy(players);
+        const game = await redis.createGameInfo(gameId, roomCode, playersOrdered);
         const gameStartedMsg: GameStartedMessageData = {
+          dateTimePublished: Date.now(),
           messageType: AblyMessageType.GameStarted,
           initBoard: game.state.board,
           players: playersOrdered
         }
-        await redis.initGameScore(gameId, playersOrdered);
-        const channel = ably.channels.get(channelName);
         await channel.publish(AblyMessageType.GameStarted, gameStartedMsg);
       } catch (e) {
         throw new Error(UNKNOWN_ERROR_MESSAGE);

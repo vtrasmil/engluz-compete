@@ -1,66 +1,34 @@
 import { useEffect, useState } from "react";
 import { useTimer } from "react-use-precision-timer";
 
-
-
-
-
-
 interface CountDownTimerProps {
-    round: number,
-    totalRounds: number,
-    duration: number,
+    startDateTime: number,
+    durationSeconds: number,
     onTimeUp: () => void,
 }
-export function CountDownTimer({ round, totalRounds, duration, onTimeUp }: CountDownTimerProps) {
+export function CountDownTimer({ startDateTime, durationSeconds, onTimeUp }: CountDownTimerProps) {
     const timerCallbackEvery = 1;
     const timer = useTimer({ delay: timerCallbackEvery * 1000 }, updateTimerVisual);
-    const [timeLeft, setTimeLeft] = useState(duration);
-
-
+    const [timeLeft, setTimeLeft] = useState((durationSeconds * 1000) - (Date.now() - startDateTime));
 
     function updateTimerVisual() {
-        const newTimeLeft = timeLeft - timerCallbackEvery;
-        setTimeLeft(newTimeLeft);
-        if (newTimeLeft <= 0 && round <= totalRounds) {
-            setTimeLeft(duration);
+        const newTimeLeft = (durationSeconds * 1000) - (Date.now() - startDateTime);
+        setTimeLeft(newTimeLeft); // re-render to update visual
+        if (timeLeft <= 0) {
             onTimeUp();
         }
     }
 
     useEffect(() => {
-        if (round > totalRounds) {
-            timer.stop();
-        } else {
-            timer.start();
-            setTimeLeft(duration);
-        }
-    }, [round, duration, timer, totalRounds]);
+        timer.start();
+    }, [timer]);
 
 
     return (
-
-        <div>
-            Time left: {timeLeft}
-        </div >
+        <span>
+            {timeLeft}
+        </span >
     )
 }
 
 
-
-function HintButton() {
-
-    const [hintsRemaining, setHintsRemaining] = useState(2);
-
-    function useHint() {
-        if (hintsRemaining < 1) return;
-
-        setHintsRemaining(hintsRemaining - 1);
-    }
-
-
-
-    return <>
-        <button disabled={hintsRemaining < 1} onClick={useHint}>Use Hint</button>
-    </>;
-}

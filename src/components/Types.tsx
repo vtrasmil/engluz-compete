@@ -62,8 +62,8 @@ export type GameState = {
 };
 
 export enum RoundState {
-    WordSelection = 'wordSelection',
-    ScorePresentation = 'scorePresentation',
+    WordSelection = 'WordSelection',
+    EndOfRound = 'EndOfRound',
 }
 
 export type ConfirmedWord = {
@@ -74,12 +74,12 @@ export type ConfirmedWord = {
 }
 
 export enum WordSubmissionState {
-    NotSubmitted = "notSubmitted",
-    Submitting = "submitting",
-    Submitted = "submitted",
-    SubmitFailed = "submitFailed",
-    Confirming = "confirming",
-    Confirmed = "confirmed",
+    NotSubmitted = "NotSubmitted",
+    Submitting = "Submitting",
+    Submitted = "Submitted",
+    SubmitFailed = "SubmitFailed",
+    Confirming = "Confirming",
+    Confirmed = "Confirmed",
 }
 
 /* =========================== GAMEPLAY =========================== */
@@ -111,10 +111,11 @@ export enum AblyMessageType {
     GameStarted = 'GameStarted',
     ScoreUpdated = 'ScoreUpdated',
     PlayerConfirmedWord = 'PlayerConfirmedWord',
-    RoundScore = 'RoundScore',
+    EndOfRound = 'EndOfRound',
 }
 interface DefaultAblyMessageData {
     messageType: AblyMessageType;
+    dateTimePublished: number;
 }
 // NOTE: Ably only allows serialized data in messages
 
@@ -125,9 +126,10 @@ export type PlayerConfirmedWordMessageData = DefaultAblyMessageData & {
     sourceCellIds: number[];
 };
 
-export type RoundScoreMessageData = DefaultAblyMessageData & {
-    messageType: AblyMessageType.RoundScore;
+export type EndOfRoundMessageData = DefaultAblyMessageData & {
+    messageType: AblyMessageType.EndOfRound;
     words: ConfirmedWord[];
+    game: GameInfo;
 };
 
 export type GameStartedMessageData = {
