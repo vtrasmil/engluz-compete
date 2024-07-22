@@ -11,7 +11,8 @@ import {
 } from "~/components/Types";
 import {generateRandomString} from "~/server/helpers.tsx";
 import { uniqueId } from "~/utils/helpers";
-import { BoggleDice, rollAndShuffleDice } from "../diceManager";
+import {BoggleDice, rollAndShuffleDice, rollDice} from "../diceManager";
+import advanceGameState from "~/server/api/gameState.tsx";
 
 const RedisObjects = {
     ActiveRoomsSet: 'ActiveRoomsSet',
@@ -46,33 +47,37 @@ export class RedisBoggleCommands {
         })
         const gameInfo = {
             state: {
-                round: 0, isGameFinished: false,
+                round: 0,
                 board: newBoard,
+                isGameFinished: false,
             },
             scores: newScores,
             words: undefined,
             gameId: gameId,
             roomCode: roomCode,
+            dateTimeStarted: Date.now(),
         } satisfies GameInfo;
         const gameAdded = await this.redis.json.set(key, '$', gameInfo);
         if (!gameAdded) throw new Error(`Game ${gameId} failed to initialize`);
         return gameInfo;
     }
 
-    async updateGameInfo(gameId: string, roomCode: string, gameInfoUpdate: GameInfoUpdate) {
+    async updateGameInfo(gameId: string, roomCode: string, gameInfoUpdate: GameInfoUpdate, userId: string, game?: GameInfo) {
         const key = getGameInfoKey(roomCode);
-        const get = await this.fetchGameInfo(roomCode);
-        const info = {
+        const get = game != undefined ? game : await this.fetchGameInfo(roomCode, userId);
+        const info: GameInfo = {
             ...get,
             ...gameInfoUpdate
-        } satisfies GameInfo;
-        const set = await this.redis.json.set(key, '$', info);
+        };
+        const set = await this.redis.json.set(key, '$', {...info});
         if (set == null) throw new Error(`gameInfo failed to set for gameId: ${gameId}`);
         return info;
     }
 
-    async fetchGameInfo(roomCode: string) {
+    async fetchGameInfo(roomCode: string, userId: string) {
         if (roomCode.length != 4) throw new Error('roomCode.length != 4')
+        const players = await this.getPlayers(roomCode);
+        if (!players.some(p => p.userId === userId)) throw new Error(`userId ${userId} not part of room ${roomCode}`);
         const key = getGameInfoKey(roomCode);
         const gameInfo = await this.redis.json.get(key) as GameInfo;
         if (gameInfo == null) throw new Error(`No game info associated with room: ${roomCode}`);
@@ -131,7 +136,6 @@ export class RedisBoggleCommands {
     }
 
     async getPlayers(roomCode: string) {
-        const key = getRoomInfoKey(roomCode) + ':players';
         const roomInfo = await this.fetchRoomInfo(roomCode);
         const playerInfos = roomInfo.players;
         if (playerInfos == null) throw new Error(`No player infos found for room code: ${roomCode}`);
@@ -155,6 +159,40 @@ export class RedisBoggleCommands {
         const set = await this.redis.json.set(key, '$', JSON.stringify(confirmedWords));
         if (set == null) throw new Error(`Failed to set: ${word}, ${key}`);
         return confirmedWords;
+    }
+
+    async getConfirmedWords(gameId: string, round: number) {
+        const key = `game:${gameId}:round:${round}:words`;
+        return await this.redis.json.get(key) as ConfirmedWord[] ?? [];
+    }
+
+    // all players call this but only one returns data
+    async processEndOfRound(game: GameInfo, roomCode: string, userId: string, round: number) {
+        const key = `game:${game.gameId}:round:${round}:lock`;
+        const lock = await this.redis.setnx(key, true);
+        if (lock === 1) {
+            const board = game.state.board;
+            const confirmedWords = await this.getConfirmedWords(game.gameId, game.state.round);
+            const updatedScores = game.scores.map((score) => {
+                const word = confirmedWords.find(word => word.userId === score.userId);
+                if (word != undefined) {
+                    return {
+                        ...score,
+                        score: score.score += word.score,
+                    } satisfies Score;
+                } else {
+                    return score;
+                }
+            });
+
+            game.state.board = rollDice(board);
+            advanceGameState(game.state);
+
+            return {
+                updatedGameInfo: await this.updateGameInfo(game.gameId, roomCode, {state: game.state, scores: updatedScores}, userId, game),
+                confirmedWords: confirmedWords
+            };
+        }
     }
 
     async isRoomCodeActive(roomCode: string) {

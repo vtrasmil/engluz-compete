@@ -1,11 +1,9 @@
 import {useEffect, useRef, useState} from "react";
-import {ablyChannelName} from "~/server/ably/ablyHelpers";
 import {BoggleDice} from "~/server/diceManager";
 import {getCellIdFromLetterId} from "~/utils/helpers";
 import {MIN_WORD_LENGTH} from "./Constants.tsx";
 import {LetterBlock} from "./LetterBlock";
-import {BoardConfiguration, RoundState, WordSubmissionState} from "./Types.tsx";
-import {useUserIdContext} from "./hooks/useUserIdContext";
+import {type BoardConfiguration, RoundState, WordSubmissionState} from "./Types.tsx";
 import useSelectionDrag from "./useSelectionDrag.tsx";
 
 
@@ -18,20 +16,19 @@ interface BoardProps {
     onReselecting: () => void,
 }
 
-export default function Board({ boardConfig, roomCode, onSubmitWord, wordSubmissionState, roundState, onReselecting }: BoardProps) {
+export default function Board({ boardConfig, onSubmitWord, wordSubmissionState, roundState, onReselecting }: BoardProps) {
 
     const [selectedLetterIds, setSelectedLetterIds] = useState<number[]>([]);
     const [isSelecting, setIsSelecting] = useState<boolean>(false);
     const boardRef = useRef<HTMLDivElement | null>(null);
     const [_, setHasFirstRenderHappened] = useState(false);
-    const userId = useUserIdContext();
-    const channelName = ablyChannelName(roomCode);
     const [prevRoundState, setPrevRoundState] = useState<RoundState>(roundState);
 
     const isSelectionDisabled =
         wordSubmissionState == WordSubmissionState.Submitting ||
         wordSubmissionState == WordSubmissionState.Confirming ||
-        wordSubmissionState == WordSubmissionState.Confirmed;
+        wordSubmissionState == WordSubmissionState.Confirmed ||
+        roundState == RoundState.Intermission;
 
     const handleSelectionStarted = (e: PointerEvent, letterBlockId: number) => {
         if (isSelectionDisabled) return;
@@ -110,6 +107,7 @@ export default function Board({ boardConfig, roomCode, onSubmitWord, wordSubmiss
                                                  isSelected={selectedLetterIds.includes(letterBlock.id)}
                                                  wordSubmissionState={wordSubmissionState}
                                                  numTimesRolled={letterBlock.numTimesRolled}
+                                                 isSelectionDisabled={isSelectionDisabled}
                                     />
                                 )
                             }

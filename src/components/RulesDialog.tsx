@@ -22,16 +22,14 @@ export function RulesDialog() {
 
                     </DialogDescription>
                 </DialogHeader>
-                <div className="grid gap-4 py-4">
-                    Swap letters, find words, get points. The longer the word, the more points you get.
+                <div className="grid gap-4 py-4 text-center">
+                    <div>Find the longest word in 60 seconds.</div>
 
-                    <div>On your turn,
-                        <ul className="ml-4">
-                            <li>(1) drag to swap a pair of letters</li>
-                            <li>(2) drag to select a word.</li>
-                        </ul>
-                    </div>
-                    <div>The player with the most points after 5 rounds wins.</div>
+                    <div>Score more points for longer words. </div>
+
+                    <div>Win by having the most points after 5 rounds.</div>
+
+                    <div>Drag to select.</div>
                 </div>
                 <DialogFooter>
 

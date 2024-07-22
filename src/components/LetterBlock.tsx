@@ -5,6 +5,7 @@ import useSelectionDrag from "./useSelectionDrag.tsx";
 import clsx from 'clsx';
 import {AnimatePresence, easeInOut, motion} from "framer-motion";
 import {CONFIRMED_COLOR, SELECTED_COLOR, SUBMITTED_COLOR} from "~/components/Constants.tsx";
+import {grey} from "@mui/material/colors";
 
 
 export interface LetterBlockProps {
@@ -12,6 +13,7 @@ export interface LetterBlockProps {
     letters: string;
     isSelected: boolean;
     wordSubmissionState: WordSubmissionState;
+    isSelectionDisabled: boolean;
 
     isPointerDown?: boolean;
     numTimesRolled: number;
@@ -29,7 +31,7 @@ export interface DraggedLetter extends LetterDieSchema {
 
 export function LetterBlock({
     id, letters, isSelected, onPointerDown, onPointerUp, onPointerEnter,
-    isPointerDown, numTimesRolled, wordSubmissionState,
+    isPointerDown, numTimesRolled, wordSubmissionState, isSelectionDisabled
 }: LetterBlockProps) {
     const eventTargetRef = useRef<HTMLDivElement>(null);
     const [isPointerOver, setIsPointerOver] = useState(false);
@@ -74,6 +76,7 @@ export function LetterBlock({
         selected: { scale: 1.15, backgroundColor: SELECTED_COLOR },
         submitted: { scale: 1.25, backgroundColor: SUBMITTED_COLOR },
         confirmed: { scale: 1.25, backgroundColor: CONFIRMED_COLOR },
+        disabled: { opacity: 0.5, scale: 1, backgroundColor: grey.A400 },
     }
 
     const transition = {
@@ -86,8 +89,10 @@ export function LetterBlock({
         setPrevNumTimesRolled(numTimesRolled);
         animationState = 'hidden';
     }
-
-    if (isSelected) {
+    if (isSelectionDisabled) {
+        animationState = 'disabled';
+    }
+    else if (isSelected) {
         switch (wordSubmissionState) {
             case WordSubmissionState.NotSubmitted:
                 animationState = 'selected';

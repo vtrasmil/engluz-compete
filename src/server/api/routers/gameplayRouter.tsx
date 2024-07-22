@@ -1,10 +1,8 @@
 import {z} from "zod";
-import {AblyMessageType, type EndOfRoundMessageData, type Score, type WordSubmissionResponse} from "~/components/Types";
+import {AblyMessageType, type BeginIntermissionMessageData, type WordSubmissionResponse} from "~/components/Types";
 import {ablyChannelName} from "~/server/ably/ablyHelpers";
-import {rollDice} from "~/server/diceManager";
 import {getWordFromBoard, isWordValid} from "~/server/wordListManager";
 import {createTRPCRouter, publicProcedure} from "../trpc";
-import advanceGameState from "../gameState";
 
 export const gameplayRouter = createTRPCRouter({
 
@@ -16,12 +14,11 @@ export const gameplayRouter = createTRPCRouter({
             roomCode: z.string().min(1),
         }))
         .mutation(async (opts) => {
-            const { roomCode, cellIds } = opts.input;
+            const { roomCode, cellIds, userId } = opts.input;
             const { redis, ably } = opts.ctx;
 
             const channelName = ablyChannelName(roomCode);
-            const channel = ably.channels.get(channelName);
-            const [game, room] = await Promise.all([redis.fetchGameInfo(roomCode), redis.fetchRoomInfo(roomCode)]);
+            const [game, room] = await Promise.all([redis.fetchGameInfo(roomCode, userId), redis.fetchRoomInfo(roomCode)]);
             const board = game.state.board;
             const { word, score } = getWordFromBoard(cellIds, board);
             const isValid = await isWordValid(word);
@@ -39,13 +36,13 @@ export const gameplayRouter = createTRPCRouter({
             const { redis, ably } = opts.ctx;
 
             const channelName = ablyChannelName(roomCode);
-            const channel = ably.channels.get(channelName);
-            const [game, room] = await Promise.all([redis.fetchGameInfo(roomCode), redis.fetchRoomInfo(roomCode)]);
+            const [game, room] = await Promise.all([redis.fetchGameInfo(roomCode, userId), redis.fetchRoomInfo(roomCode)]);
             const board = game.state.board;
             const { word, score } = getWordFromBoard(cellIds, board);
 
             // tell redis about confirmed word
             const players = await redis.getPlayers(roomCode);
+            // TODO: put a lock on this resource
             const confirmedWords =
                 await redis.addConfirmedWord(gameId, userId, word, cellIds, score, game.state.round);
 
@@ -54,35 +51,41 @@ export const gameplayRouter = createTRPCRouter({
             }
 
             // all players have confirmed
-            if (confirmedWords.length === players.length) {
-                game.state.board = rollDice(board);
-                advanceGameState(game.state);
+            return confirmedWords.length === players.length;
+        }),
+    fetchGameInfo: publicProcedure
+        .input(z.object({
+            userId: z.string().min(1),
+            roomCode: z.string().min(1),
+        }))
+        .query(async (opts) => {
+            const { userId, roomCode } = opts.input;
+            const { redis } = opts.ctx;
+            return await redis.fetchGameInfo(roomCode, userId);
+        }),
+    triggerEndOfRoundAndPublishResults: publicProcedure
+        .input(z.object({
+            userId: z.string().min(1),
+            roomCode: z.string().min(1),
+        }))
+        .mutation(async (opts) => {
+            const { userId, roomCode } = opts.input;
+            const { redis, ably } = opts.ctx;
+            const channelName = ablyChannelName(roomCode);
+            const channel = ably.channels.get(channelName);
+            const [game] = await Promise.all([redis.fetchGameInfo(roomCode, userId)]);
 
-                const updatedScores = game.scores.map((score) => {
-                    const word = confirmedWords.find(word => word.userId === score.userId);
-                    if (word != undefined) {
-                        return {
-                            ...score,
-                            score: score.score += word.score,
-                        } satisfies Score;
-                    } else {
-                        return score;
-                    }
-                });
-                game.scores = updatedScores;
+            const processEndOfRound = await redis.processEndOfRound(game, roomCode, userId, game.state.round);
 
-                const endOfRoundMsg: EndOfRoundMessageData = {
-                    messageType: AblyMessageType.EndOfRound,
-                    words: confirmedWords,
+            if (processEndOfRound != undefined) {
+                const endOfRoundMsg: BeginIntermissionMessageData = {
+                    messageType: AblyMessageType.BeginIntermission,
+                    words: processEndOfRound.confirmedWords,
                     dateTimePublished: Date.now(),
-                    game: game,
+                    game: processEndOfRound.updatedGameInfo,
                 }
-
-                await Promise.allSettled([
-                    redis.updateGameInfo(gameId, roomCode, {state: game.state, scores: updatedScores}),
-                    channel.publish(AblyMessageType.EndOfRound, endOfRoundMsg)
-                ]);
+                await channel.publish(AblyMessageType.BeginIntermission, endOfRoundMsg);
             }
-        })
+        }),
 
 })

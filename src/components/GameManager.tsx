@@ -5,7 +5,7 @@ import Board from "./Board.tsx";
 import Scoreboard from "./Scoreboard.tsx";
 import {
     AblyMessageType,
-    type EndOfRoundMessageData,
+    type BeginIntermissionMessageData, beginIntermissionMsgDataSchema,
     type GameState,
     RoundState,
     type Score,
@@ -18,25 +18,31 @@ import {Button} from "./ui/button.tsx";
 import {RulesDialog} from "./RulesDialog.tsx";
 import {NUM_ROUNDS_PER_GAME} from "./Constants.tsx";
 import {api} from "~/utils/api.ts";
+import {Types} from "ably";
+import {parseData, validateBeginIntermissionMsgData, validateSchema} from "~/utils/validator.tsx";
 
 interface GameManagerProps {
     gameId: string,
     roomCode: string,
     playersOrdered: SimplePlayerInfo[],
     onLeaveRoom: () => void,
-    gameStateProp: GameState,
+    initGameState: GameState,
+    initRoundState: RoundState,
+    initCurrRound: number,
+    roundSegmentStartTime: number | undefined,
 }
 
-export default function GameManager({ gameId, roomCode, playersOrdered, onLeaveRoom, gameStateProp }: GameManagerProps) {
+export default function GameManager({ gameId, roomCode, playersOrdered,
+                                        onLeaveRoom, initGameState, initRoundState, initCurrRound, roundSegmentStartTime }: GameManagerProps) {
     const userId = useUserIdContext();
     const [scores, setScores] = useState<Score[]>(
         playersOrdered.map(p => ({ userId: p.userId, score: 0 }))
     );
     const channelName = ablyChannelName(roomCode);
     const [latestWordSubmission, setLatestWordSubmission] = useState<WordSubmissionResponse>();
-    const [gameState, setGameState] = useState<GameState>(gameStateProp);
-    const [roundState, setRoundState] = useState<RoundState>(RoundState.WordSelection);
-    const [latestEndOfRoundMessage, setLatestEndOfRoundMessage] = useState<EndOfRoundMessageData>();
+    const [gameState, setGameState] = useState<GameState>(initGameState);
+    const [roundState, setRoundState] = useState<RoundState>(initRoundState);
+    const [latestEndOfRoundMessage, setLatestBeginIntermissionMessage] = useState<BeginIntermissionMessageData>();
 
     const [submittedCellIds, setSubmittedCellIds] = useState<number[]>([]);
     const [wordSubmissionState, setWordSubmissionState] = useState<WordSubmissionState>(WordSubmissionState.NotSubmitted);
@@ -63,18 +69,30 @@ export default function GameManager({ gameId, roomCode, playersOrdered, onLeaveR
         onMutate: () => {
             setWordSubmissionState(WordSubmissionState.Confirming)
         },
-        onSuccess: () => {
+        onSuccess: (data) => {
             setWordSubmissionState(WordSubmissionState.Confirmed);
+            if (data) {
+                triggerEndOfRoundAndPublishResultsMutation.mutate({
+                    roomCode: roomCode,
+                    userId: userId
+                })
+            }
         },
         onError: () => {
             setWordSubmissionState(WordSubmissionState.Submitted);
         },
     });
 
-    useChannel(channelName, AblyMessageType.EndOfRound, (message) => {
-        const msgData = (message.data satisfies EndOfRoundMessageData) as EndOfRoundMessageData;
-        setLatestEndOfRoundMessage(msgData);
-        setRoundState(RoundState.EndOfRound);
+    const triggerEndOfRoundAndPublishResultsMutation = api.gameplay.triggerEndOfRoundAndPublishResults.useMutation();
+
+    const gameInfoQuery = api.lobby.fetchGameInfo.useQuery({ roomCode: roomCode, userId: userId}); // TODO: I imagine this is being called way too often
+
+    useChannel(channelName, AblyMessageType.BeginIntermission, (message) => {
+        // const msgData = message.data;
+        const result = validateSchema({dto: message.data, schemaName: 'beginIntermissionMsgDataSchema', schema: beginIntermissionMsgDataSchema});
+        setLatestBeginIntermissionMessage(result);
+        setRoundState(RoundState.Intermission);
+
     })
 
     function handleSubmitWord(cellIds: number[]) {
@@ -102,14 +120,32 @@ export default function GameManager({ gameId, roomCode, playersOrdered, onLeaveR
         }
     }
 
+    function handleEndOfRoundTimeUp() {
+        triggerEndOfRoundAndPublishResultsMutation.mutate({
+            roomCode: roomCode,
+            userId: userId,
+        })
+    }
+
     // when timer finishes
     function handleNextRound() {
-        if (latestEndOfRoundMessage == undefined) return;
-        setGameState(latestEndOfRoundMessage.game.state);
-        setScores(latestEndOfRoundMessage.game.scores);
-        if (!latestEndOfRoundMessage.game.state.isGameFinished) {
-            setWordSubmissionState(WordSubmissionState.NotSubmitted);
-            setRoundState(RoundState.WordSelection);
+        let gameInfo;
+        if (latestEndOfRoundMessage != undefined && gameInfoQuery.dataUpdatedAt < latestEndOfRoundMessage.dateTimePublished) {
+            gameInfo = latestEndOfRoundMessage.game;
+        } else if (gameInfoQuery.data != undefined) {
+            gameInfo = gameInfoQuery.data;
+        }
+        if (gameInfo) {
+            setGameState(gameInfo.state);
+            setScores(gameInfo.scores);
+            if (gameInfo.state.isGameFinished) {
+                setRoundState(RoundState.GameFinished);
+            }
+            else {
+                setWordSubmissionState(WordSubmissionState.NotSubmitted);
+                setRoundState(RoundState.WordSelection);
+            }
+            setLatestBeginIntermissionMessage(undefined);
         }
     }
 
@@ -121,14 +157,20 @@ export default function GameManager({ gameId, roomCode, playersOrdered, onLeaveR
             </div>
             {gameState.isGameFinished ?
                 <h2>Game Over!</h2> :
-                <h2>Round {(gameState.round + 1).toString()}/{NUM_ROUNDS_PER_GAME.toString()}</h2>
+                <h2>{`Round ${gameState.round + 1}/${NUM_ROUNDS_PER_GAME}`}</h2>
             }
-            <Board boardConfig={gameState.board} roomCode={roomCode} onSubmitWord={handleSubmitWord}
-               wordSubmissionState={wordSubmissionState} onReselecting={handleReselecting} roundState={roundState} />
+            {!gameState.isGameFinished &&
+                <Board boardConfig={gameState.board} roomCode={roomCode} onSubmitWord={handleSubmitWord}
+                   wordSubmissionState={wordSubmissionState} onReselecting={handleReselecting} roundState={roundState} />
+            }
 
             <Scoreboard playersOrdered={playersOrdered} scores={scores} gameState={gameState} roundState={roundState}
                         latestWordSubmission={latestWordSubmission} latestEndOfRoundMessage={latestEndOfRoundMessage}
-                        onConfirmWord={handleConfirmWord} wordSubmissionState={wordSubmissionState} onNextRound={handleNextRound} />
+                        onConfirmWord={handleConfirmWord} wordSubmissionState={wordSubmissionState}
+                        onNextRound={handleNextRound} onEndOfRoundTimeUp={handleEndOfRoundTimeUp}
+                        roundSegmentStartTime={roundSegmentStartTime}
+            />
+
         </>
     )
 

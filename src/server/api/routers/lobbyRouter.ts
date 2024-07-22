@@ -94,14 +94,14 @@ export const lobbyRouter = createTRPCRouter({
     }),
   fetchGameInfo: publicProcedure
     .input(z.object({
-      roomCode: z.string(),
+      roomCode: z.string().length(4),
+      userId: z.string().min(1),
     }))
     .query(async (opts) => {
-      const { roomCode } = opts.input;
+      const { roomCode, userId } = opts.input;
       const { redis } = opts.ctx;
-      if (roomCode === '') throw new Error('roomCode should not be empty string - check gameInfoQuery')
       try {
-        return await redis.fetchGameInfo(roomCode);
+        return await redis.fetchGameInfo(roomCode, userId);
       } catch (e) {
         if (isErrorWithMessage(e) && e.message.includes('No game info associated with room')) {
           return null;

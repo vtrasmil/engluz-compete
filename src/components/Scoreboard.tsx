@@ -1,14 +1,15 @@
 import {
-    type EndOfRoundMessageData,
+    type BeginIntermissionMessageData,
     type GameState,
     RoundState,
     type Score,
-    type SimplePlayerInfo,
-    type WordSubmissionResponse,
+    type SimplePlayerInfo, type WordSubmissionResponse,
     WordSubmissionState
 } from "./Types";
 import {Button} from "~/components/ui/button.tsx";
-import {CountDownTimer} from "~/components/ui.tsx";
+import {VisualTimer} from "~/components/VisualTimer.tsx";
+import {useState} from "react";
+import {INTERMISSION_DURATION, ROUND_DURATION} from "~/components/Constants.tsx";
 
 
 interface ScoreboardProps {
@@ -17,29 +18,35 @@ interface ScoreboardProps {
     gameState: GameState,
     roundState: RoundState,
     latestWordSubmission: WordSubmissionResponse | undefined,
-    latestEndOfRoundMessage: EndOfRoundMessageData | undefined,
+    latestEndOfRoundMessage: BeginIntermissionMessageData | undefined,
     onConfirmWord: () => void,
     wordSubmissionState: WordSubmissionState,
+    onEndOfRoundTimeUp: () => void,
     onNextRound: () => void,
+    roundSegmentStartTime: number | undefined,
+
 }
 export default function Scoreboard({ playersOrdered, scores,
     gameState, roundState, latestWordSubmission, latestEndOfRoundMessage, onConfirmWord, wordSubmissionState,
-    onNextRound,
+    onNextRound, onEndOfRoundTimeUp, roundSegmentStartTime
 }: ScoreboardProps) {
     // const userId = useUserIdContext();
+    const [prevRoundState, setPrevRoundState] = useState<RoundState>();
 
     function message() {
         return (
             <>
-                <div>{latestSubmittedWordMessage()}</div>
-                <div>{timerMessage()}</div>
+                {roundState === RoundState.WordSelection &&
+                    (wordSubmissionState === WordSubmissionState.Submitted || wordSubmissionState === WordSubmissionState.SubmitFailed) &&
+                    <div>{latestSubmittedWordMessage()}</div>
+                }
                 <div>{instructionMessage()}</div>
             </>
         );
     }
 
     function latestSubmittedWordMessage() {
-        if (latestWordSubmission != undefined && (wordSubmissionState === WordSubmissionState.Submitted || wordSubmissionState === WordSubmissionState.SubmitFailed)) {
+        if (latestWordSubmission != undefined) {
             const word = latestWordSubmission.wordSubmitted;
             const isValid = latestWordSubmission.isValid;
             let wordScore, msg, emoji;
@@ -66,25 +73,20 @@ export default function Scoreboard({ playersOrdered, scores,
             } else if (wordSubmissionState == WordSubmissionState.Confirmed) {
                 return <div>Waiting for other players...</div>
             } else return;
-        } else if (roundState == RoundState.EndOfRound) {
-            if (latestEndOfRoundMessage != undefined) {
+        } else if (roundState == RoundState.Intermission) {
+            if (latestEndOfRoundMessage == undefined) return;
+            if (latestEndOfRoundMessage.words.length > 0) {
                 return latestEndOfRoundMessage.words.map((word) => {
                     const player = playersOrdered.find(p => p.userId === word.userId);
                     return <div key={player?.userId}>{player?.playerName}: {word.word} (+{word.score})</div>
-                });
+                })
+            } else {
+                return 'No player confirmed a word.'
             }
         }
+
         if (gameState.isGameFinished) return;
 
-    }
-
-    function timerMessage() {
-        if (latestEndOfRoundMessage != undefined && roundState == RoundState.EndOfRound && !gameState.isGameFinished) {
-            return <div>
-                Starting new round in... <CountDownTimer startDateTime={latestEndOfRoundMessage.dateTimePublished}
-                                                         durationSeconds={2} onTimeUp={onNextRound}/>
-            </div>;
-        }
     }
 
     function scoresDisplay() {
@@ -106,6 +108,13 @@ export default function Scoreboard({ playersOrdered, scores,
         })
     }
 
+    // set timer when round state changes
+    if (prevRoundState != roundState) {
+        setPrevRoundState(roundState);
+    }
+
+
+
     return (
         <>
             <div className="h-16">
@@ -116,6 +125,14 @@ export default function Scoreboard({ playersOrdered, scores,
                 {gameState.isGameFinished && <h2>Final Score:</h2>}
                 {scoresDisplay()}
             </div>
+            {roundState == RoundState.WordSelection && roundSegmentStartTime != undefined &&
+                <VisualTimer durationMs={ROUND_DURATION} onTimeUp={onEndOfRoundTimeUp} initStartTime={roundSegmentStartTime}  /> //TODO: last prop
+            }
+            {roundState == RoundState.Intermission && roundSegmentStartTime != undefined &&
+                <VisualTimer durationMs={INTERMISSION_DURATION} onTimeUp={onNextRound} initStartTime={roundSegmentStartTime}  /> //TODO: last prop
+            }
+
+
         </>
     );
 }

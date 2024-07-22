@@ -51,6 +51,7 @@ export interface GameInfo {
     words: undefined,
     gameId: string,
     roomCode: string,
+    dateTimeStarted: number,
 }
 
 export type GameInfoUpdate = Partial<Pick<GameInfo, 'state' | 'scores'>>;
@@ -63,7 +64,8 @@ export type GameState = {
 
 export enum RoundState {
     WordSelection = 'WordSelection',
-    EndOfRound = 'EndOfRound',
+    Intermission = 'Intermission',
+    GameFinished = 'GameFinished',
 }
 
 export type ConfirmedWord = {
@@ -111,7 +113,7 @@ export enum AblyMessageType {
     GameStarted = 'GameStarted',
     ScoreUpdated = 'ScoreUpdated',
     PlayerConfirmedWord = 'PlayerConfirmedWord',
-    EndOfRound = 'EndOfRound',
+    BeginIntermission = 'BeginIntermission',
 }
 interface DefaultAblyMessageData {
     messageType: AblyMessageType;
@@ -126,11 +128,62 @@ export type PlayerConfirmedWordMessageData = DefaultAblyMessageData & {
     sourceCellIds: number[];
 };
 
-export type EndOfRoundMessageData = DefaultAblyMessageData & {
-    messageType: AblyMessageType.EndOfRound;
+export const defaultAblyMessageDataSchema = z.object({
+    messageType: z.string(),
+    dateTimePublished: z.date(),
+})
+
+export const scoreSchema = z.object({
+    userId: z.string(),
+    score: z.number()
+});
+
+export const letterDieSchemaSchema = z.object({
+    letters: z.string(),
+    id: z.number(),
+    numTimesRolled: z.number()
+});
+
+export const boardLetterDieSchema = z.object({
+    cellId: z.number(),
+    letterBlock: letterDieSchemaSchema
+});
+
+export const boardConfigurationSchema = z.array(boardLetterDieSchema);
+
+export const gameStateSchema = z.object({
+    round: z.number(),
+    isGameFinished: z.boolean(),
+    board: boardConfigurationSchema,
+});
+
+export const confirmedWordSchema = z.object({
+    userId: z.string(),
+    word: z.string(),
+    score: z.number(),
+    sourceCellIds: z.array(z.number()),
+});
+
+export const gameInfoSchema = z.object({
+    state: gameStateSchema,
+    scores: z.array(scoreSchema),
+    words: z.undefined(),
+    gameId: z.string(),
+    roomCode: z.string(),
+    dateTimeStarted: z.number(),
+});
+
+export type BeginIntermissionMessageData = DefaultAblyMessageData & {
+    messageType: AblyMessageType.BeginIntermission;
     words: ConfirmedWord[];
     game: GameInfo;
 };
+
+export const beginIntermissionMsgDataSchema = defaultAblyMessageDataSchema.extend({
+    messageType: z.literal(AblyMessageType.BeginIntermission),
+    words: z.array(confirmedWordSchema),
+    game: gameInfoSchema
+});
 
 export type GameStartedMessageData = {
     messageType: AblyMessageType.GameStarted;
