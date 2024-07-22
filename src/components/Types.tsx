@@ -48,7 +48,7 @@ export interface GameSettings {
 export interface GameInfo {
     state: GameState,
     scores: Score[],
-    words: undefined,
+    words?: undefined,
     gameId: string,
     roomCode: string,
     dateTimeStarted: number,
@@ -130,7 +130,7 @@ export type PlayerConfirmedWordMessageData = DefaultAblyMessageData & {
 
 export const defaultAblyMessageDataSchema = z.object({
     messageType: z.string(),
-    dateTimePublished: z.date(),
+    dateTimePublished: z.number(),
 })
 
 export const scoreSchema = z.object({

@@ -31,8 +31,6 @@ export function validateSchema<T extends z.ZodTypeAny>(
     }
 }
 
-
-
 function captureError(message: string, extra = {}): void {
     if (env.VERCEL_ENV == 'development') {
         console.error(message, extra);

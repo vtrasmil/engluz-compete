@@ -19,7 +19,7 @@ import {RulesDialog} from "./RulesDialog.tsx";
 import {NUM_ROUNDS_PER_GAME} from "./Constants.tsx";
 import {api} from "~/utils/api.ts";
 import {Types} from "ably";
-import {parseData, validateBeginIntermissionMsgData, validateSchema} from "~/utils/validator.tsx";
+import {validateSchema} from "~/utils/validator.tsx";
 
 interface GameManagerProps {
     gameId: string,
@@ -88,11 +88,9 @@ export default function GameManager({ gameId, roomCode, playersOrdered,
     const gameInfoQuery = api.lobby.fetchGameInfo.useQuery({ roomCode: roomCode, userId: userId}); // TODO: I imagine this is being called way too often
 
     useChannel(channelName, AblyMessageType.BeginIntermission, (message) => {
-        // const msgData = message.data;
         const result = validateSchema({dto: message.data, schemaName: 'beginIntermissionMsgDataSchema', schema: beginIntermissionMsgDataSchema});
         setLatestBeginIntermissionMessage(result);
         setRoundState(RoundState.Intermission);
-
     })
 
     function handleSubmitWord(cellIds: number[]) {
