@@ -41,20 +41,18 @@ export type Score = {
     score: number
 }
 
-export interface GameSettings {
-    numRounds: number
-}
-
 export interface GameInfo {
     state: GameState,
+    prevState: GameState | null,
     scores: Score[],
     words?: undefined,
     gameId: string,
     roomCode: string,
     dateTimeStarted: number,
+    timeLastRoundOver: number | null,
 }
 
-export type GameInfoUpdate = Partial<Pick<GameInfo, 'state' | 'scores'>>;
+export type GameInfoUpdate = Partial<Pick<GameInfo, 'state' | 'prevState' | 'scores' | 'timeLastRoundOver'>>;
 
 export type GameState = {
     round: number;
@@ -166,23 +164,31 @@ export const confirmedWordSchema = z.object({
 
 export const gameInfoSchema = z.object({
     state: gameStateSchema,
+    prevState: gameStateSchema.nullable(),
     scores: z.array(scoreSchema),
     words: z.undefined(),
     gameId: z.string(),
     roomCode: z.string(),
     dateTimeStarted: z.number(),
+    timeLastRoundOver: z.number().nullable(),
 });
 
 export type BeginIntermissionMessageData = DefaultAblyMessageData & {
     messageType: AblyMessageType.BeginIntermission;
+    state: GameState;
+    prevState: GameState;
     words: ConfirmedWord[];
-    game: GameInfo;
+    scores: Score[];
+    timeLastRoundOver: number;
 };
 
 export const beginIntermissionMsgDataSchema = defaultAblyMessageDataSchema.extend({
     messageType: z.literal(AblyMessageType.BeginIntermission),
+    state: gameStateSchema,
+    prevState: gameStateSchema,
     words: z.array(confirmedWordSchema),
-    game: gameInfoSchema
+    scores: z.array(scoreSchema),
+    timeLastRoundOver: z.number(),
 });
 
 export type GameStartedMessageData = {

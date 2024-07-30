@@ -51,7 +51,7 @@ export const gameplayRouter = createTRPCRouter({
             }
 
             // all players have confirmed
-            return confirmedWords.length === players.length;
+            return {areAllWordsConfirmed: confirmedWords.length === players.length};
         }),
     fetchGameInfo: publicProcedure
         .input(z.object({
@@ -75,14 +75,17 @@ export const gameplayRouter = createTRPCRouter({
             const channel = ably.channels.get(channelName);
             const [game] = await Promise.all([redis.fetchGameInfo(roomCode, userId)]);
 
+            // will be undefined for all but one player
             const processEndOfRound = await redis.processEndOfRound(game, roomCode, userId, game.state.round);
-
             if (processEndOfRound != undefined) {
                 const endOfRoundMsg: BeginIntermissionMessageData = {
-                    messageType: AblyMessageType.BeginIntermission,
-                    words: processEndOfRound.confirmedWords,
                     dateTimePublished: Date.now(),
-                    game: processEndOfRound.updatedGameInfo,
+                    messageType: AblyMessageType.BeginIntermission,
+                    state: processEndOfRound.state,
+                    prevState: processEndOfRound.prevState,
+                    words: processEndOfRound.confirmedWords,
+                    scores: processEndOfRound.scores,
+                    timeLastRoundOver: processEndOfRound.timeRoundOver,
                 }
                 await channel.publish(AblyMessageType.BeginIntermission, endOfRoundMsg);
             }

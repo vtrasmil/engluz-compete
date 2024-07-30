@@ -1,4 +1,8 @@
 // https://dev.to/codebubb/how-to-shuffle-an-array-in-javascript-2ikj
+import {INTERMISSION_DURATION} from "~/components/Constants.tsx";
+import {type GameInfo, RoundState} from "~/components/Types.tsx";
+
+
 export default function shuffleArrayCopy<T>(array: T[]): T[] {
     const newArray = array.slice();
     for (let i = array.length - 1; i > 0; i--) {
@@ -26,5 +30,29 @@ export function shuffleString(str: string) {
         .reduce((acc, curr) => acc + curr, '');
 
 
+}
+
+export function getCurrentRoundState(gameTimeStarted: number, timeLastRoundOver: number | null, gameInfo : GameInfo) {
+    let roundElapsed;
+    if (timeLastRoundOver == null) {
+        // first word selection
+        roundElapsed = Date.now() - gameTimeStarted;
+    } else {
+        roundElapsed = Date.now() - timeLastRoundOver - INTERMISSION_DURATION;
+    }
+
+    let roundState;
+    if (roundElapsed < 0) {
+        roundState = RoundState.Intermission;
+    }
+    else {
+        roundState = RoundState.WordSelection;
+    }
+
+    if (roundState == RoundState.Intermission && gameInfo.state.isGameFinished) {
+        return RoundState.GameFinished;
+    } else {
+        return roundState
+    }
 }
 

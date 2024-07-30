@@ -1,12 +1,6 @@
 import { type z } from "zod";
 import {env} from "~/env.mjs";
 
-// https://zod.dev/?id=inferring-the-inferred-type
-
-/*export function parseData<T extends z.ZodTypeAny>(data: unknown, schema: T): z.infer<T> {
-    return schema.parse(data);
-}*/
-
 // from https://laniewski.me/blog/2023-11-19-api-response-validation-with-zod/
 
 interface ValidateConfig<T extends z.ZodTypeAny> {

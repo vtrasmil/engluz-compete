@@ -5,8 +5,8 @@ import GameManager from "~/components/GameManager";
 import {RoundState, type SessionInfo} from "~/components/Types";
 import { api } from "~/utils/api";
 import {useUserIdContext} from "~/components/hooks/useUserIdContext.tsx";
-import {INTERMISSION_DURATION, NUM_ROUNDS_PER_GAME, ROUND_DURATION} from "~/components/Constants.tsx";
 import 'console-polyfill';
+import {getCurrentRoundState} from "~/components/helpers.tsx";
 
 export default function GamePage() {
     const router = useRouter();
@@ -62,36 +62,24 @@ export default function GamePage() {
     } else if (gameInfoQuery.isError || roomInfoQuery.isError) {
         return <div>Error</div>
     }
-
-    function getCurrentRoundStateFromStartTime(gameTimeStarted: number) {
-        const totalRoundDuration = ROUND_DURATION + INTERMISSION_DURATION;
-        const gameElapsed = Date.now() - gameTimeStarted;
-        const currRound = Math.floor(gameElapsed / totalRoundDuration);
-        const roundElapsed = gameElapsed - currRound * totalRoundDuration;
-        let roundState, roundSegmentStartTime;
-        if (currRound >= NUM_ROUNDS_PER_GAME) {
-            roundState = RoundState.GameFinished;
-        }
-        else if (roundElapsed < ROUND_DURATION) {
-            roundState = RoundState.WordSelection;
-            roundSegmentStartTime = gameTimeStarted + (currRound * totalRoundDuration);
-
+    const gameInfo = gameInfoQuery.data;
+    if (gameInfo && roomInfoQuery.data) {
+        console.log('Play page re-render')
+        const roundState = getCurrentRoundState(gameInfo.dateTimeStarted, gameInfo.timeLastRoundOver, gameInfo);
+        console.log(`Round State: ${roundState}`);
+        let currState;
+        if (roundState == RoundState.Intermission && gameInfo.prevState != null) {
+            currState = gameInfo.prevState;
         } else {
-            roundState = RoundState.Intermission;
-            roundSegmentStartTime = gameTimeStarted + (currRound * totalRoundDuration) - INTERMISSION_DURATION;
+            currState = gameInfo.state;
         }
-        console.log(roundState, roundSegmentStartTime);
-        return {roundState, currRound, roundSegmentStartTime};
-    }
-
-    if (gameInfoQuery.data && roomInfoQuery.data) {
-
-        const {roundState, currRound, roundSegmentStartTime} = getCurrentRoundStateFromStartTime(gameInfoQuery.data.dateTimeStarted);
-        // console.log(roundState, currRound, roundSegmentStartTime);
-        return <GameManager gameId={gameInfoQuery.data.gameId}
-            roomCode={gameInfoQuery.data.roomCode} playersOrdered={roomInfoQuery.data.players}
-            onLeaveRoom={handleLeaveRoom} initGameState={gameInfoQuery.data.state}
-            roundSegmentStartTime={roundSegmentStartTime} initRoundState={roundState} initCurrRound={currRound} />
+        return (
+            <GameManager gameId={gameInfo.gameId}
+                        roomCode={gameInfo.roomCode} playersOrdered={roomInfoQuery.data.players}
+                        onLeaveRoom={handleLeaveRoom} initGameState={currState}
+                        initRoundState={roundState}
+                        gameTimeStarted={gameInfo.dateTimeStarted} initTimeLastRoundOver={gameInfo.timeLastRoundOver}
+        />);
 
 
     }

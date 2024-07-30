@@ -5,7 +5,8 @@ import Board from "./Board.tsx";
 import Scoreboard from "./Scoreboard.tsx";
 import {
     AblyMessageType,
-    type BeginIntermissionMessageData, beginIntermissionMsgDataSchema,
+    type BeginIntermissionMessageData,
+    beginIntermissionMsgDataSchema,
     type GameState,
     RoundState,
     type Score,
@@ -16,9 +17,8 @@ import {
 import {useUserIdContext} from "./hooks/useUserIdContext";
 import {Button} from "./ui/button.tsx";
 import {RulesDialog} from "./RulesDialog.tsx";
-import {NUM_ROUNDS_PER_GAME} from "./Constants.tsx";
+import {INTERMISSION_DURATION, NUM_ROUNDS_PER_GAME} from "./Constants.tsx";
 import {api} from "~/utils/api.ts";
-import {Types} from "ably";
 import {validateSchema} from "~/utils/validator.tsx";
 
 interface GameManagerProps {
@@ -28,12 +28,13 @@ interface GameManagerProps {
     onLeaveRoom: () => void,
     initGameState: GameState,
     initRoundState: RoundState,
-    initCurrRound: number,
-    roundSegmentStartTime: number | undefined,
+    gameTimeStarted: number,
+    initTimeLastRoundOver: number | null,
 }
 
 export default function GameManager({ gameId, roomCode, playersOrdered,
-                                        onLeaveRoom, initGameState, initRoundState, initCurrRound, roundSegmentStartTime }: GameManagerProps) {
+                                    onLeaveRoom, initGameState, initRoundState,
+                                    gameTimeStarted, initTimeLastRoundOver}: GameManagerProps) {
     const userId = useUserIdContext();
     const [scores, setScores] = useState<Score[]>(
         playersOrdered.map(p => ({ userId: p.userId, score: 0 }))
@@ -42,10 +43,11 @@ export default function GameManager({ gameId, roomCode, playersOrdered,
     const [latestWordSubmission, setLatestWordSubmission] = useState<WordSubmissionResponse>();
     const [gameState, setGameState] = useState<GameState>(initGameState);
     const [roundState, setRoundState] = useState<RoundState>(initRoundState);
-    const [latestEndOfRoundMessage, setLatestBeginIntermissionMessage] = useState<BeginIntermissionMessageData>();
+    const [latestBeginIntermissionMessage, setLatestBeginIntermissionMessage] = useState<BeginIntermissionMessageData | null>();
 
     const [submittedCellIds, setSubmittedCellIds] = useState<number[]>([]);
     const [wordSubmissionState, setWordSubmissionState] = useState<WordSubmissionState>(WordSubmissionState.NotSubmitted);
+    const [timeLastRoundOver, setTimeLastRoundOver] = useState<number|null>(initTimeLastRoundOver);
 
     const submitWordMutation = api.gameplay.submitWord.useMutation({
         onMutate: () => {
@@ -71,7 +73,7 @@ export default function GameManager({ gameId, roomCode, playersOrdered,
         },
         onSuccess: (data) => {
             setWordSubmissionState(WordSubmissionState.Confirmed);
-            if (data) {
+            if (data.areAllWordsConfirmed) {
                 triggerEndOfRoundAndPublishResultsMutation.mutate({
                     roomCode: roomCode,
                     userId: userId
@@ -88,9 +90,16 @@ export default function GameManager({ gameId, roomCode, playersOrdered,
     const gameInfoQuery = api.lobby.fetchGameInfo.useQuery({ roomCode: roomCode, userId: userId}); // TODO: I imagine this is being called way too often
 
     useChannel(channelName, AblyMessageType.BeginIntermission, (message) => {
+        console.log('receiving AblyMessageType.BeginIntermission');
         const result = validateSchema({dto: message.data, schemaName: 'beginIntermissionMsgDataSchema', schema: beginIntermissionMsgDataSchema});
         setLatestBeginIntermissionMessage(result);
-        setRoundState(RoundState.Intermission);
+        setTimeLastRoundOver(result.timeLastRoundOver);
+        setScores(result.scores);
+        if (result.state.isGameFinished) {
+            setRoundState(RoundState.GameFinished);
+        } else {
+            setRoundState(RoundState.Intermission);
+        }
     })
 
     function handleSubmitWord(cellIds: number[]) {
@@ -118,7 +127,8 @@ export default function GameManager({ gameId, roomCode, playersOrdered,
         }
     }
 
-    function handleEndOfRoundTimeUp() {
+    function handleTransitionToIntermissionOnTimeUp() {
+        console.log('handleTransitionToIntermissionOnTimeUp');
         triggerEndOfRoundAndPublishResultsMutation.mutate({
             roomCode: roomCode,
             userId: userId,
@@ -126,25 +136,23 @@ export default function GameManager({ gameId, roomCode, playersOrdered,
     }
 
     // when timer finishes
-    function handleNextRound() {
-        let gameInfo;
-        if (latestEndOfRoundMessage != undefined && gameInfoQuery.dataUpdatedAt < latestEndOfRoundMessage.dateTimePublished) {
-            gameInfo = latestEndOfRoundMessage.game;
+    function handleTransitionToWordSelection() {
+        console.log('handleTransitionToWordSelection');
+        let nextState;
+        if (latestBeginIntermissionMessage != undefined
+            && gameInfoQuery.dataUpdatedAt < latestBeginIntermissionMessage.dateTimePublished
+            && Date.now() - latestBeginIntermissionMessage.dateTimePublished < INTERMISSION_DURATION
+        ) {
+            nextState = latestBeginIntermissionMessage.state;
         } else if (gameInfoQuery.data != undefined) {
-            gameInfo = gameInfoQuery.data;
+            nextState = gameInfoQuery.data.state;
+        } else {
+            throw new Error('no game state found')
         }
-        if (gameInfo) {
-            setGameState(gameInfo.state);
-            setScores(gameInfo.scores);
-            if (gameInfo.state.isGameFinished) {
-                setRoundState(RoundState.GameFinished);
-            }
-            else {
-                setWordSubmissionState(WordSubmissionState.NotSubmitted);
-                setRoundState(RoundState.WordSelection);
-            }
-            setLatestBeginIntermissionMessage(undefined);
-        }
+        setGameState(nextState);
+        setWordSubmissionState(WordSubmissionState.NotSubmitted);
+        setRoundState(RoundState.WordSelection);
+        setLatestBeginIntermissionMessage(null);
     }
 
     return (
@@ -153,20 +161,19 @@ export default function GameManager({ gameId, roomCode, playersOrdered,
                 <Button className="" onClick={onLeaveRoom} variant="secondary">Leave Room: {roomCode}</Button>
                 <RulesDialog />
             </div>
-            {gameState.isGameFinished ?
+            {roundState == RoundState.GameFinished ?
                 <h2>Game Over!</h2> :
                 <h2>{`Round ${gameState.round + 1}/${NUM_ROUNDS_PER_GAME}`}</h2>
             }
-            {!gameState.isGameFinished &&
+            {roundState != RoundState.GameFinished &&
                 <Board boardConfig={gameState.board} roomCode={roomCode} onSubmitWord={handleSubmitWord}
                    wordSubmissionState={wordSubmissionState} onReselecting={handleReselecting} roundState={roundState} />
             }
-
             <Scoreboard playersOrdered={playersOrdered} scores={scores} gameState={gameState} roundState={roundState}
-                        latestWordSubmission={latestWordSubmission} latestEndOfRoundMessage={latestEndOfRoundMessage}
+                        latestWordSubmission={latestWordSubmission} latestBeginIntermissionMessage={latestBeginIntermissionMessage}
                         onConfirmWord={handleConfirmWord} wordSubmissionState={wordSubmissionState}
-                        onNextRound={handleNextRound} onEndOfRoundTimeUp={handleEndOfRoundTimeUp}
-                        roundSegmentStartTime={roundSegmentStartTime}
+                        onNextRound={handleTransitionToWordSelection} onEndOfRoundTimeUp={handleTransitionToIntermissionOnTimeUp}
+                        timeLastRoundOver={timeLastRoundOver} gameTimeStarted={gameTimeStarted}
             />
 
         </>

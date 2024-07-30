@@ -18,17 +18,18 @@ interface ScoreboardProps {
     gameState: GameState,
     roundState: RoundState,
     latestWordSubmission: WordSubmissionResponse | undefined,
-    latestEndOfRoundMessage: BeginIntermissionMessageData | undefined,
+    latestBeginIntermissionMessage: BeginIntermissionMessageData | null | undefined,
     onConfirmWord: () => void,
     wordSubmissionState: WordSubmissionState,
     onEndOfRoundTimeUp: () => void,
     onNextRound: () => void,
-    roundSegmentStartTime: number | undefined,
+    timeLastRoundOver: number | null,
+    gameTimeStarted: number,
 
 }
 export default function Scoreboard({ playersOrdered, scores,
-    gameState, roundState, latestWordSubmission, latestEndOfRoundMessage, onConfirmWord, wordSubmissionState,
-    onNextRound, onEndOfRoundTimeUp, roundSegmentStartTime
+    gameState, roundState, latestWordSubmission, latestBeginIntermissionMessage, onConfirmWord, wordSubmissionState,
+    onNextRound, onEndOfRoundTimeUp, timeLastRoundOver, gameTimeStarted,
 }: ScoreboardProps) {
     // const userId = useUserIdContext();
     const [prevRoundState, setPrevRoundState] = useState<RoundState>();
@@ -74,9 +75,9 @@ export default function Scoreboard({ playersOrdered, scores,
                 return <div>Waiting for other players...</div>
             } else return;
         } else if (roundState == RoundState.Intermission) {
-            if (latestEndOfRoundMessage == undefined) return;
-            if (latestEndOfRoundMessage.words.length > 0) {
-                return latestEndOfRoundMessage.words.map((word) => {
+            if (latestBeginIntermissionMessage == undefined) return;
+            if (latestBeginIntermissionMessage.words.length > 0) {
+                return latestBeginIntermissionMessage.words.map((word) => {
                     const player = playersOrdered.find(p => p.userId === word.userId);
                     return <div key={player?.userId}>{player?.playerName}: {word.word} (+{word.score})</div>
                 })
@@ -125,11 +126,11 @@ export default function Scoreboard({ playersOrdered, scores,
                 {gameState.isGameFinished && <h2>Final Score:</h2>}
                 {scoresDisplay()}
             </div>
-            {roundState == RoundState.WordSelection && roundSegmentStartTime != undefined &&
-                <VisualTimer durationMs={ROUND_DURATION} onTimeUp={onEndOfRoundTimeUp} initStartTime={roundSegmentStartTime}  /> //TODO: last prop
+            {roundState == RoundState.WordSelection &&
+                <VisualTimer durationMs={ROUND_DURATION} onTimeUp={onEndOfRoundTimeUp} initStartTime={timeLastRoundOver == null ? gameTimeStarted : timeLastRoundOver + INTERMISSION_DURATION}  /> //TODO: last prop
             }
-            {roundState == RoundState.Intermission && roundSegmentStartTime != undefined &&
-                <VisualTimer durationMs={INTERMISSION_DURATION} onTimeUp={onNextRound} initStartTime={roundSegmentStartTime}  /> //TODO: last prop
+            {roundState == RoundState.Intermission && timeLastRoundOver !== null &&
+                <VisualTimer durationMs={INTERMISSION_DURATION} onTimeUp={onNextRound} initStartTime={timeLastRoundOver}  /> //TODO: last prop
             }
 
 

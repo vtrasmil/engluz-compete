@@ -11,10 +11,11 @@ interface VisualTimerProps {
 export function VisualTimer({ durationMs, onTimeUp, initStartTime }: VisualTimerProps) {
     const timer = useTimer({delay: 100}, timerCallback);
     const [timeLeft, setTimeLeft] = useState(initStartTime - Date.now() + durationMs);
-
+    console.log('initStartTime', initStartTime, 'durationMs', durationMs, 'timeLeft', initStartTime - Date.now() + durationMs);
 
     function timerCallback() {
-        const newTimeLeft = durationMs - (Date.now() - initStartTime);
+        const newTimeLeft = initStartTime - Date.now() + durationMs;
+
         setTimeLeft(newTimeLeft); // re-render to update visual
         if (newTimeLeft <= 0) {
             timer.stop();
@@ -23,9 +24,8 @@ export function VisualTimer({ durationMs, onTimeUp, initStartTime }: VisualTimer
     }
 
     const timeLeftPercentage = () => {
-        if (timeLeft == undefined) return;
         if (timeLeft <= 0) return '0%';
-        return (timeLeft / durationMs).toString() + '%';
+        return (timeLeft / durationMs * 100).toString() + '%';
     }
 
     useEffect(() => {

@@ -13,6 +13,7 @@ import {generateRandomString} from "~/server/helpers.tsx";
 import { uniqueId } from "~/utils/helpers";
 import {BoggleDice, rollAndShuffleDice, rollDice} from "../diceManager";
 import advanceGameState from "~/server/api/gameState.tsx";
+import _ from "lodash";
 
 const RedisObjects = {
     ActiveRoomsSet: 'ActiveRoomsSet',
@@ -51,11 +52,13 @@ export class RedisBoggleCommands {
                 board: newBoard,
                 isGameFinished: false,
             },
+            prevState: null,
             scores: newScores,
             words: undefined,
             gameId: gameId,
             roomCode: roomCode,
             dateTimeStarted: Date.now(),
+            timeLastRoundOver: null
         } satisfies GameInfo;
         const gameAdded = await this.redis.json.set(key, '$', gameInfo);
         if (!gameAdded) throw new Error(`Game ${gameId} failed to initialize`);
@@ -166,12 +169,12 @@ export class RedisBoggleCommands {
         return await this.redis.json.get(key) as ConfirmedWord[] ?? [];
     }
 
-    // all players call this but only one returns data
+    // all players call this on end of round, but only one request will update game and send message
     async processEndOfRound(game: GameInfo, roomCode: string, userId: string, round: number) {
         const key = `game:${game.gameId}:round:${round}:lock`;
         const lock = await this.redis.setnx(key, true);
+        // TODO: this look should expire quickly in case of error, around 1s so another player's request can retry
         if (lock === 1) {
-            const board = game.state.board;
             const confirmedWords = await this.getConfirmedWords(game.gameId, game.state.round);
             const updatedScores = game.scores.map((score) => {
                 const word = confirmedWords.find(word => word.userId === score.userId);
@@ -184,13 +187,24 @@ export class RedisBoggleCommands {
                     return score;
                 }
             });
-
-            game.state.board = rollDice(board);
+            game.prevState = _.cloneDeep(game.state); // TODO: need to clone
+            game.state.board = rollDice(game.state.board);
             advanceGameState(game.state);
-
+            const gameInfoUpdate: GameInfoUpdate = {
+                prevState: game.prevState,
+                state: game.state,
+                scores: updatedScores,
+                timeLastRoundOver: Date.now(),
+            }
+            const updatedGameInfo = await this.updateGameInfo(game.gameId, roomCode, gameInfoUpdate, userId, game);
+            if (updatedGameInfo.timeLastRoundOver == null) throw new Error('timeLastRoundOver not set in updatedGameInfo');
+            if (updatedGameInfo.prevState == null) throw new Error('prevState not set in gameInfo from BeginIntermission message');
             return {
-                updatedGameInfo: await this.updateGameInfo(game.gameId, roomCode, {state: game.state, scores: updatedScores}, userId, game),
-                confirmedWords: confirmedWords
+                state: updatedGameInfo.state,
+                prevState: updatedGameInfo.prevState,
+                confirmedWords: confirmedWords,
+                scores: updatedGameInfo.scores,
+                timeRoundOver: updatedGameInfo.timeLastRoundOver,
             };
         }
     }
