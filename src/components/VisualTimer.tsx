@@ -11,7 +11,6 @@ interface VisualTimerProps {
 export function VisualTimer({ durationMs, onTimeUp, initStartTime }: VisualTimerProps) {
     const timer = useTimer({delay: 100}, timerCallback);
     const [timeLeft, setTimeLeft] = useState(initStartTime - Date.now() + durationMs);
-    console.log('initStartTime', initStartTime, 'durationMs', durationMs, 'timeLeft', initStartTime - Date.now() + durationMs);
 
     function timerCallback() {
         const newTimeLeft = initStartTime - Date.now() + durationMs;

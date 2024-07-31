@@ -42,11 +42,11 @@ export default function RoomPage() {
         { roomCode: roomCode },
         {
             enabled: !isRoomInfoFetched && router.isReady && roomCode.length > 0,
-            onSuccess: (e) => {
+            onSuccess: () => {
                 console.log('fetchRoomInfo success');
                 setIsRoomInfoFetched(true);
             },
-            onError: (e) => void router.push('/')
+            onError: () => void router.push('/')
         }
     );
 

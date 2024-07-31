@@ -18,11 +18,8 @@ interface WaitingRoomProps {
     onLeaveRoom: () => void,
 }
 export default function WaitingRoom({ basePlayer, roomCode, onLeaveRoom }: WaitingRoomProps) {
-    const [sessionInfo, setSessionInfo] = useSessionStorage<SessionInfo | undefined>('sessionInfo', undefined);
     const channelName = ablyChannelName(roomCode);
-    const [initBoard, setInitBoard] = useState<BoardConfiguration | undefined>();
     const startGameMutation = api.lobby.startGame.useMutation({});
-    const [playersOrdered, setPlayersOrdered] = useState<SimplePlayerInfo[]>();
     const [hasGameStarted, setHasGameStarted] = useState<boolean>(false);
 
     function handleStartGame() {
@@ -64,10 +61,6 @@ export default function WaitingRoom({ basePlayer, roomCode, onLeaveRoom }: Waiti
         if (notReady == undefined) return true;
         return false;
     })();
-
-    function handleLeaveRoom() {
-        setSessionInfo(undefined);
-    }
 
     return (
         <>

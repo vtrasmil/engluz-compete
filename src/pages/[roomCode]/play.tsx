@@ -51,8 +51,6 @@ export default function GamePage() {
         }
     );
 
-
-
     function handleLeaveRoom() {
         setSessionInfo(undefined);
         void router.push(`/`);
