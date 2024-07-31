@@ -96,6 +96,7 @@ export default function GameManager({ gameId, roomCode, playersOrdered,
         setTimeLastRoundOver(result.timeLastRoundOver);
         setScores(result.scores);
         if (result.state.isGameFinished) {
+            setGameState(result.state);
             setRoundState(RoundState.GameFinished);
         } else {
             setRoundState(RoundState.Intermission);
