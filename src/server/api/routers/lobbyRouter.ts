@@ -88,6 +88,7 @@ export const lobbyRouter = createTRPCRouter({
           players: playersOrdered
         }
         await channel.publish(AblyMessageType.GameStarted, gameStartedMsg);
+        return {};
       } catch (e) {
         throw new Error(UNKNOWN_ERROR_MESSAGE);
       }

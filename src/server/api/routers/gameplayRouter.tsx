@@ -88,6 +88,7 @@ export const gameplayRouter = createTRPCRouter({
                     timeLastRoundOver: processEndOfRound.timeRoundOver,
                 }
                 await channel.publish(AblyMessageType.BeginIntermission, endOfRoundMsg);
+                return {};
             }
         }),
 
