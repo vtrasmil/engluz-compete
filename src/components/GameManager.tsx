@@ -62,9 +62,9 @@ export default function GameManager({ gameId, roomCode, playersOrdered,
             }
             setLatestWordSubmission(data);
         },
-        // onError: (err) => {
-        //
-        // },
+        onError: (e) => {
+            // TODO: handle
+        },
     });
 
     const confirmWordMutation = api.gameplay.confirmWord.useMutation({
@@ -85,7 +85,11 @@ export default function GameManager({ gameId, roomCode, playersOrdered,
         },
     });
 
-    const triggerEndOfRoundAndPublishResultsMutation = api.gameplay.triggerEndOfRoundAndPublishResults.useMutation();
+    const triggerEndOfRoundAndPublishResultsMutation = api.gameplay.triggerEndOfRoundAndPublishResults.useMutation({
+        onError: (e) => {
+            // TODO: handle
+        }
+    });
 
     const gameInfoQuery = api.lobby.fetchGameInfo.useQuery({ roomCode: roomCode, userId: userId}); // TODO: I imagine this is being called way too often
 
@@ -93,6 +97,7 @@ export default function GameManager({ gameId, roomCode, playersOrdered,
         console.log('receiving AblyMessageType.BeginIntermission');
         const result = validateSchema({dto: message.data, schemaName: 'beginIntermissionMsgDataSchema', schema: beginIntermissionMsgDataSchema});
         setLatestBeginIntermissionMessage(result);
+        console.log('latestBeginIntermissionMessage set to', result);
         setTimeLastRoundOver(result.timeLastRoundOver);
         setScores(result.scores);
         if (result.state.isGameFinished) {
@@ -138,11 +143,12 @@ export default function GameManager({ gameId, roomCode, playersOrdered,
 
     // when timer finishes
     function handleTransitionToWordSelection() {
-        console.log('handleTransitionToWordSelection');
         let nextState;
+        console.log('gameInfo updated at', gameInfoQuery.dataUpdatedAt, 'messageDatePublished', latestBeginIntermissionMessage?.dateTimePublished, 'now', Date.now())
+
         if (latestBeginIntermissionMessage != undefined
             && gameInfoQuery.dataUpdatedAt < latestBeginIntermissionMessage.dateTimePublished
-            && Date.now() - latestBeginIntermissionMessage.dateTimePublished < INTERMISSION_DURATION
+            && (Date.now() - latestBeginIntermissionMessage.dateTimePublished < INTERMISSION_DURATION)
         ) {
             nextState = latestBeginIntermissionMessage.state;
         } else if (gameInfoQuery.data != undefined) {
@@ -176,6 +182,7 @@ export default function GameManager({ gameId, roomCode, playersOrdered,
                         onNextRound={handleTransitionToWordSelection} onEndOfRoundTimeUp={handleTransitionToIntermissionOnTimeUp}
                         timeLastRoundOver={timeLastRoundOver} gameTimeStarted={gameTimeStarted}
             />
+
 
         </>
     )

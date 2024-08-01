@@ -3,7 +3,6 @@ import { usePresence } from "ably/react";
 import { useState } from "react";
 import { Checkbox } from "~/components/ui/checkbox";
 import { ablyChannelName } from "~/server/ably/ablyHelpers";
-import { SessionInfo } from "./Types";
 import { api } from "~/utils/api";
 import { PlayerInfo, SimplePlayerInfo, BoardConfiguration, RoomPlayerInfo } from "./Types";
 import { Button } from "./ui/button";
@@ -19,8 +18,15 @@ interface WaitingRoomProps {
 }
 export default function WaitingRoom({ basePlayer, roomCode, onLeaveRoom }: WaitingRoomProps) {
     const channelName = ablyChannelName(roomCode);
-    const startGameMutation = api.lobby.startGame.useMutation({});
+    const [errorMsg, setErrorMsg] = useState<string | null>();
+
     const [hasGameStarted, setHasGameStarted] = useState<boolean>(false);
+
+    const startGameMutation = api.lobby.startGame.useMutation({
+        onError: (e) => {
+            setErrorMsg(e.message)
+        },
+    });
 
     function handleStartGame() {
         if (presencePlayers == undefined) {
@@ -98,6 +104,9 @@ export default function WaitingRoom({ basePlayer, roomCode, onLeaveRoom }: Waiti
                     </>
                 }
             </div>
+            {errorMsg != undefined &&
+                <div className="text-sm text-red-500">{errorMsg}</div>
+            }
         </>
     )
 }

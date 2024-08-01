@@ -27,8 +27,7 @@ export default function Lobby({ userId, onSetSessionInfo }: LobbyProps) {
     const [roomCode, setRoomCode] = useState('');
     const [playerName, setPlayerName] = useState('');
     const [gameId, setGameId] = useState<string>();
-    const [isHost, setIsHost] = useState<boolean>(false);
-    // const [hostGameErrorMsg, setHostGameErrorMsg] = useState<string | undefined>();
+    const [errorMsg, setErrorMsg] = useState<string | null>();
 
     const hostGameMutation = api.lobby.hostGame.useMutation({
         onSuccess: (data) => {
@@ -39,7 +38,7 @@ export default function Lobby({ userId, onSetSessionInfo }: LobbyProps) {
             });
         },
         onError: (e) => {
-            // setHostGameErrorMsg(e.message);
+            setErrorMsg(e.message);
         }
     });
 
@@ -51,6 +50,9 @@ export default function Lobby({ userId, onSetSessionInfo }: LobbyProps) {
                 roomCode: data.roomCode
             });
             hostGameMutation.reset();
+        },
+        onError: (e) => {
+            setErrorMsg(e.message);
         }
     });
 
@@ -136,7 +138,9 @@ export default function Lobby({ userId, onSetSessionInfo }: LobbyProps) {
                     Host a Game
                     {hostGameMutation.isLoading && <Icons.spinner className="h-4 w-4 animate-spin ml-1" />}
                 </Button>
-                <div className="text-sm text-red-500">{hostGameMutation.error?.message}</div>
+                {errorMsg != undefined &&
+                    <div className="text-sm text-red-500">{errorMsg}</div>
+                }
             </div>
         );
     }
