@@ -132,8 +132,6 @@ export default function Scoreboard({ playersOrdered, scores,
             {roundState == RoundState.Intermission && timeLastRoundOver !== null &&
                 <VisualTimer durationMs={INTERMISSION_DURATION} onTimeUp={onNextRound} initStartTime={timeLastRoundOver}  /> //TODO: last prop
             }
-
-
         </>
     );
 }

@@ -56,11 +56,7 @@ export default function WaitingRoom({ basePlayer, roomCode, onLeaveRoom }: Waiti
     }
     const { presenceData, updateStatus } = usePresence(channelName, createPresenceObj(ReadyOptions.NotReady));
     const presencePlayers = presenceData.map((msg) => msg.data);
-    const allPlayersReady = (() => {
-        const notReady = presenceData.find(p => p.data.readyStatus === ReadyOptions.NotReady);
-        if (notReady == undefined) return true;
-        return false;
-    })();
+    const allPlayersReady = presenceData.length > 0 && presenceData.find(p => p.data.readyStatus === ReadyOptions.NotReady) == undefined;
 
     return (
         <>
@@ -82,7 +78,7 @@ export default function WaitingRoom({ basePlayer, roomCode, onLeaveRoom }: Waiti
 
                 {basePlayer.isHost &&
                     <Button className="w-full bg-green-500"
-                        disabled={!allPlayersReady}
+                        disabled={!allPlayersReady || startGameMutation.isLoading}
                         onClick={handleStartGame}>
                         Start Game
                         {startGameMutation.isLoading && <Icons.spinner className="h-4 w-4 animate-spin ml-1" />}

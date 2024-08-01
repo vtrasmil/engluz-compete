@@ -131,14 +131,12 @@ export default function Lobby({ userId, onSetSessionInfo }: LobbyProps) {
                     <hr className="flex-grow border-zinc-200 dark:border-zinc-700" />
                 </div>
                 <Button className="w-full bg-green-500"
-                    disabled={playerName.length < 1}
+                    disabled={playerName.length < 1 || hostGameMutation.isLoading || sessionInfo != undefined}
                     onClick={handleHostGame}>
                     Host a Game
                     {hostGameMutation.isLoading && <Icons.spinner className="h-4 w-4 animate-spin ml-1" />}
                 </Button>
                 <div className="text-sm text-red-500">{hostGameMutation.error?.message}</div>
-
-
             </div>
         );
     }
