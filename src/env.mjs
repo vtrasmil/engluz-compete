@@ -23,6 +23,8 @@ export const env = createEnv({
     NEXT_PUBLIC_NUM_ROUNDS_PER_GAME: z.coerce.number().min(1),
     NEXT_PUBLIC_MIN_WORD_LENGTH: z.coerce.number().min(1),
     NEXT_PUBLIC_MAX_NUM_PLAYERS_PER_ROOM: z.coerce.number().min(1),
+    NEXT_PUBLIC_ROUND_DURATION: z.coerce.number().min(1),
+    NEXT_PUBLIC_INTERMISSION_DURATION: z.coerce.number().min(1),
   },
 
   /**
@@ -37,6 +39,8 @@ export const env = createEnv({
     NEXT_PUBLIC_NUM_ROUNDS_PER_GAME: process.env.NEXT_PUBLIC_NUM_ROUNDS_PER_GAME,
     NEXT_PUBLIC_MIN_WORD_LENGTH: process.env.NEXT_PUBLIC_MIN_WORD_LENGTH,
     NEXT_PUBLIC_MAX_NUM_PLAYERS_PER_ROOM: process.env.NEXT_PUBLIC_MAX_NUM_PLAYERS_PER_ROOM,
+    NEXT_PUBLIC_ROUND_DURATION: process.env.NEXT_PUBLIC_ROUND_DURATION,
+    NEXT_PUBLIC_INTERMISSION_DURATION: process.env.NEXT_PUBLIC_INTERMISSION_DURATION,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },
   /**

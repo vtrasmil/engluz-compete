@@ -7,5 +7,5 @@ export const CELL_CHANGE_COLOR = 'gold';
 export const SELECTED_COLOR = 'lightskyblue';
 export const SUBMITTED_COLOR = 'lightgreen';
 export const CONFIRMED_COLOR = 'green';
-export const ROUND_DURATION = 10 * 1000;
-export const INTERMISSION_DURATION = 10 * 1000;
+export const ROUND_DURATION = env.NEXT_PUBLIC_ROUND_DURATION;
+export const INTERMISSION_DURATION = env.NEXT_PUBLIC_INTERMISSION_DURATION;
