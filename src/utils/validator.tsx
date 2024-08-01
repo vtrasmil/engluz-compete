@@ -14,6 +14,7 @@ export function validateSchema<T extends z.ZodTypeAny>(
 ) {
     const parsed = config.schema.safeParse(config.dto);
     if (parsed.success) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return parsed.data as z.infer<T>;
     } else {
         captureError(`API Validation Error: ${config.schemaName}`, {
