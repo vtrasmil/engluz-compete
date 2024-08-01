@@ -7,6 +7,7 @@ import WaitingRoom from "~/components/WaitingRoom";
 import { ablyChannelName } from "~/server/ably/ablyHelpers";
 import { api } from "~/utils/api";
 import { uniqueId } from "~/utils/helpers";
+import {Icons} from "~/components/ui/icons.tsx";
 
 export default function RoomPage() {
     // if session info exists
@@ -61,7 +62,7 @@ export default function RoomPage() {
     }
 
     if (roomInfoQuery.isLoading) {
-        return <div>Loading...</div>
+        return <Icons.spinner className="h-4 w-4 animate-spin ml-1" />;
     } else if (roomInfoQuery.isError) {
         return <div>Error</div>
     }

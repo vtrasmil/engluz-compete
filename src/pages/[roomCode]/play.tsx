@@ -7,6 +7,7 @@ import { api } from "~/utils/api";
 import {useUserIdContext} from "~/components/hooks/useUserIdContext.tsx";
 import 'console-polyfill';
 import {getCurrentRoundState} from "~/components/helpers.tsx";
+import {Icons} from "~/components/ui/icons.tsx";
 
 export default function GamePage() {
     const router = useRouter();
@@ -56,7 +57,7 @@ export default function GamePage() {
         void router.push(`/`);
     }
     if (gameInfoQuery.isLoading || roomInfoQuery.isLoading) {
-        return <div>Loading...</div>
+        return <Icons.spinner className="h-4 w-4 animate-spin ml-1" />
     } else if (gameInfoQuery.isError || roomInfoQuery.isError) {
         return <div>Error</div>
     }
