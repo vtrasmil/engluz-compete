@@ -11,7 +11,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
         client = new Ably.Realtime(env.ABLY_API_KEY);
     } catch (error) {
-
+        console.error('Ably client not created')
     }
 
     if (client != undefined && req.method === 'GET') {

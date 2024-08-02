@@ -13,8 +13,9 @@ import { ZodError } from "zod";
 
 import { RedisBoggleCommands } from "../redis/api";
 
-import { getAblyClient } from "../ably/ablyClient";
+
 import { kv } from "@vercel/kv";
+import {createAblyClient} from "~/server/ably/ablyClient.ts";
 /**
  * 1. CONTEXT
  *
@@ -36,7 +37,7 @@ type CreateContextOptions = Record<string, never>;
  * @see https://create.t3.gg/en/usage/trpc#-serverapitrpcts
  */
 const createInnerTRPCContext = (_opts: CreateContextOptions) => {
-  const ably = getAblyClient();
+  const ably = createAblyClient();
   const redis = new RedisBoggleCommands(kv);
   return {
     redis,

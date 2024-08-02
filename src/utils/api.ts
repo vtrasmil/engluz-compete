@@ -12,8 +12,10 @@ import { type AppRouter } from "~/server/api/root";
 
 export const getBaseUrl = () => {
   if (typeof window !== "undefined") return ""; // browser should use relative url
+  // need to look at VERCEL_ENV. VERCEL_URL is used in vercel dev since serverless functions are vercel-simulated
+  if (process.env.VERCEL_ENV === "development") return `http://localhost:${process.env.PORT ?? 3000}`; // dev SSR should use localhost
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`; // SSR should use vercel url
-  return `http://localhost:${process.env.PORT ?? 3000}`; // dev SSR should use localhost
+  throw new Error('VERCEL_URL env var not set and you are in production/preview');
 }
 
 /** A set of type-safe react-query hooks for your tRPC API. */
