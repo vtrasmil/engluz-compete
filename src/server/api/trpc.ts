@@ -15,7 +15,7 @@ import { RedisBoggleCommands } from "../redis/api";
 
 
 import { kv } from "@vercel/kv";
-import {createAblyClient} from "~/server/ably/ablyClient.ts";
+import {createAblyClient} from "~/server/ably/ably-rest-client.ts";
 /**
  * 1. CONTEXT
  *

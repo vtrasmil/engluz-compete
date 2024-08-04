@@ -1,5 +1,5 @@
 import { CheckedState } from "@radix-ui/react-checkbox";
-import { usePresence } from "ably/react";
+import {usePresence, usePresenceListener} from "ably/react";
 import { useState } from "react";
 import { Checkbox } from "~/components/ui/checkbox";
 import { ablyChannelName } from "~/server/ably/ablyHelpers";
@@ -46,9 +46,9 @@ export default function WaitingRoom({ basePlayer, roomCode, onLeaveRoom }: Waiti
 
     function handleReadyToggle(checked: CheckedState) {
         if (checked) {
-            updateStatus(createPresenceObj(ReadyOptions.Ready));
+            void updateStatus(createPresenceObj(ReadyOptions.Ready));
         } else {
-            updateStatus(createPresenceObj(ReadyOptions.NotReady));
+            void updateStatus(createPresenceObj(ReadyOptions.NotReady));
         }
     }
 
@@ -60,7 +60,8 @@ export default function WaitingRoom({ basePlayer, roomCode, onLeaveRoom }: Waiti
             readyStatus: status,
         }
     }
-    const { presenceData, updateStatus } = usePresence(channelName, createPresenceObj(ReadyOptions.NotReady));
+    const { updateStatus } = usePresence(channelName, createPresenceObj(ReadyOptions.NotReady));
+    const { presenceData } = usePresenceListener<RoomPlayerInfo>(channelName);
     const presencePlayers = presenceData.map((msg) => msg.data);
     const allPlayersReady = presenceData.length > 0 && presenceData.find(p => p.data.readyStatus === ReadyOptions.NotReady) == undefined;
 

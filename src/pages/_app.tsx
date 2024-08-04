@@ -3,9 +3,6 @@ import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
 import { CssBaseline } from "@mui/material";
-// import { useSessionStorage } from '@react-hooks-library/core';
-import * as Ably from "ably";
-import { AblyProvider } from "ably/react";
 import { type AppType } from "next/app";
 import { HTML5toTouch } from 'rdndmb-html5-to-touch'; // or any other pipeline
 import { useEffect, type CSSProperties } from "react";
@@ -19,6 +16,7 @@ import { api, getBaseUrl } from "~/utils/api";
 import { uniqueId } from "~/utils/helpers";
 import { useSessionStorage } from 'usehooks-ts';
 import Layout from '~/components/Layout';
+import AblyRealtimeProvider from "~/components/ably/ably-provider.tsx";
 
 
 
@@ -60,20 +58,9 @@ const MyApp: AppType = ({ Component, pageProps }) => {
     return null;
   }
 
-  const client = new Ably.Realtime.Promise({
-    authUrl: `${getBaseUrl()}/api/createTokenRequest`,
-    authHeaders: {
-      'userId': userId
-    }
-  });
-
-  function handleLeaveRoom() {
-    setSessionInfo(undefined);
-  }
-
   if (userId !== undefined)
     return (
-      <AblyProvider client={client}>
+      <AblyRealtimeProvider userId={userId}>
         <DndProvider options={HTML5toTouch}>
           <UserIdProvider userId={userId}>
             <CssBaseline>
@@ -84,7 +71,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
             </CssBaseline>
           </UserIdProvider>
         </DndProvider>
-      </AblyProvider>
+      </AblyRealtimeProvider>
     )
 };
 

@@ -8,6 +8,8 @@ import {useUserIdContext} from "~/components/hooks/useUserIdContext.tsx";
 import 'console-polyfill';
 import {getCurrentRoundState} from "~/components/helpers.tsx";
 import {Icons} from "~/components/ui/icons.tsx";
+import {ablyChannelName} from "~/server/ably/ablyHelpers.ts";
+import {ChannelProvider} from "ably/react";
 
 export default function GamePage() {
     const router = useRouter();
@@ -72,13 +74,17 @@ export default function GamePage() {
         } else {
             currState = gameInfo.state;
         }
+        const channelName = ablyChannelName(roomCode);
         return (
-            <GameManager gameId={gameInfo.gameId}
-                        roomCode={gameInfo.roomCode} playersOrdered={roomInfoQuery.data.players}
-                        onLeaveRoom={handleLeaveRoom} initGameState={currState}
-                        initRoundState={roundState}
-                        gameTimeStarted={gameInfo.dateTimeStarted} initTimeLastRoundOver={gameInfo.timeLastRoundOver}
-        />);
+            <ChannelProvider channelName={channelName}>
+                <GameManager gameId={gameInfo.gameId}
+                            roomCode={gameInfo.roomCode} playersOrdered={roomInfoQuery.data.players}
+                            onLeaveRoom={handleLeaveRoom} initGameState={currState}
+                            initRoundState={roundState}
+                            gameTimeStarted={gameInfo.dateTimeStarted} initTimeLastRoundOver={gameInfo.timeLastRoundOver}
+                />
+            </ChannelProvider>
+        );
 
 
     }

@@ -1,13 +1,14 @@
 import { useSessionStorage } from "@react-hooks-library/core";
-import { useChannel } from "ably/react";
+import {ChannelProvider, useChannel} from "ably/react";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import React, {useEffect, useState} from "react";
 import { AblyMessageType, SessionInfo } from "~/components/Types";
 import WaitingRoom from "~/components/WaitingRoom";
 import { ablyChannelName } from "~/server/ably/ablyHelpers";
 import { api } from "~/utils/api";
 import { uniqueId } from "~/utils/helpers";
 import {Icons} from "~/components/ui/icons.tsx";
+import WaitingRoomParent from "~/components/WaitingRoomParent.tsx";
 
 export default function RoomPage() {
     // if session info exists
@@ -51,10 +52,7 @@ export default function RoomPage() {
         }
     );
 
-    useChannel(channelName, AblyMessageType.GameStarted, (message) => {
-        // const msgData = message.data as GameStartedMessageData;
-        void router.push(`${roomCode}/play`);
-    });
+
 
     function handleLeaveRoom() {
         setSessionInfo(undefined);
@@ -67,11 +65,13 @@ export default function RoomPage() {
         return <div>Error</div>
     }
     const player = roomInfoQuery.data.players.find(p => p.userId === userId);
-    if (player) {
+    if (player && roomCode.length > 0) { //TODO: roomCode should be undefined instead of empty string
         return (
-            <>
-                <WaitingRoom basePlayer={player} roomCode={roomInfoQuery.data.roomCode} onLeaveRoom={handleLeaveRoom} />
-            </>
+            <ChannelProvider channelName={channelName}>
+                <WaitingRoomParent roomCode={roomCode}>
+                    <WaitingRoom basePlayer={player} roomCode={roomInfoQuery.data.roomCode} onLeaveRoom={handleLeaveRoom} />
+                </WaitingRoomParent>
+            </ChannelProvider>
         );
     }
 }

@@ -1,6 +1,7 @@
 import { type NextApiRequest, type NextApiResponse } from "next";
-import Ably from "ably/promises";
 import { env } from "~/env.mjs";
+import * as Ably from 'ably';
+
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     let client;
