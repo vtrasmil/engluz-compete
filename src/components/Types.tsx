@@ -19,6 +19,12 @@ export interface PlayerInfo {
     isHost: boolean
 }
 
+export const playerInfoSchema = z.object({
+    userId: z.string(),
+    playerName: z.string(),
+    isHost: z.boolean(),
+})
+
 export const simplePlayerInfoSchema = z.object({
     userId: z.string(),
     playerName: z.string(),
@@ -66,12 +72,7 @@ export enum RoundState {
     GameFinished = 'GameFinished',
 }
 
-export type ConfirmedWord = {
-    userId: string,
-    word: string,
-    score: number,
-    sourceCellIds: number[],
-}
+export type ConfirmedWord = z.infer<typeof confirmedWordSchema>;
 
 export enum WordSubmissionState {
     NotSubmitted = "NotSubmitted",
@@ -112,6 +113,8 @@ export enum AblyMessageType {
     ScoreUpdated = 'ScoreUpdated',
     PlayerConfirmedWord = 'PlayerConfirmedWord',
     BeginIntermission = 'BeginIntermission',
+    RoundEnded = 'RoundEnded',
+    BeginWordSelection = 'BeginWordSelection'
 }
 interface DefaultAblyMessageData {
     messageType: AblyMessageType;
@@ -162,6 +165,8 @@ export const confirmedWordSchema = z.object({
     sourceCellIds: z.array(z.number()),
 });
 
+export const confirmedWordsSchema = z.array(confirmedWordSchema);
+
 export const gameInfoSchema = z.object({
     state: gameStateSchema,
     prevState: gameStateSchema.nullable(),
@@ -171,6 +176,12 @@ export const gameInfoSchema = z.object({
     roomCode: z.string(),
     dateTimeStarted: z.number(),
     timeLastRoundOver: z.number().nullable(),
+});
+
+export const roomInfoSchema = z.object({
+    players: z.array(playerInfoSchema),
+    activeGameId: z.string().optional(),
+    roomCode: z.string()
 });
 
 export type BeginIntermissionMessageData = DefaultAblyMessageData & {

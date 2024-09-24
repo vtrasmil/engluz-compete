@@ -1,14 +1,16 @@
-import { CheckedState } from "@radix-ui/react-checkbox";
+import { type CheckedState } from "@radix-ui/react-checkbox";
 import {usePresence, usePresenceListener} from "ably/react";
 import { useState } from "react";
 import { Checkbox } from "~/components/ui/checkbox";
 import { ablyChannelName } from "~/server/ably/ablyHelpers";
 import { api } from "~/utils/api";
-import { PlayerInfo, SimplePlayerInfo, BoardConfiguration, RoomPlayerInfo } from "./Types";
+import {
+    type PlayerInfo,
+    type RoomPlayerInfo,
+} from "./Types";
 import { Button } from "./ui/button";
 import { Icons } from "./ui/icons";
 import { RulesDialog } from "./RulesDialog";
-import { useSessionStorage } from "@react-hooks-library/core";
 
 
 interface WaitingRoomProps {

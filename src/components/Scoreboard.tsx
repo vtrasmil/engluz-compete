@@ -21,15 +21,14 @@ interface ScoreboardProps {
     latestBeginIntermissionMessage: BeginIntermissionMessageData | null | undefined,
     onConfirmWord: () => void,
     wordSubmissionState: WordSubmissionState,
-    onEndOfRoundTimeUp: () => void,
-    onNextRound: () => void,
     timeLastRoundOver: number | null,
     gameTimeStarted: number,
-
+    onBeginWordSelection: () => void,
+    onEndOfRoundTimeUp: () => void,
 }
 export default function Scoreboard({ playersOrdered, scores,
     gameState, roundState, latestWordSubmission, latestBeginIntermissionMessage, onConfirmWord, wordSubmissionState,
-    onNextRound, onEndOfRoundTimeUp, timeLastRoundOver, gameTimeStarted,
+    timeLastRoundOver, gameTimeStarted, onBeginWordSelection, onEndOfRoundTimeUp
 }: ScoreboardProps) {
     // const userId = useUserIdContext();
     const [prevRoundState, setPrevRoundState] = useState<RoundState>();
@@ -114,8 +113,6 @@ export default function Scoreboard({ playersOrdered, scores,
         setPrevRoundState(roundState);
     }
 
-
-
     return (
         <>
             <div className="h-16">
@@ -130,7 +127,7 @@ export default function Scoreboard({ playersOrdered, scores,
                 <VisualTimer durationMs={ROUND_DURATION} onTimeUp={onEndOfRoundTimeUp} initStartTime={timeLastRoundOver == null ? gameTimeStarted : timeLastRoundOver + INTERMISSION_DURATION}  /> //TODO: last prop
             }
             {roundState == RoundState.Intermission && timeLastRoundOver !== null &&
-                <VisualTimer durationMs={INTERMISSION_DURATION} onTimeUp={onNextRound} initStartTime={timeLastRoundOver}  /> //TODO: last prop
+                <VisualTimer durationMs={INTERMISSION_DURATION} onTimeUp={onBeginWordSelection} initStartTime={timeLastRoundOver}  /> //TODO: last prop
             }
         </>
     );

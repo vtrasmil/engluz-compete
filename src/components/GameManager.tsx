@@ -94,10 +94,8 @@ export default function GameManager({ gameId, roomCode, playersOrdered,
     const gameInfoQuery = api.lobby.fetchGameInfo.useQuery({ roomCode: roomCode, userId: userId}); // TODO: I imagine this is being called way too often
 
     useChannel(channelName, AblyMessageType.BeginIntermission, (message) => {
-        console.log('receiving AblyMessageType.BeginIntermission');
         const result = validateSchema({dto: message.data, schemaName: 'beginIntermissionMsgDataSchema', schema: beginIntermissionMsgDataSchema});
         setLatestBeginIntermissionMessage(result);
-        console.log('latestBeginIntermissionMessage set to', result);
         setTimeLastRoundOver(result.timeLastRoundOver);
         setScores(result.scores);
         if (result.state.isGameFinished) {
@@ -107,6 +105,29 @@ export default function GameManager({ gameId, roomCode, playersOrdered,
             setRoundState(RoundState.Intermission);
         }
     })
+    function handleBeginWordSelection() {
+        let nextState;
+        if (latestBeginIntermissionMessage != undefined
+            && gameInfoQuery.dataUpdatedAt < latestBeginIntermissionMessage.dateTimePublished
+        ) {
+            nextState = latestBeginIntermissionMessage.state;
+        } else if (gameInfoQuery.data != undefined) {
+            nextState = gameInfoQuery.data.state;
+        } else {
+            throw new Error('no game state found')
+        }
+        setGameState(nextState);
+        setWordSubmissionState(WordSubmissionState.NotSubmitted);
+        setRoundState(RoundState.WordSelection);
+        setLatestBeginIntermissionMessage(null);
+    }
+
+    function handleEndOfRoundTimeUp() {
+        triggerEndOfRoundAndPublishResultsMutation.mutate({
+            roomCode: roomCode,
+            userId: userId
+        })
+    }
 
     function handleSubmitWord(cellIds: number[]) {
         if (wordSubmissionState === WordSubmissionState.NotSubmitted || wordSubmissionState === WordSubmissionState.SubmitFailed ) {
@@ -133,35 +154,6 @@ export default function GameManager({ gameId, roomCode, playersOrdered,
         }
     }
 
-    function handleTransitionToIntermissionOnTimeUp() {
-        console.log('handleTransitionToIntermissionOnTimeUp');
-        triggerEndOfRoundAndPublishResultsMutation.mutate({
-            roomCode: roomCode,
-            userId: userId,
-        })
-    }
-
-    // when timer finishes
-    function handleTransitionToWordSelection() {
-        let nextState;
-        console.log('gameInfo updated at', gameInfoQuery.dataUpdatedAt, 'messageDatePublished', latestBeginIntermissionMessage?.dateTimePublished, 'now', Date.now())
-
-        if (latestBeginIntermissionMessage != undefined
-            && gameInfoQuery.dataUpdatedAt < latestBeginIntermissionMessage.dateTimePublished
-            && (Date.now() - latestBeginIntermissionMessage.dateTimePublished < INTERMISSION_DURATION)
-        ) {
-            nextState = latestBeginIntermissionMessage.state;
-        } else if (gameInfoQuery.data != undefined) {
-            nextState = gameInfoQuery.data.state;
-        } else {
-            throw new Error('no game state found')
-        }
-        setGameState(nextState);
-        setWordSubmissionState(WordSubmissionState.NotSubmitted);
-        setRoundState(RoundState.WordSelection);
-        setLatestBeginIntermissionMessage(null);
-    }
-
     return (
         <>
             <div className="flex space-x-1 mb-6">
@@ -179,11 +171,9 @@ export default function GameManager({ gameId, roomCode, playersOrdered,
             <Scoreboard playersOrdered={playersOrdered} scores={scores} gameState={gameState} roundState={roundState}
                         latestWordSubmission={latestWordSubmission} latestBeginIntermissionMessage={latestBeginIntermissionMessage}
                         onConfirmWord={handleConfirmWord} wordSubmissionState={wordSubmissionState}
-                        onNextRound={handleTransitionToWordSelection} onEndOfRoundTimeUp={handleTransitionToIntermissionOnTimeUp}
-                        timeLastRoundOver={timeLastRoundOver} gameTimeStarted={gameTimeStarted}
+                        timeLastRoundOver={timeLastRoundOver} gameTimeStarted={gameTimeStarted} onBeginWordSelection={handleBeginWordSelection}
+                        onEndOfRoundTimeUp={handleEndOfRoundTimeUp}
             />
-
-
         </>
     )
 

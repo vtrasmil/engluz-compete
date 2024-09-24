@@ -8,12 +8,12 @@ import { HTML5toTouch } from 'rdndmb-html5-to-touch'; // or any other pipeline
 import { useEffect, type CSSProperties } from "react";
 import { DndProvider, usePreview } from 'react-dnd-multi-backend';
 import type { DraggedLetter } from "~/components/LetterBlock";
-import { SessionInfo } from '~/components/Types';
+import { type SessionInfo } from '~/components/Types';
 import { useIsClient } from "~/components/hooks/useIsClient";
 import { UserIdProvider } from "~/components/hooks/useUserIdContext";
 import "~/styles/globals.css";
-import { api, getBaseUrl } from "~/utils/api";
-import { uniqueId } from "~/utils/helpers";
+import { api } from "~/utils/api";
+import {uniqueId} from "~/utils/helpers";
 import { useSessionStorage } from 'usehooks-ts';
 import Layout from '~/components/Layout';
 import AblyRealtimeProvider from "~/components/ably/ably-provider.tsx";

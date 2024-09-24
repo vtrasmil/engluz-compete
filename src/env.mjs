@@ -10,7 +10,9 @@ export const env = createEnv({
     NODE_ENV: z.enum(["development", "test", "production"]),
     ABLY_API_KEY: z.string().min(1),
     VERCEL_ENV: z.enum(["development", "preview", "production"]),
-    MIN_WORD_LENGTH: z.coerce.number().min(1)
+    MIN_WORD_LENGTH: z.coerce.number().min(1),
+    KV_URL: z.string().min(5),
+    KV_URL_DEV: z.string().min(5),
   },
 
   /**
@@ -36,6 +38,8 @@ export const env = createEnv({
     ABLY_API_KEY: process.env.ABLY_API_KEY,
     VERCEL_ENV: process.env.VERCEL_ENV,
     MIN_WORD_LENGTH: process.env.NEXT_PUBLIC_MIN_WORD_LENGTH,
+    KV_URL: process.env.KV_URL,
+    KV_URL_DEV: process.env.KV_URL_DEV,
     NEXT_PUBLIC_NUM_ROUNDS_PER_GAME: process.env.NEXT_PUBLIC_NUM_ROUNDS_PER_GAME,
     NEXT_PUBLIC_MIN_WORD_LENGTH: process.env.NEXT_PUBLIC_MIN_WORD_LENGTH,
     NEXT_PUBLIC_MAX_NUM_PLAYERS_PER_ROOM: process.env.NEXT_PUBLIC_MAX_NUM_PLAYERS_PER_ROOM,

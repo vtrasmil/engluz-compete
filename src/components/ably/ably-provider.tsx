@@ -1,8 +1,8 @@
 'use client';
 
 import * as Ably from 'ably';
-import {AblyProvider, ChannelProvider} from 'ably/react';
-import {getBaseUrl} from "~/utils/api.ts";
+import {AblyProvider} from 'ably/react';
+import {getBaseUrl} from "~/utils/helpers.ts";
 
 interface AblyProviderProps {
     children: React.ReactNode;

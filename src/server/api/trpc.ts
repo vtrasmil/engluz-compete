@@ -10,12 +10,10 @@ import { initTRPC } from "@trpc/server";
 import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 import superjson from "superjson";
 import { ZodError } from "zod";
-
 import { RedisBoggleCommands } from "../redis/api";
-
-
-import { kv } from "@vercel/kv";
 import {createAblyClient} from "~/server/ably/ably-rest-client.ts";
+import {Redis} from "ioredis";
+import {env} from "~/env.mjs";
 /**
  * 1. CONTEXT
  *
@@ -38,7 +36,13 @@ type CreateContextOptions = Record<string, never>;
  */
 const createInnerTRPCContext = (_opts: CreateContextOptions) => {
   const ably = createAblyClient();
-  const redis = new RedisBoggleCommands(kv);
+  let KV_URL: string;
+  if (env.VERCEL_ENV === 'development') {
+    KV_URL = env.KV_URL_DEV;
+  } else {
+    KV_URL = env.KV_URL;
+  }
+  const redis = new RedisBoggleCommands(new Redis(KV_URL));
   return {
     redis,
     ably

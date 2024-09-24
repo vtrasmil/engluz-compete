@@ -1,7 +1,11 @@
 import {z} from "zod";
-import {AblyMessageType, type BeginIntermissionMessageData, type WordSubmissionResponse} from "~/components/Types";
+import {
+    AblyMessageType,
+    type BeginIntermissionMessageData,
+    type WordSubmissionResponse
+} from "~/components/Types";
 import {ablyChannelName} from "~/server/ably/ablyHelpers";
-import {getWordFromBoard, isWordValid} from "~/server/wordListManager";
+import {getWordFromBoard} from "~/server/wordListManager";
 import {createTRPCRouter, publicProcedure} from "../trpc";
 
 export const gameplayRouter = createTRPCRouter({
@@ -21,7 +25,7 @@ export const gameplayRouter = createTRPCRouter({
             const [game, room] = await Promise.all([redis.fetchGameInfo(roomCode, userId), redis.fetchRoomInfo(roomCode)]);
             const board = game.state.board;
             const { word, score } = getWordFromBoard(cellIds, board);
-            const isValid = await isWordValid(word);
+            const isValid = await redis.isWordValid(word);
             return { wordSubmitted: word, score: score, cellIds: cellIds, isValid: isValid } satisfies WordSubmissionResponse;
         }),
     confirmWord: publicProcedure
@@ -76,7 +80,7 @@ export const gameplayRouter = createTRPCRouter({
             const [game] = await Promise.all([redis.fetchGameInfo(roomCode, userId)]);
 
             // will be undefined for all but one player
-            const processEndOfRound = await redis.processEndOfRound(game, roomCode, userId, game.state.round);
+            const processEndOfRound = await redis.processEndOfRound(game, roomCode, userId);
             if (processEndOfRound != undefined) {
                 const endOfRoundMsg: BeginIntermissionMessageData = {
                     dateTimePublished: Date.now(),

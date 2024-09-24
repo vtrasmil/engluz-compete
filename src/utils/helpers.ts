@@ -1,5 +1,5 @@
-import { BoardConfiguration } from "~/components/Types";
-import { ulid } from 'ulid';
+import { type BoardConfiguration} from "~/components/Types";
+import {ulid} from 'ulidx';
 
 export const uniqueId = function (prefix?: string) {
     if (prefix != undefined) return `${prefix}-${ulid()}`;
@@ -136,3 +136,11 @@ export function getLetterAtCell(cellId: number, board: BoardConfiguration) {
     return boardLetterDie.letterBlock;
 }
 
+// moved from src/utils/api.ts because nextjs route handler was crashing on import
+export const getBaseUrl = () => {
+    if (typeof window !== "undefined") return ""; // browser should use relative url
+    // need to look at VERCEL_ENV. VERCEL_URL is used in vercel dev since serverless functions are vercel-simulated
+    if (process.env.VERCEL_ENV === "development") return `http://localhost:${process.env.PORT ?? 3000}`; // dev SSR should use localhost
+    if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`; // SSR should use vercel url
+    throw new Error('VERCEL_URL env var not set and you are in production/preview');
+}
