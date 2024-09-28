@@ -13,6 +13,8 @@ export const env = createEnv({
     MIN_WORD_LENGTH: z.coerce.number().min(1),
     KV_URL: z.string().min(5),
     KV_URL_DEV: z.string().min(5),
+    KV_URL_PREVIEW: z.string().min(5),
+    KV_URL_PROD: z.string().min(5),
   },
 
   /**
@@ -40,6 +42,8 @@ export const env = createEnv({
     MIN_WORD_LENGTH: process.env.NEXT_PUBLIC_MIN_WORD_LENGTH,
     KV_URL: process.env.KV_URL,
     KV_URL_DEV: process.env.KV_URL_DEV,
+    KV_URL_PREVIEW: process.env.KV_URL_PREVIEW,
+    KV_URL_PROD: process.env.KV_URL_PROD,
     NEXT_PUBLIC_NUM_ROUNDS_PER_GAME: process.env.NEXT_PUBLIC_NUM_ROUNDS_PER_GAME,
     NEXT_PUBLIC_MIN_WORD_LENGTH: process.env.NEXT_PUBLIC_MIN_WORD_LENGTH,
     NEXT_PUBLIC_MAX_NUM_PLAYERS_PER_ROOM: process.env.NEXT_PUBLIC_MAX_NUM_PLAYERS_PER_ROOM,

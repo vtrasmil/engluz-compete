@@ -37,10 +37,16 @@ type CreateContextOptions = Record<string, never>;
 const createInnerTRPCContext = (_opts: CreateContextOptions) => {
   const ably = createAblyClient();
   let KV_URL: string;
-  if (env.VERCEL_ENV === 'development') {
-    KV_URL = env.KV_URL_DEV;
-  } else {
-    KV_URL = env.KV_URL;
+  switch (env.VERCEL_ENV) {
+    case "production":
+      KV_URL = env.KV_URL_PROD;
+      break;
+    case "preview":
+      KV_URL = env.KV_URL_PREVIEW;
+      break;
+    default:
+      KV_URL = env.KV_URL_DEV;
+      break;
   }
   const redis = new RedisBoggleCommands(new Redis(KV_URL));
   return {
