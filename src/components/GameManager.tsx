@@ -75,8 +75,10 @@ export default function GameManager({ gameId, roomCode, playersOrdered,
             setWordSubmissionState(WordSubmissionState.Confirmed);
             if (data.areAllWordsConfirmed) {
                 triggerEndOfRoundAndPublishResultsMutation.mutate({
+                    round: data.round,
                     roomCode: roomCode,
-                    userId: userId
+                    userId: userId,
+                    gameId: data.gameId,
                 })
             }
         },
@@ -124,8 +126,10 @@ export default function GameManager({ gameId, roomCode, playersOrdered,
 
     function handleEndOfRoundTimeUp() {
         triggerEndOfRoundAndPublishResultsMutation.mutate({
+            round: gameState.round,
             roomCode: roomCode,
-            userId: userId
+            userId: userId,
+            gameId: gameId,
         })
     }
 

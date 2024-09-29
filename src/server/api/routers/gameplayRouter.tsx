@@ -55,7 +55,11 @@ export const gameplayRouter = createTRPCRouter({
             }
 
             // all players have confirmed
-            return {areAllWordsConfirmed: confirmedWords.length === players.length};
+            return {
+                areAllWordsConfirmed: confirmedWords.length === players.length,
+                round: game.state.round,
+                gameId: gameId
+            };
         }),
     fetchGameInfo: publicProcedure
         .input(z.object({
@@ -71,16 +75,18 @@ export const gameplayRouter = createTRPCRouter({
         .input(z.object({
             userId: z.string().min(1),
             roomCode: z.string().min(1),
+            round: z.number(),
+            gameId: z.string().min(1),
         }))
         .mutation(async (opts) => {
             const { userId, roomCode } = opts.input;
             const { redis, ably } = opts.ctx;
             const channelName = ablyChannelName(roomCode);
             const channel = ably.channels.get(channelName);
-            const [game] = await Promise.all([redis.fetchGameInfo(roomCode, userId)]);
+            // const [game] = await Promise.all([redis.fetchGameInfo(roomCode, userId)]);
 
             // will be undefined for all but one player
-            const processEndOfRound = await redis.processEndOfRound(game, roomCode, userId);
+            const processEndOfRound = await redis.processEndOfRound(opts.input.round, roomCode, userId, opts.input.gameId);
             if (processEndOfRound != undefined) {
                 const endOfRoundMsg: BeginIntermissionMessageData = {
                     dateTimePublished: Date.now(),

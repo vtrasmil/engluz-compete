@@ -225,7 +225,7 @@ export class RedisBoggleCommands {
     }
 
     // all players call this on end of round, but only one request will update game and send message
-    async processEndOfRound(game: GameInfo, roomCode: string, userId: string) {
+    async processEndOfRound(round: number, roomCode: string, userId: string, gameId: string) {
         const redlock = getRedlock(this.redis);
 
         redlock.on("error", (error) => {
@@ -237,7 +237,7 @@ export class RedisBoggleCommands {
             console.error(error);
         });
 
-        const confirmedWordsKey = `game:${game.gameId}:round:${game.state.round}:words`;
+        const confirmedWordsKey = `game:${gameId}:round:${round}:words`;
         const gameInfoKey = getGameInfoKey(roomCode);
         const confirmedWordsResourceKey = `redlock:${confirmedWordsKey}`;
         const gameInfoResourceKey = `redlock:${gameInfoKey}`;
@@ -247,6 +247,13 @@ export class RedisBoggleCommands {
             const confirmedWords = await this.getConfirmedWords(confirmedWordsKey);
             if (signal.aborted) throw signal.error;
             console.log('got confirmed words')
+            const game = await this.fetchGameInfo(roomCode, userId);
+
+            if (game.state.round !== round) {
+                // game state has already been advanced
+                console.log('game state has already been advanced')
+                return;
+            }
 
             const updatedScores = game.scores.map((score) => {
                 const word = confirmedWords.find(word => word.userId === score.userId);
