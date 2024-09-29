@@ -19,10 +19,9 @@ export const gameplayRouter = createTRPCRouter({
         }))
         .mutation(async (opts) => {
             const { roomCode, cellIds, userId } = opts.input;
-            const { redis, ably } = opts.ctx;
+            const { redis } = opts.ctx;
 
-            const channelName = ablyChannelName(roomCode);
-            const [game, room] = await Promise.all([redis.fetchGameInfo(roomCode, userId), redis.fetchRoomInfo(roomCode)]);
+            const [game] = await Promise.all([redis.fetchGameInfo(roomCode, userId)]);
             const board = game.state.board;
             const { word, score } = getWordFromBoard(cellIds, board);
             const isValid = await redis.isWordValid(word);
@@ -37,10 +36,9 @@ export const gameplayRouter = createTRPCRouter({
         }))
         .mutation(async (opts) => {
             const { userId, gameId, roomCode, cellIds } = opts.input;
-            const { redis, ably } = opts.ctx;
+            const { redis } = opts.ctx;
 
-            const channelName = ablyChannelName(roomCode);
-            const [game, room] = await Promise.all([redis.fetchGameInfo(roomCode, userId), redis.fetchRoomInfo(roomCode)]);
+            const [game] = await Promise.all([redis.fetchGameInfo(roomCode, userId)]);
             const board = game.state.board;
             const { word, score } = getWordFromBoard(cellIds, board);
 
