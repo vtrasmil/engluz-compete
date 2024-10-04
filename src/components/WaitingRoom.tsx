@@ -68,15 +68,15 @@ export default function WaitingRoom({ basePlayer, roomCode, onLeaveRoom }: Waiti
     const allPlayersReady = presenceData.length > 0 && presenceData.find(p => p.data.readyStatus === ReadyOptions.NotReady) == undefined;
 
     return (
-        <>
+        <div className="max-w-lg rounded-lg shadow-md bg-white p-6 space-y-6 border-gray-400 dark:border-gray-700">
             <div className="flex space-x-1 mb-6">
                 <Button className="" onClick={onLeaveRoom} variant="secondary">Leave Room: {roomCode}</Button>
-                <RulesDialog />
+                <RulesDialog/>
             </div>
             <div className="space-y-6">
                 <div className="flex items-center space-x-2 justify-center">
                     <Checkbox className="w-10 h-10"
-                        id="ready-checkbox" onCheckedChange={handleReadyToggle} />
+                              id="ready-checkbox" onCheckedChange={handleReadyToggle}/>
                     <label
                         htmlFor="terms"
                         className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -87,10 +87,10 @@ export default function WaitingRoom({ basePlayer, roomCode, onLeaveRoom }: Waiti
 
                 {basePlayer.isHost &&
                     <Button className="w-full bg-green-500"
-                        disabled={!allPlayersReady || startGameMutation.isLoading}
-                        onClick={handleStartGame}>
+                            disabled={!allPlayersReady || startGameMutation.isLoading}
+                            onClick={handleStartGame}>
                         Start Game
-                        {startGameMutation.isLoading && <Icons.spinner className="h-4 w-4 animate-spin ml-1" />}
+                        {startGameMutation.isLoading && <Icons.spinner className="h-4 w-4 animate-spin ml-1"/>}
                     </Button>
                 }
 
@@ -110,7 +110,7 @@ export default function WaitingRoom({ basePlayer, roomCode, onLeaveRoom }: Waiti
             {errorMsg != undefined &&
                 <div className="text-sm text-red-500">{errorMsg}</div>
             }
-        </>
+        </div>
     )
 }
 

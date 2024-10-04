@@ -33,7 +33,7 @@ const MyDragPreview = () => {
     width: '50px', height: '50px',
     WebkitTransform: `translateX(${offset.x - 50}px) translateY(${offset.y - 50}px)`,
     transform: `translateX(${offset.x - 50}px) translateY(${offset.y - 50}px)`,
-    fontFamily: `Poppins, sans-serif`,
+    fontFamily: `"Lexend", sans-serif`,
     fontWeight: 400,
     fontSize: `x-large`,
     zIndex: 20 // letterBlock is 10
