@@ -1,10 +1,11 @@
 import {useEffect, useRef, useState} from "react";
 import {BoggleDice} from "~/server/diceManager";
-import {getCellIdFromLetterId} from "~/utils/helpers";
 import {MIN_WORD_LENGTH} from "./Constants.tsx";
 import {LetterBlock} from "./LetterBlock";
 import {type BoardConfiguration, RoundState, WordSubmissionState} from "./Types.tsx";
 import useSelectionDrag from "./useSelectionDrag.tsx";
+
+import {getCellIdFromLetterId, getWordFromLetterBlockIds} from "~/lib/helpers.tsx";
 
 
 interface BoardProps {
@@ -14,9 +15,10 @@ interface BoardProps {
     wordSubmissionState: WordSubmissionState,
     roundState: RoundState,
     onReselecting: () => void,
+    onSelectionChange: (selectionSoFar: string) => void,
 }
 
-export default function Board({ boardConfig, onSubmitWord, wordSubmissionState, roundState, onReselecting }: BoardProps) {
+export default function Board({ boardConfig, onSubmitWord, wordSubmissionState, roundState, onReselecting, onSelectionChange }: BoardProps) {
 
     const [selectedLetterIds, setSelectedLetterIds] = useState<number[]>([]);
     const [isSelecting, setIsSelecting] = useState<boolean>(false);
@@ -34,6 +36,7 @@ export default function Board({ boardConfig, onSubmitWord, wordSubmissionState, 
         if (isSelectionDisabled) return;
         setIsSelecting(true);
         setSelectedLetterIds([letterBlockId]);
+        onSelectionChange(getWordFromLetterBlockIds([letterBlockId], boardConfig).word);
         onReselecting();
     }
 
@@ -52,7 +55,9 @@ export default function Board({ boardConfig, onSubmitWord, wordSubmissionState, 
             const isNeighbor = getNeighbors(lastCellSelected)?.includes(currCellSelected);
             if (!isNeighbor) return;
         }
-        setSelectedLetterIds([...selectedLetterIds, letterBlockId]);
+        const updatedSelectedLetterIds = [...selectedLetterIds, letterBlockId]
+        setSelectedLetterIds(updatedSelectedLetterIds);
+        onSelectionChange(getWordFromLetterBlockIds(updatedSelectedLetterIds, boardConfig).word);
     }
 
     const handleSelectionFinished = (e: PointerEvent) => {
@@ -62,6 +67,7 @@ export default function Board({ boardConfig, onSubmitWord, wordSubmissionState, 
             onSubmitWord(selectedLetterIds.map(lid => getCellIdFromLetterId(boardConfig, lid)),);
         } else {
             setSelectedLetterIds([]);
+            onSelectionChange('');
         }
     }
 
@@ -88,6 +94,7 @@ export default function Board({ boardConfig, onSubmitWord, wordSubmissionState, 
     if (roundState != prevRoundState) {
         setSelectedLetterIds([]);
         setPrevRoundState(roundState);
+        onSelectionChange('');
     }
 
     return (

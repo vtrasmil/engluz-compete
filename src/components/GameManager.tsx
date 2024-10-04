@@ -47,6 +47,7 @@ export default function GameManager({ gameId, roomCode, playersOrdered,
 
     const [submittedCellIds, setSubmittedCellIds] = useState<number[]>([]);
     const [wordSubmissionState, setWordSubmissionState] = useState<WordSubmissionState>(WordSubmissionState.NotSubmitted);
+    const [wordSelectionSoFar, setWordSelectionSoFar] = useState('');
     const [timeLastRoundOver, setTimeLastRoundOver] = useState<number|null>(initTimeLastRoundOver);
 
     const submitWordMutation = api.gameplay.submitWord.useMutation({
@@ -158,11 +159,15 @@ export default function GameManager({ gameId, roomCode, playersOrdered,
         }
     }
 
+    function handleSelectionChange(selectionSoFar: string) {
+        setWordSelectionSoFar(selectionSoFar);
+    }
+
     return (
-        <>
+        <div className="max-w-lg p-6 space-y-6">
             <div className="flex space-x-1 mb-6">
                 <Button className="" onClick={onLeaveRoom} variant="secondary">Leave Room: {roomCode}</Button>
-                <RulesDialog />
+                <RulesDialog/>
             </div>
             {roundState == RoundState.GameFinished ?
                 <h2>Game Over!</h2> :
@@ -170,15 +175,18 @@ export default function GameManager({ gameId, roomCode, playersOrdered,
             }
             {roundState != RoundState.GameFinished &&
                 <Board boardConfig={gameState.board} roomCode={roomCode} onSubmitWord={handleSubmitWord}
-                   wordSubmissionState={wordSubmissionState} onReselecting={handleReselecting} roundState={roundState} />
+                       wordSubmissionState={wordSubmissionState} onReselecting={handleReselecting}
+                       roundState={roundState} onSelectionChange={handleSelectionChange}/>
             }
             <Scoreboard playersOrdered={playersOrdered} scores={scores} gameState={gameState} roundState={roundState}
-                        latestWordSubmission={latestWordSubmission} latestBeginIntermissionMessage={latestBeginIntermissionMessage}
+                        latestWordSubmission={latestWordSubmission}
+                        latestBeginIntermissionMessage={latestBeginIntermissionMessage}
                         onConfirmWord={handleConfirmWord} wordSubmissionState={wordSubmissionState}
-                        timeLastRoundOver={timeLastRoundOver} gameTimeStarted={gameTimeStarted} onBeginWordSelection={handleBeginWordSelection}
-                        onEndOfRoundTimeUp={handleEndOfRoundTimeUp}
+                        timeLastRoundOver={timeLastRoundOver} gameTimeStarted={gameTimeStarted}
+                        onBeginWordSelection={handleBeginWordSelection}
+                        onEndOfRoundTimeUp={handleEndOfRoundTimeUp} wordSelectionSoFar={wordSelectionSoFar}
             />
-        </>
+        </div>
     )
 
 

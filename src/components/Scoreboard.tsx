@@ -25,10 +25,11 @@ interface ScoreboardProps {
     gameTimeStarted: number,
     onBeginWordSelection: () => void,
     onEndOfRoundTimeUp: () => void,
+    wordSelectionSoFar: string,
 }
 export default function Scoreboard({ playersOrdered, scores,
     gameState, roundState, latestWordSubmission, latestBeginIntermissionMessage, onConfirmWord, wordSubmissionState,
-    timeLastRoundOver, gameTimeStarted, onBeginWordSelection, onEndOfRoundTimeUp
+    timeLastRoundOver, gameTimeStarted, onBeginWordSelection, onEndOfRoundTimeUp, wordSelectionSoFar
 }: ScoreboardProps) {
     // const userId = useUserIdContext();
     const [prevRoundState, setPrevRoundState] = useState<RoundState>();
@@ -66,7 +67,8 @@ export default function Scoreboard({ playersOrdered, scores,
     function instructionMessage() {
         if (roundState == RoundState.WordSelection) {
             if (wordSubmissionState == WordSubmissionState.NotSubmitted) {
-                return 'Drag to select a word.';
+                if (wordSelectionSoFar === '') return 'Drag to select a word.';
+                return wordSelectionSoFar;
             }
             else if (wordSubmissionState == WordSubmissionState.Submitted) {
                 return <Button className="" variant="secondary" onClick={onConfirmWord}>Confirm</Button>;

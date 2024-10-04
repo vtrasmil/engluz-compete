@@ -1,4 +1,4 @@
-import { type BoardConfiguration} from "~/components/Types";
+import {type BoardConfiguration} from "~/components/Types";
 import {ulid} from 'ulidx';
 
 export const uniqueId = function (prefix?: string) {
@@ -122,18 +122,6 @@ export function swapCells(board: BoardConfiguration, cell1: number, cell2: numbe
     })
     return boardCopy;
 
-}
-
-export function getCellIdFromLetterId(board: BoardConfiguration, letterBlockId: number) {
-    const boardLetter = board.find(x => x.letterBlock.id === letterBlockId);
-    if (!boardLetter) throw new Error(`No board letter with letterBlockId ${letterBlockId}`)
-    return boardLetter.cellId;
-}
-
-export function getLetterAtCell(cellId: number, board: BoardConfiguration) {
-    const boardLetterDie = board.find(x => x.cellId === cellId);
-    if (!boardLetterDie) throw new Error('BoardLetterDie undefined')
-    return boardLetterDie.letterBlock;
 }
 
 // moved from src/utils/api.ts because nextjs route handler was crashing on import

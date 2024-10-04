@@ -5,8 +5,9 @@ import {
     type WordSubmissionResponse
 } from "~/components/Types";
 import {ablyChannelName} from "~/server/ably/ablyHelpers";
-import {getWordFromBoard} from "~/server/wordListManager";
 import {createTRPCRouter, publicProcedure} from "../trpc";
+import {getWordFromCellIds} from "~/lib/helpers.tsx";
+import {MIN_WORD_LENGTH} from "~/components/Constants.tsx";
 
 export const gameplayRouter = createTRPCRouter({
 
@@ -23,7 +24,8 @@ export const gameplayRouter = createTRPCRouter({
 
             const [game] = await Promise.all([redis.fetchGameInfo(roomCode, userId)]);
             const board = game.state.board;
-            const { word, score } = getWordFromBoard(cellIds, board);
+            if (cellIds.length < MIN_WORD_LENGTH) throw new Error(`Word submitted with length < ${MIN_WORD_LENGTH}`);
+            const { word, score } = getWordFromCellIds(cellIds, board);
             const isValid = await redis.isWordValid(word);
             return { wordSubmitted: word, score: score, cellIds: cellIds, isValid: isValid } satisfies WordSubmissionResponse;
         }),
@@ -40,7 +42,8 @@ export const gameplayRouter = createTRPCRouter({
 
             const [game] = await Promise.all([redis.fetchGameInfo(roomCode, userId)]);
             const board = game.state.board;
-            const { word, score } = getWordFromBoard(cellIds, board);
+            if (cellIds.length < MIN_WORD_LENGTH) throw new Error(`Word confirmed with length < ${MIN_WORD_LENGTH}`);
+            const { word, score } = getWordFromCellIds(cellIds, board);
 
             // tell redis about confirmed word
             const players = await redis.getPlayers(roomCode);
