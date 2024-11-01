@@ -40,7 +40,7 @@ export default function GameManager({ gameId, roomCode, playersOrdered,
         playersOrdered.map(p => ({ userId: p.userId, score: 0 }))
     );
     const channelName = ablyChannelName(roomCode);
-    const [latestWordSubmission, setLatestWordSubmission] = useState<WordSubmissionResponse>();
+    const [latestWordSubmission, setLatestWordSubmission] = useState<WordSubmissionResponse | null>();
     const [gameState, setGameState] = useState<GameState>(initGameState);
     const [roundState, setRoundState] = useState<RoundState>(initRoundState);
     const [latestBeginIntermissionMessage, setLatestBeginIntermissionMessage] = useState<BeginIntermissionMessageData | null>();
@@ -62,6 +62,7 @@ export default function GameManager({ gameId, roomCode, playersOrdered,
                 setWordSubmissionState(WordSubmissionState.SubmitFailed);
             }
             setLatestWordSubmission(data);
+            setWordSelectionSoFar('');
         },
         onError: (e) => {
             // TODO: handle
@@ -99,6 +100,7 @@ export default function GameManager({ gameId, roomCode, playersOrdered,
     useChannel(channelName, AblyMessageType.BeginIntermission, (message) => {
         const result = validateSchema({dto: message.data, schemaName: 'beginIntermissionMsgDataSchema', schema: beginIntermissionMsgDataSchema});
         setLatestBeginIntermissionMessage(result);
+        setLatestWordSubmission(null);
         setTimeLastRoundOver(result.timeLastRoundOver);
         setScores(result.scores);
         if (result.state.isGameFinished) {
@@ -146,6 +148,7 @@ export default function GameManager({ gameId, roomCode, playersOrdered,
 
     function handleReselecting() {
         setWordSubmissionState(WordSubmissionState.NotSubmitted);
+        setLatestWordSubmission(null)
     }
 
     function handleConfirmWord() {

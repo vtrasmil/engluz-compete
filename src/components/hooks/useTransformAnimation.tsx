@@ -1,7 +1,7 @@
 import { useAnimate } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useUserIdContext } from "./useUserIdContext";
-import { CELL_CHANGE_COLOR, ROLL_CHANGE_COLOR, SELECTED_COLOR } from "../Constants";
+import { CELL_CHANGE_COLOR, ROLL_CHANGE_COLOR, IN_PROGRESS_COLOR } from "../Constants";
 
 export type Point2D = {
     x: number,
@@ -58,7 +58,7 @@ export default function useTransformAnimation(
 
     let color = 'white';
     if (isSelected) {
-        color = SELECTED_COLOR;
+        color = IN_PROGRESS_COLOR;
     }
     if (rollChange) {
         color = ROLL_CHANGE_COLOR;

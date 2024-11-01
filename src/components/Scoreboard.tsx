@@ -10,6 +10,7 @@ import {Button} from "~/components/ui/button.tsx";
 import {VisualTimer} from "~/components/VisualTimer.tsx";
 import {useState} from "react";
 import {INTERMISSION_DURATION, ROUND_DURATION} from "~/components/Constants.tsx";
+import {WordSelectionBox} from "~/components/WordSelection.tsx";
 
 
 interface ScoreboardProps {
@@ -17,7 +18,7 @@ interface ScoreboardProps {
     scores: Score[],
     gameState: GameState,
     roundState: RoundState,
-    latestWordSubmission: WordSubmissionResponse | undefined,
+    latestWordSubmission: WordSubmissionResponse | null | undefined,
     latestBeginIntermissionMessage: BeginIntermissionMessageData | null | undefined,
     onConfirmWord: () => void,
     wordSubmissionState: WordSubmissionState,
@@ -38,8 +39,7 @@ export default function Scoreboard({ playersOrdered, scores,
         return (
             <>
                 {roundState === RoundState.WordSelection &&
-                    (wordSubmissionState === WordSubmissionState.Submitted || wordSubmissionState === WordSubmissionState.SubmitFailed) &&
-                    <div>{latestSubmittedWordMessage()}</div>
+                    <WordSelectionBox wordSoFar={wordSelectionSoFar} latestWordSubmission={latestWordSubmission}  />
                 }
                 <div>{instructionMessage()}</div>
             </>
@@ -66,9 +66,8 @@ export default function Scoreboard({ playersOrdered, scores,
 
     function instructionMessage() {
         if (roundState == RoundState.WordSelection) {
-            if (wordSubmissionState == WordSubmissionState.NotSubmitted) {
-                if (wordSelectionSoFar === '') return 'Drag to select a word.';
-                return wordSelectionSoFar;
+            if (wordSubmissionState == WordSubmissionState.NotSubmitted && wordSelectionSoFar === '') {
+                return 'Drag to select a word.';
             }
             else if (wordSubmissionState == WordSubmissionState.Submitted) {
                 return <Button className="" variant="secondary" onClick={onConfirmWord}>Confirm</Button>;

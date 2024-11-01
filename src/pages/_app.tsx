@@ -34,7 +34,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
           <UserIdProvider userId={userId}>
             <CssBaseline>
               <Layout>
-                <Component {...pageProps} style={{fontFamily: `"Lexend", sans-serif`}} />
+                <Component {...pageProps} />
               </Layout>
             </CssBaseline>
           </UserIdProvider>
