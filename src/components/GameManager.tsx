@@ -15,11 +15,11 @@ import {
     WordSubmissionState
 } from "./Types.tsx";
 import {useUserIdContext} from "./hooks/useUserIdContext";
-import {Button} from "./ui/button.tsx";
 import {RulesDialog} from "./RulesDialog.tsx";
-import {INTERMISSION_DURATION, NUM_ROUNDS_PER_GAME} from "./Constants.tsx";
+import {NUM_ROUNDS_PER_GAME} from "./Constants.tsx";
 import {api} from "~/utils/api.ts";
 import {validateSchema} from "~/utils/validator.tsx";
+import {LeaveRoomConfirmationDialog} from "~/components/LeaveRoomConfirmationDialog.tsx";
 
 interface GameManagerProps {
     gameId: string,
@@ -169,7 +169,7 @@ export default function GameManager({ gameId, roomCode, playersOrdered,
     return (
         <div className="max-w-lg p-6 space-y-6">
             <div className="flex space-x-1 mb-6">
-                <Button className="" onClick={onLeaveRoom} variant="secondary">Leave Room: {roomCode}</Button>
+                <LeaveRoomConfirmationDialog onClick={onLeaveRoom} roomCode={roomCode} />
                 <RulesDialog/>
             </div>
             {roundState == RoundState.GameFinished ?

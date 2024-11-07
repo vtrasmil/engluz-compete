@@ -10,11 +10,16 @@ import {
 } from "src/components/ui/dialog"
 import {DialogClose} from "@radix-ui/react-dialog";
 
-export function RulesDialog() {
+interface LeaveRoomConfirmationDialogProps {
+    onClick: () => void,
+    roomCode: string
+}
+
+export function LeaveRoomConfirmationDialog({onClick, roomCode} : LeaveRoomConfirmationDialogProps) {
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button variant="ghost">Rules</Button>
+                <Button variant="outline">Leave Room: {roomCode}</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
@@ -23,16 +28,11 @@ export function RulesDialog() {
 
                     </DialogDescription>
                 </DialogHeader>
-                <div className="py-4 text-center space-y-4">
-                    <div>Find the longest word in 60 seconds.</div>
-
-                    <div>Score more points for longer words. </div>
-
-                    <div>Win by having the most points after 5 rounds.</div>
-
-                    <div>Drag to select.</div>
+                <div className="grid gap-4 py-4 text-center">
+                    <div>You sure?</div>
+                    <Button className="" onClick={onClick}>Leave</Button>
                     <DialogClose asChild>
-                        <Button className="" variant="secondary">Close</Button>
+                        <Button className="" variant="secondary">Cancel</Button>
                     </DialogClose>
                 </div>
                 <DialogFooter>
