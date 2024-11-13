@@ -39,7 +39,7 @@ export default function Scoreboard({ playersOrdered, scores,
         return (
             <>
                 {roundState === RoundState.WordSelection &&
-                    <WordSelectionBox wordSoFar={wordSelectionSoFar} latestWordSubmission={latestWordSubmission}  />
+                    <WordSelectionBox wordSoFar={wordSelectionSoFar} latestWordSubmission={latestWordSubmission} wordSubmissionState={wordSubmissionState}  />
                 }
                 <div>{instructionMessage()}</div>
             </>
@@ -70,7 +70,7 @@ export default function Scoreboard({ playersOrdered, scores,
                 return 'Drag to select a word.';
             }
             else if (wordSubmissionState == WordSubmissionState.Submitted) {
-                return <Button className="" variant="secondary" onClick={onConfirmWord}>Confirm</Button>;
+                return <Button className="" onClick={onConfirmWord}>Confirm</Button>;
             } else if (wordSubmissionState == WordSubmissionState.Confirmed) {
                 return <div>Waiting for other players...</div>
             } else return;
@@ -99,12 +99,6 @@ export default function Scoreboard({ playersOrdered, scores,
                         <span>{p.playerName}: {score?.score} point{score && score?.score > 1 && 's'}</span>
                     </div>
                 )
-            } else {
-                return (
-                    <div key={p.userId} className="turnOrder">
-                        {p.playerName} {<span>: {score?.score}</span>}
-                    </div>
-                )
             }
         })
     }
@@ -116,7 +110,7 @@ export default function Scoreboard({ playersOrdered, scores,
 
     return (
         <>
-            <div className="h-16">
+            <div className="h-28">
                 {!gameState.isGameFinished && message()}
             </div>
 

@@ -1,20 +1,16 @@
 import {WordSubmissionResponse, WordSubmissionState} from "~/components/Types.tsx";
 import {INVALID_COLOR, IN_PROGRESS_COLOR, VALID_COLOR} from "~/components/Constants.tsx";
-import {AnimatePresence, easeInOut, motion} from "framer-motion";
+import {AnimatePresence, motion} from "framer-motion";
 import {clsx} from "clsx";
-
-enum WordSelectionState {
-    InProgress,
-    Valid,
-    Invalid,
-}
+import {Icons} from "~/components/ui/icons.tsx";
 
 interface WordSelectionBoxProps {
     wordSoFar: string,
     latestWordSubmission: WordSubmissionResponse | null | undefined,
+    wordSubmissionState: WordSubmissionState,
 }
 
-export function WordSelectionBox({wordSoFar, latestWordSubmission}: WordSelectionBoxProps) {
+export function WordSelectionBox({wordSoFar, latestWordSubmission, wordSubmissionState}: WordSelectionBoxProps) {
 
     const variants = {
         noSelection: { opacity: 0 },
@@ -34,13 +30,16 @@ export function WordSelectionBox({wordSoFar, latestWordSubmission}: WordSelectio
         animationState = 'noSelection';
     }
 
+    const showWordScore = latestWordSubmission != undefined && latestWordSubmission.isValid && wordSoFar.length == 0;
+
     const wordToDisplay = wordSoFar.length > 0 ? wordSoFar : latestWordSubmission ? latestWordSubmission.wordSubmitted : '';
 
     return (
         <AnimatePresence>
             <motion.div variants={variants} animate={animationState} className={clsx('text-xl font-bold text-white p-4 inline-block rounded-lg')}>
                 <span>{wordToDisplay}</span>
-                {latestWordSubmission != undefined && latestWordSubmission.isValid && wordSoFar.length == 0 && <span className={'text-xs'}>+{latestWordSubmission.score}</span>}
+                {wordSubmissionState == 'Submitting' && <Icons.spinner className="h-4 w-4 inline animate-spin ml-1" />}
+                {showWordScore && <span className={'text-xs'}>+{latestWordSubmission.score}</span>}
             </motion.div>
         </AnimatePresence>
     )

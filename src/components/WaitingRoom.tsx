@@ -11,6 +11,10 @@ import {
 import { Button } from "./ui/button";
 import { Icons } from "./ui/icons";
 import { RulesDialog } from "./RulesDialog";
+import {LeaveRoomConfirmationDialog} from "~/components/LeaveRoomConfirmationDialog.tsx";
+import clsx from "clsx";
+import {MAX_NUM_PLAYERS_PER_ROOM} from "~/server/Constants.tsx";
+import {Laptop, CheckCircle} from "lucide-react";
 
 
 interface WaitingRoomProps {
@@ -66,14 +70,46 @@ export default function WaitingRoom({ basePlayer, roomCode, onLeaveRoom }: Waiti
     const { presenceData } = usePresenceListener<RoomPlayerInfo>(channelName);
     const presencePlayers = presenceData.map((msg) => msg.data);
     const allPlayersReady = presenceData.length > 0 && presenceData.find(p => p.data.readyStatus === ReadyOptions.NotReady) == undefined;
+    const numRemainingSlots = MAX_NUM_PLAYERS_PER_ROOM - presencePlayers.length;
 
     return (
         <div className="max-w-lg rounded-lg shadow-md bg-white p-6 space-y-6 border-gray-400 dark:border-gray-700">
             <div className="flex space-x-1 mb-6">
-                <Button className="" onClick={onLeaveRoom} variant="secondary">Leave Room: {roomCode}</Button>
+                <LeaveRoomConfirmationDialog onClick={onLeaveRoom} roomCode={roomCode} />
                 <RulesDialog/>
             </div>
             <div className="space-y-6">
+                {!hasGameStarted &&
+                    <>
+                        {allPlayersReady ?
+                            <div>Waiting for host to start... <Icons.spinner className="h-4 w-4 inline animate-spin ml-1" /></div> :
+                            <div>Waiting for players... <Icons.spinner className="h-4 w-4 inline animate-spin ml-1" /></div>}
+                        <div className={"space-y-1"}>
+                            {presencePlayers.map(p => {
+                                const bgColor = p.readyStatus == ReadyOptions.Ready && 'bg-green-50';
+                                return <div key={p.userId} className={clsx('border-2 rounded-md h-8 flex px-2 align-middle', bgColor)}>
+                                    <div className="flex justify-between w-full">
+                                        <div className="flex items-center">
+                                            <span>{p.playerName}</span>
+                                            {p.isHost && <Laptop className={"inline ml-1"} />}
+                                        </div>
+                                        <div className="flex items-center">
+                                            {p.readyStatus == ReadyOptions.NotReady ?
+                                                <span className={"italic"}>waiting...</span> :
+                                                <CheckCircle color="green"/>}
+                                        </div>
+                                    </div>
+                                </div>
+
+                            })}
+                            {Array.from({ length: numRemainingSlots }).map((_, index) => (
+                                <div key={index} className={clsx(`border-2 rounded-md border-dashed h-8`)}>
+                                </div>
+                            ))}
+                        </div>
+                    </>
+                }
+
                 <div className="flex items-center space-x-2 justify-center">
                     <Checkbox className="w-10 h-10"
                               id="ready-checkbox" onCheckedChange={handleReadyToggle}/>
@@ -92,19 +128,6 @@ export default function WaitingRoom({ basePlayer, roomCode, onLeaveRoom }: Waiti
                         Start Game
                         {startGameMutation.isLoading && <Icons.spinner className="h-4 w-4 animate-spin ml-1"/>}
                     </Button>
-                }
-
-                {!hasGameStarted &&
-                    <>
-                        {allPlayersReady ?
-                            <div>Waiting for host to start... </div> :
-                            <div>Waiting for players... </div>}
-                        {presencePlayers.map(p => (
-                            <div key={p.userId}>
-                                {p.playerName}: {p.readyStatus}
-                            </div>
-                        ))}
-                    </>
                 }
             </div>
             {errorMsg != undefined &&
