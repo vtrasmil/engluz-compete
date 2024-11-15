@@ -38,6 +38,7 @@ export function LetterBlock({
 
     // const transformAnimScope = useTransformAnimation(sourceCell, boardDiv, isPointerOver, isSelected, latestMsg);
 
+    const letterToDisplay = prevLetters.at(0)?.toUpperCase().replace('Q', 'Qu');
     const handlePointerUp = (e: PointerEvent) => {
         onPointerUp(e, id);
     };
@@ -116,8 +117,9 @@ export function LetterBlock({
                 variants={variants} animate={animationState} exit={{scale: 0}} initial={{scale: 0}}
                 transition={transition} style={style} //ref={transformAnimScope}
             >
-                <div ref={eventTargetRef} className={`w-full h-full flex justify-center items-center`}>
-                    {prevLetters.at(0)?.toUpperCase().replace('Q', 'Qu')}
+                <div ref={eventTargetRef} className={clsx(`w-full h-full flex justify-center items-center`,
+                    letterToDisplay && letterToDisplay?.length > 1 && 'text-3xl' )}>
+                    {letterToDisplay}
                 </div>
             </motion.div>
         </AnimatePresence>
