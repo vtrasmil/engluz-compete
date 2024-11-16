@@ -16,5 +16,5 @@ export default function WaitingRoomParent({ children, roomCode }: WaitingRoomPar
         void router.push(`${roomCode}/play`);
     });
 
-    return <div>{children}</div>;
+    return <div className={"waiting-room-parent"}>{children}</div>;
 }

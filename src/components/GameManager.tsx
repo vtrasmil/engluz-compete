@@ -167,13 +167,15 @@ export default function GameManager({ gameId, roomCode, playersOrdered,
 
     return (
         <div className="max-w-lg p-6 space-y-6">
-            <div className="flex space-x-1 mb-6">
-                <LeaveRoomConfirmationDialog onClick={onLeaveRoom} roomCode={roomCode} />
+            <div className="flex space-x-1 mb-6 justify-center">
+                <LeaveRoomConfirmationDialog onClick={onLeaveRoom} roomCode={roomCode}/>
                 <RulesDialog/>
             </div>
             {roundState == RoundState.GameFinished ?
                 <h2>Game Over!</h2> :
-                <h2>{`Round ${gameState.round + 1}/${NUM_ROUNDS_PER_GAME}`}</h2>
+                <div className={"green-200"}>{`Round ${gameState.round + 1}/${NUM_ROUNDS_PER_GAME}`}</div>
+
+
             }
             {roundState != RoundState.GameFinished &&
                 <Board boardConfig={gameState.board} roomCode={roomCode} onSubmitWord={handleSubmitWord}

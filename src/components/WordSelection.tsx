@@ -13,10 +13,10 @@ interface WordSelectionBoxProps {
 export function WordSelectionBox({wordSoFar, latestWordSubmission, wordSubmissionState}: WordSelectionBoxProps) {
 
     const variants = {
-        noSelection: { opacity: 0 },
-        inProgress: { opacity: 1, backgroundColor: IN_PROGRESS_COLOR },
-        valid: { opacity: 1, backgroundColor: VALID_COLOR },
-        invalid: { opacity: 1, backgroundColor: INVALID_COLOR },
+        noSelection: { opacity: 0, transition: {duration: 1} },
+        inProgress: { opacity: 1, backgroundColor: IN_PROGRESS_COLOR, transition: { duration: 1 } },
+        valid: { opacity: 1, backgroundColor: VALID_COLOR, scale: [1, 1.2, 1], transition: { duration: 0.3 } },
+        invalid: { opacity: 1, backgroundColor: INVALID_COLOR, x: [0, -5, 5, -5, 5, 0], transition: { duration: 0.3 } },
     }
 
     let animationState: string;

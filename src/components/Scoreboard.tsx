@@ -70,7 +70,7 @@ export default function Scoreboard({ playersOrdered, scores,
                 return 'Drag to select a word.';
             }
             else if (wordSubmissionState == WordSubmissionState.Submitted) {
-                return <Button className="" onClick={onConfirmWord}>Confirm</Button>;
+                return <Button className="mt-1 bg-green-500 border" onClick={onConfirmWord}>Confirm?</Button>;
             } else if (wordSubmissionState == WordSubmissionState.Confirmed) {
                 return <div>Waiting for other players...</div>
             } else return;
@@ -96,7 +96,7 @@ export default function Scoreboard({ playersOrdered, scores,
             if (gameState.isGameFinished) {
                 return (
                     <div key={p.userId} className="totalScores">
-                        <span>{p.playerName}: {score?.score} point{score && score?.score > 1 && 's'}</span>
+                        <span>{p.playerName}: {score?.score} point{score && (score?.score > 1 || score?.score == 0) && 's'}</span>
                     </div>
                 )
             }

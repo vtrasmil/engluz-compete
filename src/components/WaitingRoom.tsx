@@ -73,8 +73,8 @@ export default function WaitingRoom({ basePlayer, roomCode, onLeaveRoom }: Waiti
     const numRemainingSlots = MAX_NUM_PLAYERS_PER_ROOM - presencePlayers.length;
 
     return (
-        <div className="max-w-lg rounded-lg shadow-md bg-white p-6 space-y-6 border-gray-400 dark:border-gray-700">
-            <div className="flex space-x-1 mb-6">
+        <div className="rounded-lg shadow-md bg-white p-6 space-y-6 border-gray-400 dark:border-gray-700 w-72">
+            <div className="flex space-x-1 mb-6 justify-center">
                 <LeaveRoomConfirmationDialog onClick={onLeaveRoom} roomCode={roomCode} />
                 <RulesDialog/>
             </div>
@@ -84,10 +84,11 @@ export default function WaitingRoom({ basePlayer, roomCode, onLeaveRoom }: Waiti
                         {allPlayersReady ?
                             <div>Waiting for host to start... <Icons.spinner className="h-4 w-4 inline animate-spin ml-1" /></div> :
                             <div>Waiting for players... <Icons.spinner className="h-4 w-4 inline animate-spin ml-1" /></div>}
+                        <div className={"border p-5"}>Tell your friends! <br/>Room code: <b>{roomCode}</b></div>
                         <div className={"space-y-1"}>
                             {presencePlayers.map(p => {
-                                const bgColor = p.readyStatus == ReadyOptions.Ready && 'bg-green-50';
-                                return <div key={p.userId} className={clsx('border-2 rounded-md h-8 flex px-2 align-middle', bgColor)}>
+                                const borderColor = p.readyStatus == ReadyOptions.Ready ? 'border-green-600' : 'border-slate-500';
+                                return <div key={p.userId} className={clsx('border rounded-md h-8 flex px-2 align-middle', borderColor)}>
                                     <div className="flex justify-between w-full">
                                         <div className="flex items-center">
                                             <span>{p.playerName}</span>
@@ -103,7 +104,7 @@ export default function WaitingRoom({ basePlayer, roomCode, onLeaveRoom }: Waiti
 
                             })}
                             {Array.from({ length: numRemainingSlots }).map((_, index) => (
-                                <div key={index} className={clsx(`border-2 rounded-md border-dashed h-8`)}>
+                                <div key={index} className={clsx(`border border-slate-300 rounded-md border-dashed h-8`)}>
                                 </div>
                             ))}
                         </div>

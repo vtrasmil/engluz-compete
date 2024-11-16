@@ -19,7 +19,7 @@ export function LeaveRoomConfirmationDialog({onClick, roomCode} : LeaveRoomConfi
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button variant="outline">Leave Room: {roomCode}</Button>
+                <Button variant="outline">Leave Room</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>

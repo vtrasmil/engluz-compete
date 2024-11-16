@@ -35,9 +35,9 @@ export function VisualTimer({ durationMs, onTimeUp, initStartTime }: VisualTimer
     }, [timer, durationMs, initStartTime]);
 
     return (
-        <div className={`timer`}>
-            <div style={{'width': timeLeftPercentage()}} className={clsx('h-5', 'bg-red-100')} />
-        </div >
+        <div className={`timer border-2 border-red-200 rounded-md`}>
+            <div style={{'width': timeLeftPercentage()}} className={clsx('h-5', 'bg-red-100 ')} />
+        </div>
     )
 }
 

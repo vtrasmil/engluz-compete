@@ -24,11 +24,11 @@ export function RulesDialog() {
                     </DialogDescription>
                 </DialogHeader>
                 <div className="py-4 text-center space-y-4">
-                    <div>Find the longest word in 60 seconds.</div>
+                    <div>Find the longest word you can within 60 seconds.</div>
 
-                    <div>Score more points for longer words. </div>
+                    <div>Longer words = more points.</div>
 
-                    <div>Win by having the most points after 5 rounds.</div>
+                    <div>The player with the most points after 5 rounds wins.</div>
 
                     <div>Drag to select.</div>
                     <DialogClose asChild>
