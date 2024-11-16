@@ -110,9 +110,11 @@ export default function Scoreboard({ playersOrdered, scores,
 
     return (
         <>
-            <div className="h-28">
-                {!gameState.isGameFinished && message()}
-            </div>
+            {!gameState.isGameFinished &&
+                <div className="h-28">
+                     {message()}
+                </div>
+            }
 
             <div id="scoreboard" className="relative">
                 {gameState.isGameFinished && <h2>Final Score:</h2>}

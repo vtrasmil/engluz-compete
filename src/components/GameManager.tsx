@@ -172,7 +172,7 @@ export default function GameManager({ gameId, roomCode, playersOrdered,
                 <RulesDialog/>
             </div>
             {roundState == RoundState.GameFinished ?
-                <h2>Game Over!</h2> :
+                <h1 className={'text-3xl'}>Game Over!</h1> :
                 <div className={"green-200"}>{`Round ${gameState.round + 1}/${NUM_ROUNDS_PER_GAME}`}</div>
 
 
