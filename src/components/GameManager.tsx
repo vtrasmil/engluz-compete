@@ -30,15 +30,14 @@ interface GameManagerProps {
     initRoundState: RoundState,
     gameTimeStarted: number,
     initTimeLastRoundOver: number | null,
+    initScores: Score[]
 }
 
 export default function GameManager({ gameId, roomCode, playersOrdered,
-                                    onLeaveRoom, initGameState, initRoundState,
+                                    onLeaveRoom, initGameState, initRoundState, initScores,
                                     gameTimeStarted, initTimeLastRoundOver}: GameManagerProps) {
     const userId = useUserIdContext();
-    const [scores, setScores] = useState<Score[]>(
-        playersOrdered.map(p => ({ userId: p.userId, score: 0 }))
-    );
+    const [scores, setScores] = useState<Score[]>(initScores);
     const channelName = ablyChannelName(roomCode);
     const [latestWordSubmission, setLatestWordSubmission] = useState<WordSubmissionResponse | null>();
     const [gameState, setGameState] = useState<GameState>(initGameState);

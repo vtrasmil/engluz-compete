@@ -52,8 +52,6 @@ export default function RoomPage() {
         }
     );
 
-
-
     function handleLeaveRoom() {
         setSessionInfo(undefined);
         void router.push(`/`);

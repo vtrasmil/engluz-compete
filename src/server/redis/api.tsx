@@ -249,7 +249,7 @@ export class RedisBoggleCommands {
             console.log('got confirmed words')
             const game = await this.fetchGameInfo(roomCode, userId);
 
-            if (game.state.round !== round) {
+            if (game.state.round !== round || game.state.isGameFinished) {
                 // game state has already been advanced
                 console.log('game state has already been advanced')
                 return;

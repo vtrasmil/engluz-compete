@@ -80,7 +80,7 @@ export default function GamePage() {
                 <GameManager gameId={gameInfo.gameId}
                             roomCode={gameInfo.roomCode} playersOrdered={roomInfoQuery.data.players}
                             onLeaveRoom={handleLeaveRoom} initGameState={currState}
-                            initRoundState={roundState}
+                            initRoundState={roundState} initScores={gameInfo.scores}
                             gameTimeStarted={gameInfo.dateTimeStarted} initTimeLastRoundOver={gameInfo.timeLastRoundOver}
                 />
             </ChannelProvider>

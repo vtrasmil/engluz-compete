@@ -33,6 +33,8 @@ export function shuffleString(str: string) {
 }
 
 export function getCurrentRoundState(gameTimeStarted: number, timeLastRoundOver: number | null, gameInfo : GameInfo) {
+    if (gameInfo.state.isGameFinished) return RoundState.GameFinished;
+
     let roundElapsed;
     if (timeLastRoundOver == null) {
         // first word selection
@@ -41,18 +43,11 @@ export function getCurrentRoundState(gameTimeStarted: number, timeLastRoundOver:
         roundElapsed = Date.now() - timeLastRoundOver - INTERMISSION_DURATION;
     }
 
-    let roundState;
     if (roundElapsed < 0) {
-        roundState = RoundState.Intermission;
+        return RoundState.Intermission;
     }
     else {
-        roundState = RoundState.WordSelection;
-    }
-
-    if (roundState == RoundState.Intermission && gameInfo.state.isGameFinished) {
-        return RoundState.GameFinished;
-    } else {
-        return roundState
+        return RoundState.WordSelection;
     }
 }
 
