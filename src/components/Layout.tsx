@@ -25,7 +25,7 @@ export default function Layout({ children }: LayoutProps) {
             </Head>
             <SpeedInsights/>
             <main
-                className={cn("bg-gray-100 min-h-screen flex items-center justify-center touch-none text-base text-center", lexend.className)}>
+                className={cn("bg-gray-100 min-h-svh flex items-center justify-center touch-none text-base text-center", lexend.className)}>
                     {children}
                     <Analytics />
             </main>
