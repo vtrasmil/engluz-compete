@@ -6,16 +6,16 @@ export const env = createEnv({
    * Specify your server-side environment variables schema here. This way you can ensure the app
    * isn't built with invalid env vars.
    */
-  server: {
-    NODE_ENV: z.enum(["development", "test", "production"]),
-    ABLY_API_KEY: z.string().min(1),
-    VERCEL_ENV: z.enum(["development", "preview", "production"]),
-    MIN_WORD_LENGTH: z.coerce.number().min(1),
-    KV_URL: z.string().min(5),
-    KV_URL_DEV: z.string().min(5),
-    KV_URL_PREVIEW: z.string().min(5),
-    KV_URL_PROD: z.string().min(5),
-  },
+  // server: {
+  //   NODE_ENV: z.enum(["development", "test", "production"]),
+  //   ABLY_API_KEY: z.string().min(1),
+  //   VERCEL_ENV: z.enum(["development", "preview", "production"]),
+  //   MIN_WORD_LENGTH: z.coerce.number().min(1),
+  //   KV_URL: z.string().min(5),
+  //   KV_URL_DEV: z.string().min(5),
+  //   KV_URL_PREVIEW: z.string().min(5),
+  //   KV_URL_PROD: z.string().min(5),
+  // },
 
   /**
    * Specify your client-side environment variables schema here. This way you can ensure the app
@@ -35,22 +35,22 @@ export const env = createEnv({
    * You can't destruct `process.env` as a regular object in the Next.js edge runtimes (e.g.
    * middlewares) or client-side so we need to destruct manually.
    */
-  runtimeEnv: {
-    NODE_ENV: process.env.NODE_ENV,
-    ABLY_API_KEY: process.env.ABLY_API_KEY,
-    VERCEL_ENV: process.env.VERCEL_ENV,
-    MIN_WORD_LENGTH: process.env.NEXT_PUBLIC_MIN_WORD_LENGTH,
-    KV_URL: process.env.KV_URL,
-    KV_URL_DEV: process.env.KV_URL_DEV,
-    KV_URL_PREVIEW: process.env.KV_URL_PREVIEW,
-    KV_URL_PROD: process.env.KV_URL_PROD,
-    NEXT_PUBLIC_NUM_ROUNDS_PER_GAME: process.env.NEXT_PUBLIC_NUM_ROUNDS_PER_GAME,
-    NEXT_PUBLIC_MIN_WORD_LENGTH: process.env.NEXT_PUBLIC_MIN_WORD_LENGTH,
-    NEXT_PUBLIC_MAX_NUM_PLAYERS_PER_ROOM: process.env.NEXT_PUBLIC_MAX_NUM_PLAYERS_PER_ROOM,
-    NEXT_PUBLIC_ROUND_DURATION: process.env.NEXT_PUBLIC_ROUND_DURATION,
-    NEXT_PUBLIC_INTERMISSION_DURATION: process.env.NEXT_PUBLIC_INTERMISSION_DURATION,
-    // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
-  },
+  // runtimeEnv: {
+  //   NODE_ENV: process.env.NODE_ENV,
+  //   ABLY_API_KEY: process.env.ABLY_API_KEY,
+  //   VERCEL_ENV: process.env.VERCEL_ENV,
+  //   MIN_WORD_LENGTH: process.env.NEXT_PUBLIC_MIN_WORD_LENGTH,
+  //   KV_URL: process.env.KV_URL,
+  //   KV_URL_DEV: process.env.KV_URL_DEV,
+  //   KV_URL_PREVIEW: process.env.KV_URL_PREVIEW,
+  //   KV_URL_PROD: process.env.KV_URL_PROD,
+  //   NEXT_PUBLIC_NUM_ROUNDS_PER_GAME: process.env.NEXT_PUBLIC_NUM_ROUNDS_PER_GAME,
+  //   NEXT_PUBLIC_MIN_WORD_LENGTH: process.env.NEXT_PUBLIC_MIN_WORD_LENGTH,
+  //   NEXT_PUBLIC_MAX_NUM_PLAYERS_PER_ROOM: process.env.NEXT_PUBLIC_MAX_NUM_PLAYERS_PER_ROOM,
+  //   NEXT_PUBLIC_ROUND_DURATION: process.env.NEXT_PUBLIC_ROUND_DURATION,
+  //   NEXT_PUBLIC_INTERMISSION_DURATION: process.env.NEXT_PUBLIC_INTERMISSION_DURATION,
+  //   // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
+  // },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.
    * This is especially useful for Docker builds.
