@@ -32,6 +32,7 @@
     "@types/lodash": "^4.14.202",
     "@types/react-router-dom": "^5.3.3",
     "@uidotdev/usehooks": "^2.1.1",
+     "@upstash/redis": "^1.30.2",    
     "@vercel/analytics": "^1.0.2",
     "@vercel/edge": "^1.1.2",
     "@vercel/kv": "^0.2.2",
