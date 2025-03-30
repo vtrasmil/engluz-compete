@@ -7,9 +7,9 @@ export const env = createEnv({
    * isn't built with invalid env vars.
    */
   server: {
-    // NODE_ENV: z.enum(["development", "test", "production"]),
+    NODE_ENV: z.enum(["development", "test", "production"]),
     ABLY_API_KEY: z.string().min(1),
-    // VERCEL_ENV: z.enum(["development", "preview", "production"]),
+    VERCEL_ENV: z.enum(["development", "preview", "production"]),
     MIN_WORD_LENGTH: z.coerce.number().min(1),
     KV_URL: z.string().min(5),
     KV_URL_DEV: z.string().min(5),
