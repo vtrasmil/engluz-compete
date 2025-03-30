@@ -18,8 +18,8 @@ export default function Layout({ children }: LayoutProps) {
     return (
         <>
             <Head>
-                <title>WORDS WORDS WORDS</title>
-                <meta name="description" content="A word game-in-progress" />
+                <title>Engluz Battle</title>
+                <meta name="description" content="word fun game" />
                 <link rel="icon" href="/favicon.ico" />
                 <meta name="viewport" content="initial-scale=1, width=device-width"/>
             </Head>
